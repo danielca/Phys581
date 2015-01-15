@@ -4,19 +4,37 @@ program Lab1_main
     use Ouyed_random_number_module
     
     implicit none
+    integer(16), dimension(3) :: a, c, m, seed
+    integer :: i
+    
+    a(1) = 106
+    c(1) = 1283
+    m(1) = 6075
+    seed(1) = 1
 
-    call lcm_test(a = 106, c = 1283, m = 6075, seed = 1, test_num = 1)
-    call lcm_test(a = 107, c = 1283, m = 6075, seed = 1, test_num = 2)
-    call lcm_test(a = 1103515245, c = 12345, m = 32768, seed = 1, test_num = 3)
+    a(2) = 107
+    c(2) = 1283
+    m(2) = 6075 
+    seed(2) = 2
 
-    call lcm_chi2_test(a = 106, c = 1283, m = 6075, seed = 1)
+    a(3) = 1103515245
+    c(3) = 12345
+    m(3) = 32768
+    seed(3) = 1
+
+    do i = 1, 3
+        call lcm_test(a = a(i), c = c(i), m = m(i), seed = seed(i), test_num = i)
+    end do
+    
+    call lcm_chi2_test(a = a(3), c = c(3), m = m(3), seed = seed(3))
 
 contains
 
     subroutine lcm_test(a, c, m, seed, test_num)
-        integer, intent(in) :: a, c, m, seed, test_num
+        integer(16), intent(in) :: a, c, m, seed
+        integer, intent(in) :: test_num
         character(len = 1024) :: filename
-        integer :: file_id, i
+        integer :: file_id, i, j
         real :: last_num, new_num
 
         write(filename, "(a16,i1.1,a4)") "./Data/LCM_test_", test_num, ".txt"
@@ -37,11 +55,11 @@ contains
     end subroutine
 
     subroutine lcm_chi2_test(a, c, m, seed)
-        integer, intent(in) :: a, c, m, seed
+        integer(16), intent(in) :: a, c, m, seed
         real(8), dimension(2,10) :: lcm_table
         real(8), dimension(2,10) :: gfort_table
-        real(8) :: lcm_rand, gfort_rand, AC
-        real(8) :: lcm_chi2, gfort_chi2, AC2
+        real(8), dimension(100) :: lcm_rand, gfort_rand 
+        real(8) :: lcm_chi2, gfort_chi2, AC
         character(len = 1024) :: format_str
         integer :: file_id, i, j
         integer :: num_tests
@@ -56,13 +74,13 @@ contains
         gfort_table = 0.0
         num_tests = 100
         do i = 1, num_tests
-            lcm_rand = lcm_random_number()
-            call random_number(gfort_rand)
+            lcm_rand(i) = lcm_random_number()
+            call random_number(gfort_rand(i))
             do j = 1, 10
-                if ((lcm_rand >= (j-1)*0.1) .and. (lcm_rand < j*0.1)) then
+                if ((lcm_rand(i) >= (j-1)*0.1) .and. (lcm_rand(i) < j*0.1)) then
                     lcm_table(1,j) = lcm_table(1,j) + 1.0
                 end if
-                if ((gfort_rand >= (j-1)*0.1) .and. (gfort_rand < j*0.1)) then
+                if ((gfort_rand(i) >= (j-1)*0.1) .and. (gfort_rand(i) < j*0.1)) then
                     gfort_table(1,j) = gfort_table(1,j) + 1.0
                 end if
             end do
@@ -93,6 +111,22 @@ contains
         !write(*,*) lcm_chi2, gfort_chi2
 
         close(file_id)
+
+        !Calculate the Auto Correlation for k ranging from 1 to 100 for both our RNG and the gfortran RNG
+        !Saves data to file for gnuplot
+        open(unit = 42, file = "./Data/AutoCorrelationLCMTest.txt", action = 'write')
+        do j = 0,100
+           call AutoCorrelation(lcm_rand, j, AC)
+           write(42,*) j, AC, lcm_rand(j)
+        enddo
+        close(42)
+
+        open(unit = 43, file = "./Data/AutoCorrelationGfortranTest.txt", action = 'write')
+        do j = 0,100
+           call AutoCorrelation(gfort_rand, j, AC)
+           write(42,*) j, AC, gfort_rand(j)
+        enddo
+        close(43)
         
     end subroutine
     
