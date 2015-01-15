@@ -40,8 +40,8 @@ contains
         integer, intent(in) :: a, c, m, seed
         real(8), dimension(2,10) :: lcm_table
         real(8), dimension(2,10) :: gfort_table
-        real(8) :: lcm_rand, gfort_rand
-        real(8) :: lcm_chi2, gfort_chi2
+        real(8) :: lcm_rand, gfort_rand, AC
+        real(8) :: lcm_chi2, gfort_chi2, AC2
         character(len = 1024) :: format_str
         integer :: file_id, i, j
         integer :: num_tests
@@ -69,6 +69,9 @@ contains
         end do
         lcm_table(2,:) = num_tests/10.0
         gfort_table(2,:) = num_tests/10.0
+
+        call AutoCorrelation(lcm_table(1,:), 1, AC)
+        write(*,*) "AC of ", AC
 
         format_str = '(i2.1,a3,i2.1,a3,i2.1,a3)'
         do i = 1, 10
