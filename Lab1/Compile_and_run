@@ -1,4 +1,4 @@
 #!/bin/bash
-gfortran ../Modules/Random_numbers_module.f90 ../Modules/Useful_stuff_module.f90 Lab1_main.f90 -o Lab1_main
-rm random_numbers_module.mod useful_stuff_module.mod
+gfortran ../Modules/Ouyed_random_number_module.f90 ../Modules/Random_numbers_module.f90 ../Modules/Useful_stuff_module.f90 Lab1_main.f90 -o Lab1_main
+rm random_numbers_module.mod useful_stuff_module.mod ouyed_random_number_module.mod
 ./Lab1_main

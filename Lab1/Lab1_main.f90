@@ -1,6 +1,7 @@
 program Lab1_main
     use Useful_stuff_module
     use Random_numbers_module
+    use Ouyed_random_number_module
     
     implicit none
 
@@ -37,42 +38,56 @@ contains
 
     subroutine lcm_chi2_test(a, c, m, seed)
         integer, intent(in) :: a, c, m, seed
-        integer, dimension(2,10) :: lcm_table
-        integer, dimension(2,10) :: gfort_table
+        real(8), dimension(2,10) :: lcm_table
+        real(8), dimension(2,10) :: gfort_table
         real(8) :: lcm_rand, gfort_rand
         real(8) :: lcm_chi2, gfort_chi2
+        character(len = 1024) :: format_str
         integer :: file_id, i, j
+        integer :: num_tests
 
         open(unit = new_file_unit(file_id), file = "./Data/LCM_chi2_test.txt", action = 'write')
 
         call set_lcm_params(a_val = a, c_val = c, m_val = m)
         call set_lcm_seed(seed_val = seed)
 
+        call init_random_seed()
         lcm_table = 0.0
         gfort_table = 0.0
-        do i = 1, 100
+        num_tests = 100
+        do i = 1, num_tests
             lcm_rand = lcm_random_number()
             call random_number(gfort_rand)
             do j = 1, 10
                 if ((lcm_rand >= (j-1)*0.1) .and. (lcm_rand < j*0.1)) then
-                    lcm_table(1,j) = lcm_table(1,j) + 1
+                    lcm_table(1,j) = lcm_table(1,j) + 1.0
                 end if
                 if ((gfort_rand >= (j-1)*0.1) .and. (gfort_rand < j*0.1)) then
-                    gfort_table(1,j) = gfort_table(1,j) + 1
+                    gfort_table(1,j) = gfort_table(1,j) + 1.0
                 end if
             end do
         end do
-        lcm_table(2,:) = 10
-        gfort_table(2,:) = 10
+        lcm_table(2,:) = num_tests/10.0
+        gfort_table(2,:) = num_tests/10.0
 
+        format_str = '(i2.1,a3,i2.1,a3,i2.1,a3)'
         do i = 1, 10
-            write(file_id,*) lcm_table(1,i), gfort_table(1,i), lcm_table(2,i)
+            write(file_id,format_str) nint(lcm_table(1,i)), ' & ', nint(gfort_table(1,i)), ' & ', nint(lcm_table(2,i)), ' \\'
         end do
 
-        lcm_chi2 = calculate_chi2(real(lcm_table, kind = 8))
-        gfort_chi2 = calculate_chi2(real(gfort_table, kind = 8))
 
+        lcm_chi2 = 0.0
+        gfort_chi2 = 0.0
+        do i = 1, 10
+            lcm_chi2 = lcm_chi2 + ((lcm_table(1,i) - lcm_table(2,i))**2)/lcm_table(2,i)
+            gfort_chi2 = gfort_chi2 + ((gfort_table(1,i) - gfort_table(2,i))**2)/gfort_table(2,i)
+        end do
         write(*,*) lcm_chi2, gfort_chi2
+
+        !lcm_chi2 = calculate_chi2(real(lcm_table, kind = 8))
+        !gfort_chi2 = calculate_chi2(real(gfort_table, kind = 8))
+
+        !write(*,*) lcm_chi2, gfort_chi2
 
         close(file_id)
         
