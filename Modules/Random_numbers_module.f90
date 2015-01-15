@@ -25,5 +25,6 @@ contains
         lcm_seed = mod(lcm_a*lcm_seed + lcm_c, lcm_m)
         lcm_random_number = lcm_seed/real(lcm_m, kind = 8)
     end function
+
 end module
 
