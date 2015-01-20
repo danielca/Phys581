@@ -33,24 +33,21 @@ contains
       real(8),dimension(:),intent(in)::x
       integer,intent(in)::k
       real(8),intent(out)::AC
-      real(8)::xbar, sigma, numerator
+      real(8)::xbar, denom, numerator
       integer::i, limit
       
-      sigma = 0
+      denom = 0
       numerator = 0
       limit = size(x)-k
 
       xbar = sum(x)/size(x)
       
       do i=1,limit
-         sigma = sigma + (x(i)-xbar)**2
+         numerator = numerator + ((x(i)-xbar)*(x(i+k)-xbar))
+         denom = denom + ((x(i)-xbar)**2)
       enddo
 
-      do i=1,limit
-         numerator = numerator + (x(i)-xbar)*(x(i+k)-xbar)
-      enddo
-
-      AC = numerator/((sigma**2)*limit)
+      AC = abs(numerator/denom)
 
     end subroutine
 

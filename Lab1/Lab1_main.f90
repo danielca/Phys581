@@ -28,6 +28,8 @@ program Lab1_main
     
     call lcm_chi2_test(a = a(3), c = c(3), m = m(3), seed = seed(3))
 
+    !call AutoCorrelationCalc(a = a(2), c = c(2), m = m(2), seed = seed(2), size = 110)
+
 contains
 
     subroutine lcm_test(a, c, m, seed, test_num)
@@ -58,7 +60,7 @@ contains
         integer(16), intent(in) :: a, c, m, seed
         real(8), dimension(2,10) :: lcm_table
         real(8), dimension(2,10) :: gfort_table
-        real(8), dimension(100) :: lcm_rand, gfort_rand 
+        real(8), dimension(110) :: lcm_rand, gfort_rand 
         real(8) :: lcm_chi2, gfort_chi2, AC
         character(len = 1024) :: format_str
         integer :: file_id, i, j
@@ -72,7 +74,7 @@ contains
         call init_random_seed()
         lcm_table = 0.0
         gfort_table = 0.0
-        num_tests = 100
+        num_tests = 200
         do i = 1, num_tests
             lcm_rand(i) = lcm_random_number()
             call random_number(gfort_rand(i))
@@ -87,9 +89,6 @@ contains
         end do
         lcm_table(2,:) = num_tests/10.0
         gfort_table(2,:) = num_tests/10.0
-
-        call AutoCorrelation(lcm_table(1,:), 1, AC)
-        write(*,*) "AC of ", AC
 
         format_str = '(i2.1,a3,i2.1,a3,i2.1,a3)'
         do i = 1, 10
@@ -115,19 +114,55 @@ contains
         !Calculate the Auto Correlation for k ranging from 1 to 100 for both our RNG and the gfortran RNG
         !Saves data to file for gnuplot
         open(unit = 42, file = "./Data/AutoCorrelationLCMTest.txt", action = 'write')
-        do j = 0,100
+        do j = 0,num_tests
            call AutoCorrelation(lcm_rand, j, AC)
            write(42,*) j, AC, lcm_rand(j)
         enddo
         close(42)
 
-        open(unit = 43, file = "./Data/AutoCorrelationGfortranTest.txt", action = 'write')
-        do j = 0,100
-           call AutoCorrelation(gfort_rand, j, AC)
-           write(42,*) j, AC, gfort_rand(j)
-        enddo
-        close(43)
+       open(unit = 43, file = "./Data/AutoCorrelationGfortranTest.txt", action = 'write')
+       do j = 0,num_tests
+          call AutoCorrelation(gfort_rand, j, AC)
+          write(43,*) j, AC, gfort_rand(j)
+       enddo
+       
         
     end subroutine
+    
+    subroutine AutoCorrelationCalc(a, c, m, seed, size)
+      integer(16), intent(in) :: a, c, m, seed
+      integer, intent(in)::size
+      real(8), dimension(size)::gfortran_rand, lcm_rand
+      integer::j
+      real(8)::AC_LCM, AC_Gfort
+      
+      call set_lcm_params(a_val = a, c_val = c, m_val = m)
+      call set_lcm_seed(seed_val = seed)
+
+      do j=0,size
+         lcm_rand(i) = lcm_random_number()
+         !write(*,*) lcm_rand(j)
+         call random_number(gfortran_rand(i))
+      end do
+  
+
+      open(unit = 42, file = "./Data/AutoCorrelationLCMTest2.txt", action = 'write')
+      open(unit = 43, file = "./Data/AutoCorrelationGfortranTest2.txt", action = 'write')
+       do j = 0,size
+          call AutoCorrelation(lcm_rand, j, AC_LCM)
+          write(42,*) j, AC_LCM, lcm_rand(j)
+          call AutoCorrelation(gfortran_rand,j,AC_Gfort)
+          write(43,*) j, AC_Gfort, gfortran_rand(j)
+       enddo
+       close(42)
+
+      
+      !do j = 0,size
+      !   call AutoCorrelation(gfortran_rand, j, AC)
+      !   write(42,*) j, AC, gfortran_rand(j)
+      !enddo
+      close(43)
+      
+    end subroutine AutoCorrelationCalc
     
 end program
