@@ -136,12 +136,16 @@ end subroutine
 
 integer function new_file_unit(unit) result(n)
     integer, intent(out), optional :: unit
-    logical inuse
+    logical :: inuse
+    integer :: io_stat
     integer, parameter :: n_min = 10
     integer, parameter :: n_max = 999
 
     do n = n_min, n_max
-        inquire(unit = n, opened = inuse)
+        inquire(unit = n, opened = inuse, iostat = io_stat)
+
+        if (io_stat .ne. 0) cycle
+
         if (.not. inuse) then
             if (present(unit)) unit = n
             return

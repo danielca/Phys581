@@ -1,0 +1,4 @@
+#!/bin/bash
+gfortran ../Modules/Ouyed_random_number_module.f90 ../Modules/Random_numbers_module.f90 ../Modules/Useful_stuff_module.f90 Pseudo_RNGs.f90 -o Pseudo_RNGs
+rm random_numbers_module.mod useful_stuff_module.mod ouyed_random_number_module.mod
+./Pseudo_RNGs

@@ -30,11 +30,11 @@ contains
     end function
 
     subroutine AutoCorrelation(x, k, AC)
-      real(8),dimension(:),intent(in)::x
-      integer,intent(in)::k
-      real(8),intent(out)::AC
-      real(8)::xbar, denom, numerator
-      integer::i, limit
+      real(8), dimension(:), intent(in) :: x
+      integer, intent(in) :: k
+      real(8), intent(out) :: AC
+      real(8) :: xbar, denom, numerator
+      integer :: i, limit
       
       denom = 0
       numerator = 0
@@ -42,12 +42,12 @@ contains
 
       xbar = sum(x)/size(x)
       
-      do i=1,limit
+      do i = 1, limit
          numerator = numerator + ((x(i)-xbar)*(x(i+k)-xbar))
          denom = denom + ((x(i)-xbar)**2)
       enddo
 
-      AC = abs(numerator/denom)
+      AC = numerator/denom
 
     end subroutine
 
