@@ -10,6 +10,7 @@ program Simulated_anneal_tests
     integer :: num_accepted, num_func_evals, num_out_bounds, error_code
     logical :: find_max
 
+    real(8) :: time_begin, time_end
 
     do test_num = 0, 2
         write(*,*) "-------------------------------"
@@ -24,6 +25,7 @@ program Simulated_anneal_tests
             find_max = .true.
         end if
 
+        call cpu_time(time_begin)
         call sa( n = 2,                              &
                  x = vect,                           &
                  fcn = func,                         &
@@ -49,9 +51,12 @@ program Simulated_anneal_tests
                  nobds = num_out_bounds,             &
                  ier = error_code )
 
+        call cpu_time(time_end)
+        write(*,*) "Execution time: ", time_end - time_begin
         write(*,*) "-------------------------------"
         write(*,*) "End test ", test_num
         write(*,*) "-------------------------------"
+
     end do
 
 contains
