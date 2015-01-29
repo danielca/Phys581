@@ -367,10 +367,8 @@ INTERFACE
         REAL (dp), INTENT(IN)  :: theta(:)
     END FUNCTION fcn
 END INTERFACE
-
 !  Initialize the random number generator RANMAR.
 CALL rmarin(iseed1, iseed2)
-
 !  Set initial values.
 nacc = 0
 nobds = 0
@@ -523,6 +521,7 @@ DO m = 1, nt
 END DO
 
 IF(iprint >= 1) THEN
+  
   CALL prt9(max,n,t,xopt,vm,fopt,nup,ndown,nrej,lnobds,nnew)
 END IF
 
@@ -552,8 +551,8 @@ f = fopt
 x(1:n) = xopt(1:n)
 
 !  Loop again.
-GO TO 100
 
+GO TO 100
 END SUBROUTINE sa
 
 

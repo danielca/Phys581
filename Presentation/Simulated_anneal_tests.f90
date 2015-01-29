@@ -12,13 +12,12 @@ program Simulated_anneal_tests
 
 
     do test_num = 0, 2
-
         write(*,*) "-------------------------------"
         write(*,*) "Begin test ", test_num
         write(*,*) "-------------------------------"
         step_vector = (/ 2.0, 2.0 /)
         temperature = 1.0d0
-        vect = (/ 1.0d0, 1.0d0 /)
+        vect = (/ -10.0d0, -10.0d0 /)
         if (test_num == 2) then
             find_max = .false.
         else
@@ -35,8 +34,8 @@ program Simulated_anneal_tests
                  Nt = max(100, 5*2),                 &
                  Neps = 4,                           &
                  maxevl = 10000000,                  &
-                 lb = (/ -1.0d20, -1.0d20 /),        &
-                 ub = (/ +1.0d20, +1.0d20 /),        &
+                 lb = (/ -1.0d2, -1.0d2 /),          &
+                 ub = (/ +1.0d2, +1.0d2 /),          &
                  c = (/ 2.0d0, 2.0d0 /),             &
                  iprint = 1,                         &
                  iseed1 = 12047,                     &
