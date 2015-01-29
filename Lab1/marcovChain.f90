@@ -14,6 +14,7 @@ subroutine SunnyRainyCalculation()
   real(kind=8),dimension(2)::init_vec,fin_vec
   integer::i,iterations=100
   prob_mat = reshape((/ 0.9, 0.1, 0.5, 0.5 /),shape(prob_mat))
+  write(*,*) prob_mat(2,2)
 
   !for the first initial vec
   init_vec = (1,0)
@@ -21,18 +22,19 @@ subroutine SunnyRainyCalculation()
   open(unit=43, file="./Data/MarcovRainy1.txt", action="write")
   !write the initial values
   write(42,*) init_vec(1), 0
-  write(43,*) fin_vec(2), 0
+  write(43,*) init_vec(2), 0
 
   !multiply the probability matrix
   !initial muliplication
   pn=matmul(prob_mat,prob_mat)
-  fin_vec=matmul(pn,init_vec)
+  fin_vec=matmul(init_vec,prob_mat)
   write(42,*) fin_vec(1), 1
   write(43,*) fin_vec(2), 1
   !FINISH IT
   do i=2,iterations
      pn=matmul(pn,prob_mat)
-     fin_vec=matmul(pn,fin_vec)
+     write(*,*) pn
+     fin_vec=matmul(fin_vec,prob_mat)
      write(42,*) fin_vec(1), i
      write(43,*) fin_vec(2), i
   enddo
