@@ -1,0 +1,80 @@
+\documentclass[twocolumn]{myarticle}
+
+\usepackage{mymacros}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\lstset{%
+basicstyle=\small\ttfamily,
+columns=flexible,
+breaklines=true,
+numbers=left,
+stepnumber=1,}
+
+\begin{document}
+
+\title{Monte Carlo methods in computational physics}
+\author{Casey Daniel and Chris Deimert}
+\date{\today}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:introduction}
+
+In this report, we explore a number of Monte Carlo numerical methods.
+Monte Carlo methods use pseudorandom numbers to explore complicated systems.
+These methods tend to converge slowly for simple problems, but can be very efficient for complex problems: especially those with a large number of variables.
+
+\section{Pseudo random numbers}
+\label{sec:pseudo_random_numbers}
+
+Monte Carlo methods typically rely heavily on our ability to generate a large quantity of random numbers.
+We cannot, of coure, generate truly random numbers on a deterministic computer, so we have to approximate them with pseudo-random numbers (PRN's).
+Having a reliable PRN generator is thus a key prerequisite to any Monte Carlo method.
+In this section, we will study the linear congruential method (LCM) for generating PRN's.
+The LCM generates a sequence of pseudo-random integers with the $ n $th integer given by
+\begin{align}
+    I_{n} &= \left( A I_n + C \right) \! \! \! \! \! \mod M
+\end{align}
+($ I_0 $ is called the "seed".)
+We can then generate a sequence $ x_n = I_n/M $ of pseudo-random real numbers with $ 0 < x_n < 1 $.
+
+A Fortran 90 module was created to implement the LCM generator and can be seen in Section~\ref{subsec:pseudo_random_numbers_module}.
+This code was tested in a number of ways, the code for which is in Section~\ref{subsec:pseudo_random_numbers_main_code} and Section~\ref{subsec:pseudo_random_numbers_plotting_code}.)
+
+The first, simplest test used $ I_0 = 3 $, $ A = 7 $, $ C = 0 $, and $ M = 10 $.
+The result is a repeating sequence of numbers:
+\begin{align}
+    x &= 0.1, 0.7, 0.9, 0.3, 0.1, 0.7, 0.9, 0.3, \ldots
+\end{align}
+This sequence repeats after only 4 numbers, demonstrating why small values of $ M $ are a poor choice.
+The sequence will repeat after at most $ M $ numbers, so we must select a high value of $ M $ in order to obtain a long sequence (though high values of $ M $ do not \emph{guarantee} a long sequence).
+
+
+
+\onecolumn
+
+\section{Code}
+\label{sec:code}
+
+\subsection{Pseudo random numbers module}
+\label{subsec:pseudo_random_numbers_module}
+
+\lstinputlisting[breaklines]{../../Modules/Random_numbers_module.f90}
+\vspace{10pt}
+
+\subsection{Pseudo random numbers main code}
+\label{subsec:pseudo_random_numbers_main_code}
+
+\lstinputlisting[breaklines]{../Pseudo_RNGs.f90}
+\vspace{10pt}
+
+\subsection{Pseudo random numbers plotting code}
+\label{subsec:pseudo_random_numbers_plotting_code}
+
+\lstinputlisting[breaklines]{../Pseudo_RNGs.gp}
+\vspace{10pt}
+
+\end{document}
