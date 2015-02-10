@@ -5,7 +5,19 @@ program Pseudo_RNGs
     
     implicit none
     integer(16), dimension(3) :: a, c, m, seed
-    integer :: i
+    integer :: i, simple_test_file
+
+    simple_test_file = new_file_unit()
+    open( unit = simple_test_file, file = "./Data/Simple_LCM_test.txt", action = 'write' )
+
+    call set_lcm_seed(seed_val = 3_16)
+    call set_lcm_params(a_val = 7_16, c_val = 0_16, m_val = 10_16)
+
+    do i = 1, 50
+        write(simple_test_file,*) lcm_random_number()
+    end do
+
+    close(simple_test_file)
     
     a(1) = 106
     c(1) = 1283

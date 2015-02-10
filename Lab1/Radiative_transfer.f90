@@ -24,16 +24,18 @@ program Radiative_transfer
     write(filename, "(a34)") "./Data/Scattering_experiment_1.txt"
     call scattering_experiment( tau_max = 10.0d0,             &
                                 z_max = 1.0d0,                &
-                                prob_abs = -0.1d0,             &
-                                num_photons = 100000,         &
-                                output_file = filename )
+                                prob_abs = -0.1d0,            &
+                                num_photons = 1000000,        &
+                                output_file = filename,       &
+                                num_bins = 20 )
 
     write(filename, "(a34)") "./Data/Scattering_experiment_2.txt"
     call scattering_experiment( tau_max = 10.0d0,             &
                                 z_max = 1.0d0,                &
                                 prob_abs = 0.5d0,             &
-                                num_photons = 100000,         &
-                                output_file = filename )
+                                num_photons = 100000000,      &
+                                output_file = filename,       &
+                                num_bins = 20 )
 
     write(filename, "(a35)") "./Data/Single_photon_experiment.txt"
     call single_photon_experiment( tau_max = 10.0d0,             &
@@ -190,16 +192,22 @@ contains
 
     end subroutine
 
-    subroutine scattering_experiment(tau_max, z_max, prob_abs, num_photons, output_file)
+    subroutine scattering_experiment(tau_max, z_max, prob_abs, num_photons, num_bins, output_file)
         real(8), intent(in) :: tau_max, z_max, prob_abs
         character(len = 1024), intent(in) :: output_file
-        integer, intent(in) :: num_photons
+        integer, intent(in) :: num_photons, num_bins
         type (photon), dimension(num_photons) :: photons
-        integer :: file_id, num_iter, max_num_iter, i
+        real(8), dimension(num_bins) :: mu_bin_centres, theta_bin_centres, intensity, theor_intensity
+        integer, dimension(num_bins) :: mu_hist
+        real(8), dimension(:), allocatable :: transmitted_mus
+        real(8) :: mu_spacing
+        integer :: num_iter, max_num_iter, num_transmitted
+        integer :: file_id, i, j
 
         open( unit = new_file_unit(file_id), file = output_file, action = 'write' )
 
         max_num_iter = 100000
+
         call init_photons(photons)
 
         num_iter = 0
@@ -212,25 +220,62 @@ contains
             end if
         end do
 
+        num_transmitted = num_in_state(photons, TRANSMITTED)
+        allocate(transmitted_mus(num_transmitted))
+
+        j = 1
         do i = 1, num_photons
-            write(file_id, *) photons(i)%x, photons(i)%y, photons(i)%z,     &
-                              photons(i)%theta, photons(i)%phi,             &
-                              photons(i)%state, photons(i)%life_time
+            if (photons(i)%state == TRANSMITTED) then
+                transmitted_mus(j) = cos(photons(i)%theta)
+                j = j + 1
+            end if
         end do
+
+        mu_hist = 0.0
+        mu_spacing = 1.0/num_bins
+        do i = 1, num_bins
+            mu_bin_centres(i) = (i - 0.5)*mu_spacing
+            theta_bin_centres(i) = acos(mu_bin_centres(i))*180.0/3.14159265
+            do j = 1, num_transmitted
+                if (abs(transmitted_mus(j) - mu_bin_centres(i)) < 0.5*mu_spacing) then
+                    mu_hist(i) = mu_hist(i) + 1
+                end if
+            end do
+            intensity(i) = mu_hist(i)*num_bins/(2.0*num_transmitted*mu_bin_centres(i))
+            theor_intensity(i) = 0.0244*(51.6 - 0.0043*(theta_bin_centres(i))**2)
+            write(file_id,*) theta_bin_centres(i), mu_hist(i), intensity(i), theor_intensity(i)
+        end do
+
+        !call histogram(transmitted_mus, mu_bin_centres, mu_hist)
+
+
+        !do i = 1, num_bins
+        !    write(file_id,*) acos(mu_bin_centres(i)), mu_hist(i)
+        !end do
+
+        !do i = 1, num_photons
+        !    write(file_id, *) photons(i)%x, photons(i)%y, photons(i)%z,     &
+        !                      photons(i)%theta, photons(i)%phi,             &
+        !                      photons(i)%state, photons(i)%life_time
+        !end do
 
         write(*,*) "================================"
         write(*,*) "Scattering experiment:"
         write(*,*) ""
-        write(*,*) "tau_max        = ", tau_max
-        write(*,*) "z_max          = ", z_max
-        write(*,*) "prob_abs       = ", prob_abs
-        write(*,*) "num_photons    = ", num_photons
-        write(*,*) "num_iterations = ", num_iter
+        write(*,*) "tau_max          = ", tau_max
+        write(*,*) "z_max            = ", z_max
+        write(*,*) "prob_abs         = ", prob_abs
+        write(*,*) "num_photons      = ", num_photons
+        write(*,*) "num_absorbed     = ", num_in_state(photons, ABSORBED)
+        write(*,*) "num_transmitted  = ", num_in_state(photons, TRANSMITTED)
+        write(*,*) "num_reflected    = ", num_in_state(photons, REFLECTED)
+        write(*,*) "num_iterations   = ", num_iter
         write(*,*) ""
         write(*,*) "Output file    = ", trim(output_file)
         write(*,*) "================================"
 
         close(file_id)
+        deallocate(transmitted_mus)
 
     end subroutine
 
@@ -246,7 +291,7 @@ contains
         max_num_iter = 100000
 
         call init_photons(photons)
-        do while (photons(1)%life_time < 700)
+        do while (photons(1)%life_time < 100)
 
             call init_photons(photons)
 

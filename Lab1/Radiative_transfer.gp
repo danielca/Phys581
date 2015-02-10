@@ -43,4 +43,29 @@ unset key
 
 plot "./Data/Theta_histogram.txt" with boxes
 
+set output "./Plots/Scattering_experiment_1.pdf"
+
+set title "Intensity distribution with no absorption"
+set xlabel "theta (deg)"
+set ylabel "Normalized intensity"
+set xrange[0:90]
+set yrange[0:1.8]
+set key
+
+plot \
+"./Data/Scattering_experiment_1.txt" using 1:3 with points title "Monte Carlo", \
+"./Data/Scattering_experiment_1.txt" using 1:4 with lines lc 0 title "Theoretical"
+
+set output "./Plots/Scattering_experiment_2.pdf"
+
+set title "Intensity distribution with absorption"
+set xlabel "theta (deg)"
+set ylabel "Normalized intensity"
+set xrange[0:90]
+set yrange[0:3.0]
+set key
+
+plot \
+"./Data/Scattering_experiment_2.txt" using 1:3 with points title "Monte Carlo"
+
 reset
