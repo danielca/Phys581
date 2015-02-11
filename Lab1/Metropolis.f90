@@ -85,12 +85,12 @@ file_id(2,2) = 52
 file_id(2,3) = 53
 
 !Open unit files
-open(unit=48,file="./Data/hist_data_sigma-0.025_1000",action="write")
-open(unit=49,file="./Data/hist_data_sigma-1_1000",action="write")
-open(unit=50,file="./Data/hist_data_sigma-50_1000",action="write")
-open(unit=51,file="./Data/hist_data_sigma-0.025_50000",action="write")
-open(unit=52,file="./Data/hist_data_sigma-1_50000",action="write")
-open(unit=53,file="./Data/hist_data_sigma-50_50000",action="write")
+open(unit=48,file="./Data/hist_data_sigma-0.025_1000.txt",action="write")
+open(unit=49,file="./Data/hist_data_sigma-1_1000.txt",action="write")
+open(unit=50,file="./Data/hist_data_sigma-50_1000.txt",action="write")
+open(unit=51,file="./Data/hist_data_sigma-0.025_50000.txt",action="write")
+open(unit=52,file="./Data/hist_data_sigma-1_50000.txt",action="write")
+open(unit=53,file="./Data/hist_data_sigma-50_50000.txt",action="write")
 
 !deal with the historgrams
 do i =1,3
