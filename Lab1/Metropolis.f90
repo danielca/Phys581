@@ -4,14 +4,15 @@ use Useful_stuff_module
 
 implicit none
 
-integer::k, i, j, accepted_values
+integer::k, i, j, accepted_values, max_burn_iterations
+real(kind=8)::sigma_burn
 real(kind=8), dimension(3)::sigma
 real(kind=8)::xn, x_star, unit_rand
 integer, dimension(2,3)::file_id
 integer, dimension(2)::max_iterations
-real(kind=8), allocatable,dimension(:,:)::x1,x2
-integer, dimension(3,50):: hist_data1, hist_data2
-real(kind=8),dimension(3,50)::bin_center1, bin_center2
+real(kind=8), allocatable,dimension(:,:)::x1,x2, x3, x4
+integer, dimension(3,50):: hist_data1, hist_data2, hist_data3, hist_data4
+real(kind=8),dimension(3,50)::bin_center1, bin_center2, bin_center3, bin_center4
 
 max_iterations(1) = 1000
 max_iterations(2) = 50000
@@ -19,6 +20,8 @@ max_iterations(2) = 50000
 !allocate the arrays
 allocate(x1(3,max_iterations(1)))
 allocate(x2(3,max_iterations(2)))
+allocate(x3(3,1000))
+allocate(x4(3,800))
 
 !Intialize the 
 sigma(1) = 0.025
@@ -84,6 +87,7 @@ file_id(2,1) = 51
 file_id(2,2) = 52
 file_id(2,3) = 53
 
+
 !Open unit files
 open(unit=48,file="./Data/hist_data_sigma-0.025_1000.txt",action="write")
 open(unit=49,file="./Data/hist_data_sigma-1_1000.txt",action="write")
@@ -110,6 +114,97 @@ close(51)
 close(52)
 close(53)
 
+
+
+!***************************************************************************************************************************************************
+!Burn in section 1
+
+
+!Intialize the sigma
+sigma_burn = 0.2
+max_burn_iterations = 1000
+
+!using an array of file ID to write to seperate data files for each senario
+file_id(1,1) = 54
+file_id(1,2) = 55
+file_id(1,3) = 56
+file_id(2,1) = 57
+file_id(2,2) = 58
+file_id(2,3) = 59
+
+!OPEN ALL THE FILES!
+open(unit=54, file="./Data/Metropolis_Burn1_1.txt", action = "write")
+open(unit=55, file="./Data/Metropolis_Burn1_2.txt", action = "write")
+open(unit=56, file="./Data/Metropolis_Burn1_3.txt", action = "write")
+open(unit=57, file="./Data/Metropolis_Burn2_1.txt", action = "write")
+open(unit=58, file="./Data/Metropolis_Burn2_2.txt", action = "write")
+open(unit=59, file="./Data/Metropolis_Burn2_3.txt", action = "write")
+
+!main loop
+do j=1,3 !new experiment
+  xn = -3.0
+  do i=1,max_burn_iterations
+    !find x_star
+    unit_rand = random_normal()
+    x_star = sigma_burn*unit_rand + xn
+    xn = select_new_point(x_star,xn)
+    !icrement the accepted_values counter if needed
+    write(file_id(1,j),*) x_star, xn, i
+         
+    !write in the arrays
+    x3(j,i) = xn
+    if(i .gt. 200) then
+       x4(j,i-200)=xn
+       write(file_id(2,j),*) x_star, xn, i-200
+    end if
+    
+    end do
+end do
+   
+!close the files
+close(54)
+close(55)
+close(56)
+close(57)
+close(58)
+close(59)
+
+!reuse the file_id_array
+file_id(1,1) = 60
+file_id(1,2) = 61
+file_id(1,3) = 62
+file_id(2,1) = 63
+file_id(2,2) = 64
+file_id(2,3) = 65
+
+!Open unit files
+open(unit=60,file="./Data/hist_data_burn1-1.txt",action="write")
+open(unit=61,file="./Data/hist_data_burn1-2.txt",action="write")
+open(unit=62,file="./Data/hist_data_burn1-3.txt",action="write")
+open(unit=63,file="./Data/hist_data_burn2-1.txt",action="write")
+open(unit=64,file="./Data/hist_data_burn2-2.txt",action="write")
+open(unit=65,file="./Data/hist_data_burn2-3.txt",action="write")
+
+!deal with the historgrams
+do i =1,3
+   call histogram(x3(i,:),bin_center3(i,:),hist_data3(i,:))
+   call histogram(x4(i,:),bin_center4(i,:),hist_data4(i,:))
+   do j=1,size(bin_center3(i,:))
+      write(file_id(1,i),*) bin_center3(i,j), hist_data3(i,j)
+      write(file_id(2,i),*) bin_center4(i,j), hist_data4(i,j)
+   end do
+end do
+
+!close the files
+close(60)
+close(61)
+close(62)
+close(63)
+close(64)
+close(65)
+
+
+!*********************************************************************************************************************************
 contains 
 
 real(kind=8) function prob_distribution(x)
