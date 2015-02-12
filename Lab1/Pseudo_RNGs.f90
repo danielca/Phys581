@@ -27,7 +27,7 @@ program Pseudo_RNGs
     a(2) = 107
     c(2) = 1283
     m(2) = 6075 
-    seed(2) = 2
+    seed(2) = 1
 
     a(3) = 1103515245
     c(3) = 12345
@@ -89,7 +89,7 @@ contains
         call init_random_seed()
         lcm_obs = 0.0
         gfort_obs = 0.0
-        num_tests = 200
+        num_tests = 100
         do i = 1, num_tests
             lcm_rand = lcm_random_number()
             call random_number(gfort_rand)
