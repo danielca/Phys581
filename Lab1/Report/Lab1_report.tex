@@ -32,7 +32,7 @@ These methods tend to converge slowly for simple problems, but can be very effic
 \label{sec:pseudo_random_numbers}
 
 Monte Carlo methods typically rely heavily on our ability to generate a large quantity of random numbers.
-We cannot, of coure, generate truly random numbers on a deterministic computer, so we have to approximate them with pseudo-random numbers (PRN's).
+We cannot, of course, generate truly random numbers on a deterministic computer, so we have to approximate them with pseudo-random numbers (PRN's).
 Having a reliable PRN generator is thus a key prerequisite to any Monte Carlo method.
 In this section, we will study the linear congruential method (LCM) for generating PRN's.
 The LCM generates a sequence of pseudo-random integers with the $ n $th integer given by
@@ -55,7 +55,7 @@ The sequence will repeat after at most $ M $ numbers, so we must select a high v
 
 One useful way to test a pseudo-random number generator is to look at the correlation between each generated number and the number that preceded it.
 These can be plotted in a 2D scatter plot: patterns on the scatter plot imply that the pseudo-random number generator is actually predictable and thus not very random.
-The correlation plots for three different sets of coefficients are shown in Figures \ref{fig:LCM_test_1}, \ref{fig:LCM_test_2}, and \ref{fig:LCM_test_3}.
+The correlation plots for three different sets of coefficients are shown in Figures \ref{fig:lcm_test_1}, \ref{fig:lcm_test_2}, and \ref{fig:lcm_test_3}.
 Note that a seed of $ I_0 = 1 $ was used in each case.
 It is found that the third combination of coefficients provides the best pseudo-random number generator.
 
@@ -63,11 +63,11 @@ It is found that the third combination of coefficients provides the best pseudo-
     \begin{center}
     \includegraphics[width = 0.45\textwidth]{../Plots/LCM_test_1.pdf}
     \caption{%
-        The correlation plot for $ A = 106 $, $ C = 1283 $, and $ M = 6075 $ is shown below.
+        The correlation plot for $ A = 106 $, $ C = 1283 $, and $ M = 6075 $.
         It is seen that the correlation plot is strongly patterned, meaning that this is a relatively predictable sequence of numbers.
         Thus, this choice of LCM coefficients is a poor one.
     }
-    \label{fig:LCM_test_1}
+    \label{fig:lcm_test_1}
     \end{center}
 \end{figure}
 
@@ -75,13 +75,13 @@ It is found that the third combination of coefficients provides the best pseudo-
     \begin{center}
     \includegraphics[width = 0.45\textwidth]{../Plots/LCM_test_2.pdf}
     \caption{%
-        The correlation plot for $ A = 107 $, $ C = 1283 $, and $ M = 6075 $ is shown below.
+        The correlation plot for $ A = 107 $, $ C = 1283 $, and $ M = 6075 $.
         It is seen that the correlation plot is even more strongly patterned than the last one.
         Thus, this is a relatively predictable sequence of numbers and this choice of LCM coefficients is poor.
         This also demonstrates how small changes in the coefficients lead to drastic changes in the effectiveness of the LCM generator.
         (The coefficients here are the same as the last set except that $ A $ has been increased by 1).
     }
-    \label{fig:LCM_test_2}
+    \label{fig:lcm_test_2}
     \end{center}
 \end{figure}
 
@@ -89,11 +89,11 @@ It is found that the third combination of coefficients provides the best pseudo-
     \begin{center}
     \includegraphics[width = 0.45\textwidth]{../Plots/LCM_test_3.pdf}
     \caption{%
-        The correlation plot for $ A = 1103515245 $, $ C = 12345 $, and $ M = 32768 $ is shown below.
+        The correlation plot for $ A = 1103515245 $, $ C = 12345 $, and $ M = 32768 $.
         It is seen that the correlation plot is very weakly patterned, meaning that this is a relatively unpredictable sequence of numbers.
         Thus, this choice of LCM coefficients is a good one.
     }
-    \label{fig:LCM_test_3}
+    \label{fig:lcm_test_3}
     \end{center}
 \end{figure}
 
@@ -149,11 +149,203 @@ It should be noted that if the number of trials is increased from 100, the $ \ch
 We would expect the $ \chi^2 $ to decrease for truly random numbers (from the law of large numbers), so this indicates a problem with the gfortran generator.
 
 A final test we can perform is the auto-correlation test for independence.
-The autocorrelation $ A_k $ of a sequence of random variables represents the correlation between the $ t $th number and the $ t+k $th random number.
+The autocorrelation $ A_k $ of a sequence of random variables represents the correlation between the $ t $th number and the $ (t+k) $th random number.
 It is given by
 \begin{align}
     A_k &= \frac{\displaystyle \sum_{t=1}^{N-k}\big(x_t - \left\langle x \right\rangle\big)\big( x_{t+k} - \left\langle x \right\rangle \big)}{\displaystyle \sum_{t=1}^{N-k} \big( x_t - \left\langle x \right\rangle \big)^2}
 \end{align}
+
+The autocorrelation sequences were calculated for both the LCM random generator (with the third set of coefficients) and the gfortran random number generator.
+These are plotted in Figure~\ref{fig:lcm_auto_correlation} and Figure~\ref{fig:gfortran_auto_correlation}.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/LCM_auto_correlation.pdf}
+    \caption{%
+        The autocorrelation sequence for an LCM generator with $ A = 1103515245 $, $ C = 12345 $, $ M = 32768 $, and $ I_0 = 1 $.
+    }
+    \label{fig:lcm_auto_correlation}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Gfortran_auto_correlation.pdf}
+    \caption{%
+        The autocorrelation sequence for the standard gfortran pseudo-random number generator. 
+    }
+    \label{fig:gfortran_auto_correlation}
+    \end{center}
+\end{figure}
+
+We want the autocorrelation to be as close to zero as possible for a pseudo-random number generator.
+Small autocorrelations indicate that the random numbers are independent of each other.
+It is seen that both generators are pretty good in terms of independence, but the LCM performs slightly better.
+The gfortran autocorrelation sequence jumps closer to 1 towards the tail end, indicating a lack of independence.
+
+\section{Radiative transfer}
+\label{sec:radiative_transfer}
+
+In this section we apply Monte Carlo methods to the problem of radiative transfer.
+Basically, the process is:
+\begin{itemize}
+\item
+    Generate a number of photons at the bottom of a slab.
+\item
+    Move each photon forward in a random direction by a random distance.
+    At each step, there is a probability that the photon is absorbed.
+\item
+    Repeat until all the photons have either exited the slab or been absorbed.
+\end{itemize}
+
+Most random number generators only create numbers uniformly distributed between 0 and 1, so we need to determine how to generate the required random variables in terms of a uniformly distributed random variable $ U $.
+
+First, we look at the optical depth, $ \tau $.
+It is exponentially distributed with probability distribution function
+\footnote{A note on notation: the prime is used here to distinguish between a random variable ($ \tau $) and the value it takes on ($ \tau' $)}:
+\begin{align}
+    f_\tau(\tau') &= e^{-\tau'}
+\end{align}
+
+The cumulative distribution function is then
+\begin{align}
+    F_\tau (\tau') &= \int_0^{\tau'} f_\tau (s) d s
+    \\
+    F_\tau (\tau') &= 1 - e^{-\tau'}
+\end{align}
+
+Solving for $ \tau' $, we get
+\begin{align}
+    \tau' &= - \ln \left( 1 - F_\tau(\tau') \right)
+\end{align}
+
+Finally, using the fundamental principle, we find that we can generate optical depths using
+\begin{align}
+    \tau &= - \ln \left( 1 - U \right)
+\end{align}
+
+Note that the actual distance moved by the photon is not $ \tau $, but $ L = \frac{\tau z_\text{max}}{\tau_\text{max}} $, where $ z_\text{max} $ is the thickness of the slab, and $ \tau_\text{max} $ is 20 in this case.
+This is shown by:
+\begin{align}
+    \tau &= \int_0^L n \sigma ds = L n \sigma
+\end{align}
+and
+\begin{align}
+    \tau_\text{max} &= \int_0^{z_\text{max}} n \sigma ds = z_\text{max} n \sigma
+\end{align}
+Dividing the first equation by the second gives
+\begin{align}
+    L &= \frac{\tau z_\text{max}}{\tau_\text{max}}
+\end{align}
+
+When generating random directions, we want to ensure that each differential solid angle $ d \Omega = \sin \theta d \theta d \phi $ is equally likely.
+Thus is made easier by defining $ \mu = \cos \theta $ so that $ d \Omega = d \mu d \phi $.
+Then, $ \mu $ is a random variable distributed uniformly on $ [-1, 1] $, and $ \phi $ is a random variable distributed uniformly on $ [0, 2\pi] $.
+So it is trivial to generate $ \mu $ and $ \phi $ in terms of the unit, uniform random variable $ U $:
+\begin{align}
+    \mu &= 2U - 1
+    \\
+    \phi &= 2\pi U
+\end{align}
+To calculate $ \theta $ we simply use
+\begin{align}
+    \phi = \cos^{-1} (\mu) = \cos^{-1}(2U-1) 
+\end{align}
+
+To test the effectiveness of the fundamental principle, a large number of unit uniform random numbers ($ U $) were generated and used to create distributions of $ \tau $, $ \phi $, $ \mu $, and $ \theta $.
+These histograms are shown in Figures~\ref{fig:tau_histogram}, \ref{fig:phi_histogram}, \ref{fig:mu_histogram}, \ref{fig:theta_histogram}.
+In each case, $ 10^6 $ trials were run, and the histograms were normalized so that they correspond to an estimated probability distribution function.
+In each case, the histogram is exactly as expected, confirming our use of the fundamental principle.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Tau_histogram.pdf}
+    \caption{%
+        Distribution of $ \tau $ generated using a unit uniform random variable $ U $ with the fundamental principle.
+    }
+    \label{fig:tau_histogram}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Phi_histogram.pdf}
+    \caption{%
+        Distribution of $ \phi $ generated using a unit uniform random variable $ U $ with the fundamental principle.
+    }
+    \label{fig:phi_histogram}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Mu_histogram.pdf}
+    \caption{%
+        Distribution of $ \mu $ generated using a unit uniform random variable $ U $ with the fundamental principle.
+    }
+    \label{fig:mu_histogram}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Theta_histogram.pdf}
+    \caption{%
+        Distribution of $ \theta $ generated using a unit uniform random variable $ U $ with the fundamental principle.
+    }
+    \label{fig:theta_histogram}
+    \end{center}
+\end{figure}
+
+The final piece needed to perform this Monte Carlo experiment is the absorption probability, which is given in terms of the absorption and scattering cross sections:
+\begin{align}
+    P_s &= \frac{\sigma_s}{\sigma_s + \sigma_a}
+\end{align}
+Note that $ P_s $ is between 0 and 1, as expected for a probability.
+$ P_s \approx 0 $ for $ \sigma_a \gg \sigma_s $, and $ P_s \approx 1 $ for $ \sigma_a \ll \sigma_s $.
+
+To determine whether a photon is absorbed on a given iteration, we generate a unit uniform random number $ U $. 
+The photon scatters if $ U < P_s $ and it is absorbed if $ U > P_s $.
+
+With this setup, a Monte Carlo radiative transfer experiment was run with $ 10^6 $ photons, $ \tau_\text{max} = 10 $, $ z_\text{max} = 1 $ and $ P_s = 1 $ (no absorption).
+On this particular run, 101306 photons were transmitted (exited at $ z = z_\text{max} $) and $ 898694 $ were reflected (exited at $ z = 0 $).
+It took 532 steps before all photons were either reflected or transmitted.
+
+The orientation of each transmitted photon was captured and put into bins.
+This allows us to determine the normalized intensity distribution as a function of $ \theta $ and compare it to the expected theoretical curve.
+It is seen in Figure~\ref{fig:scattering_experiment_1} that there is excellent agreement between the theoretical intensity distribution and the distribution calculated using Monte Carlo.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Scattering_experiment_1.pdf}
+    \caption{%
+        Normalized intensity distribution for a radiative transfer experiment with no absorption.
+    }
+    \label{fig:scattering_experiment_1}
+    \end{center}
+\end{figure}
+
+A second experiment was performed in which there was 50\% probability of a photon being absorbed at each step ($ P_s = P_a = 0.5 $).
+As before, $ \tau_\text{max} = 10 $ and $ z_\text{max} = 1 $.
+This time, a much larger number of photons was used: $ 10^8 $.
+This was necessary to ensure that enough photons made it through the slab to make an accurate intensity distribution.
+Even with $ 10^8 $ incident photons, only 2768 photons were transmitted.
+The vast majority (82840816) were absorbed, and the rest (17156416) were reflected.
+It took only 28 iterations before all photons were either absorbed, reflected, or transmitted.
+
+The intensity distribution for transmitted photons is shown in Figure~\ref{fig:scattering_experiment_2}.
+Not only does the absorption drastically reduce the number of transmitted photons, but it can be seen that absorption also changes the intensity distribution.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Scattering_experiment_2.pdf}
+    \caption{%
+        Normalized intensity distribution for a radiative transfer experiment with absorption ($ P_s = 0.5 $).
+    }
+    \label{fig:scattering_experiment_2}
+    \end{center}
+\end{figure}
+
 
 
 \onecolumn
@@ -177,6 +369,18 @@ It is given by
 \label{subsec:pseudo_random_numbers_plotting_code}
 
 \lstinputlisting[breaklines]{../Pseudo_RNGs.gp}
+\vspace{10pt}
+
+\subsection{Radiative transfer code}
+\label{subsec:radiative_transfer_code}
+
+\lstinputlisting[breaklines]{../Radiative_transfer.f90}
+\vspace{10pt}
+
+\subsection{Radiative transfer plotting code}
+\label{subsec:radiative_transfer_plotting_code}
+
+\lstinputlisting[breaklines]{../Radiative_transfer.gp}
 \vspace{10pt}
 
 \end{document}

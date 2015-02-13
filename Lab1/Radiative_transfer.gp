@@ -6,6 +6,8 @@ set output "./Plots/Tau_histogram.pdf"
 set title "Tau histogram"
 set xlabel "tau"
 set ylabel ""
+set xrange[0:10]
+set yrange[0:1]
 unset key
 
 plot "./Data/Tau_histogram.txt" with boxes
@@ -16,7 +18,7 @@ set title "Mu histogram"
 set xlabel "mu"
 set ylabel ""
 set xrange[-1:1]
-set yrange[0:12000]
+set yrange[0:0.6]
 unset key
 
 plot "./Data/Mu_histogram.txt" with boxes
@@ -27,7 +29,7 @@ set title "Phi histogram"
 set xlabel "phi"
 set ylabel ""
 set xrange[0:6.3]
-set yrange[0:12000]
+set yrange[0:0.2]
 unset key
 
 plot "./Data/Phi_histogram.txt" with boxes
@@ -38,7 +40,7 @@ set title "Theta histogram"
 set xlabel "theta"
 set ylabel ""
 set xrange[0:3.2]
-set yrange[0:17000]
+set yrange[0:0.55]
 unset key
 
 plot "./Data/Theta_histogram.txt" with boxes
@@ -49,7 +51,7 @@ set title "Intensity distribution with no absorption"
 set xlabel "theta (deg)"
 set ylabel "Normalized intensity"
 set xrange[0:90]
-set yrange[0:1.8]
+set yrange[0:1.7]
 set key
 
 plot \

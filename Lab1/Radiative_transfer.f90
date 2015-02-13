@@ -153,7 +153,10 @@ contains
         real(8), dimension(1000000) :: tau, mu, phi, theta
         real(8), dimension(100) :: tau_bins, mu_bins, phi_bins, theta_bins
         integer, dimension(100) :: tau_hist, mu_hist, phi_hist, theta_hist
+        real(8), dimension(100) :: tau_pdf, mu_pdf, phi_pdf, theta_pdf
         integer :: tau_id, mu_id, phi_id, theta_id
+        integer :: num_exp, num_bins
+        real(8) :: norm_factor
         integer :: i
 
         open(unit = new_file_unit(tau_id), file = "./Data/Tau_histogram.txt", action = 'write')
@@ -166,7 +169,8 @@ contains
 
         ! Run histogram tests
 
-        do i = 1, size(tau)
+        num_exp = size(tau)
+        do i = 1, num_exp
             tau(i) = random_tau()
             mu(i) = random_mu()
             phi(i) = random_phi()
@@ -178,11 +182,19 @@ contains
         call histogram(phi, phi_bins, phi_hist)
         call histogram(theta, theta_bins, theta_hist)
 
-        do i = 1, size(tau_hist)
-            write(tau_id, *) tau_bins(i), tau_hist(i)
-            write(mu_id, *) mu_bins(i), mu_hist(i)
-            write(phi_id, *) phi_bins(i), phi_hist(i)
-            write(theta_id, *) theta_bins(i), theta_hist(i)
+        ! Calculate probability distribution functions
+
+        tau_pdf   =   tau_hist / (real(num_exp)*(  tau_bins(2) -   tau_bins(1)))
+        mu_pdf    =    mu_hist / (real(num_exp)*(   mu_bins(2) -    mu_bins(1)))
+        phi_pdf   =   phi_hist / (real(num_exp)*(  phi_bins(2) -   phi_bins(1)))
+        theta_pdf = theta_hist / (real(num_exp)*(theta_bins(2) - theta_bins(1)))
+
+        num_bins = size(tau_hist)
+        do i = 1, num_bins
+            write(tau_id, *) tau_bins(i), tau_pdf(i)
+            write(mu_id, *) mu_bins(i), mu_pdf(i)
+            write(phi_id, *) phi_bins(i), phi_pdf(i)
+            write(theta_id, *) theta_bins(i), theta_pdf(i)
         end do
 
         close(tau_id)
