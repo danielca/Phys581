@@ -13,6 +13,8 @@ breaklines=true,
 numbers=left,
 stepnumber=1,}
 
+\newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+
 \begin{document}
 
 \title{Monte Carlo methods in computational physics}
@@ -346,7 +348,101 @@ Not only does the absorption drastically reduce the number of transmitted photon
     \end{center}
 \end{figure}
 
+\section{Markov Chain Monte Carlo}
+\label{sec:markov_chain_monte_carlo}
 
+Markov Chains are random processes in which the next state depends only on the current state.
+As another example of a Monte Carlo, we perform the classic Markov Chain example: sunny and rainy days.
+In this example, the random process is the weather on day $ n $, and we have two possible states for each day: sunny ($ S $) and rainy ($ R $).
+The transition probabilities are:
+\begin{align}
+    P[W_{n+1} = S | W_n = R] &= 0.5
+    \\
+    P[W_{n+1} = R | W_n = R] &= 0.5
+    \\
+    P[W_{n+1} = S | W_n = S] &= 0.9
+    \\
+    P[W_{n+1} = R | W_n = S] &= 0.1
+\end{align}
+or, in matrix form
+\begin{align}
+    P &= \mat{0.9 & 0.5 \\ 0.1 & 0.5}
+\end{align}
+
+Using this matrix, we can find the probabilities of the next day's weather, given the curent day's weather.
+For example, if today is sunny, then the probabilities for tomorrow are
+\begin{align}
+    \mat{0.9 & 0.5 \\ 0.1 & 0.5} \mat{1 \\ 0} &= \mat{0.9 \\ 0.1}
+\end{align}
+So given that today is sunny, it is much more likely that tomorrow will be sunny.
+Applying the matrix again, we can find the probabilities for two days from now:
+\begin{align}
+    \mat{0.9 & 0.5 \\ 0.1 & 0.5} \mat{0.9 \\ 0.1} &= \mat{0.86 \\ 0.14}
+\end{align}
+Again, it is more likely that the day will be sunny.
+
+With Fortran 95 code, we applied the probability matrix repeatedly to two different starting states.
+The results are plotted in Figure~\ref{fig:markov_sunny_day} and Figure~\ref{fig:markov_rainy_day}.
+It is seen that the probabilities converge towards:
+\begin{align}
+    P[W_\infty = S] &= 0.833333
+    \\
+    P[W_\infty = R] &= 0.166667
+\end{align}
+and the probability matrix after 100 iterations is
+\begin{align}
+    P^{100} &= \mat{0.833333 & 0.833333 \\ 0.166667 & 1.66667}
+\end{align}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Markov_Sunny_Day.pdf}
+    \caption{%
+    Probabilities of sunny and rainy days, given that the first day was a sunny one.
+    }
+    \label{fig:markov_sunny_day}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Markov_Rainy_Day.pdf}
+    \caption{%
+    Probabilities of sunny and rainy days, given that the first day was a rainy one.
+    }
+    \label{fig:markov_rainy_day}
+    \end{center}
+\end{figure}
+
+The steady state probabilities are given by:
+\begin{align}
+    \mat{0.9 & 0.5 \\ 0.1 & 0.5} \mat{P[W_\infty = S] \\ P[W_\infty = R]} &= \mat{P[W_\infty = S] \\ P[W_\infty = R]}
+    \\
+    \mat{-0.1 & 0.5 \\ 0.1 & -0.5} \mat{P[W_\infty = S] \\ P[W_\infty = R]} &= \mat{0 \\ 0}
+\end{align}
+which gives
+\begin{align}
+    P[W_\infty = S] = 5 P[W_\infty = R] 
+\end{align}
+Choosing values which add up to 1, we get
+\begin{align}
+    P[W_\infty = S] &= \frac{5}{6} \approx 8.33333
+    \\
+    P[W_\infty = R] &= \frac{1}{6} \approx 0.16667
+\end{align}
+which agrees with the predicted results above.
+
+From the numerical results above, we can also guess that
+\begin{align}
+    P^\infty &= \mat{5/6 & 5/6 \\ 1/6 & 1/6}
+\end{align}
+and note that
+\begin{align}
+    \mat{5/6 & 5/6 \\ 1/6 & 1/6} \mat{a \\ b} = \mat{5/6 \\ 1/6}
+\end{align}
+for any $ a, b $ which add up to 1.
+Thus, regardless of the starting condition, the probabilities will always come out to 5/6 and 1/6 in the steady state.
+This was confirmed by a number of manual runs of the code.
 
 \onecolumn
 
