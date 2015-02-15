@@ -30,6 +30,15 @@ In this report, we explore a number of Monte Carlo numerical methods.
 Monte Carlo methods use pseudorandom numbers to explore complicated systems.
 These methods tend to converge slowly for simple problems, but can be very efficient for complex problems: especially those with a large number of variables.
 
+In Section~\ref{sec:pseudo_random_numbers}, we look at methods for generating pseudo-random numbers.
+These are at the core of any Monte Carlo method.
+In Section~\ref{sec:radiative_transfer}, we apply Monte Carlo methods to a real physics problem: photons moving through a slab of material.
+In Section~\ref{sec:markov_chain_monte_carlo}, we look at a classic Markov Chain example: a string of sunny and rainy days in which the weather of the next day depends on the weather of the current day.
+In Section~\ref{sec:metropolis_hastings_sampling}, we use another Markov Chain method: the Metropolis-Hastings random walk.
+This allows us to generate samples from complicated probability distribution functions.
+In Section~\ref{sec:simulated_annealing}, we use the simulated annealing algorithm to find the global maxima of functions.
+The simulated annealing algorithm is a robust method for finding global maxima of complicated functions.
+
 \section{Pseudo random numbers}
 \label{sec:pseudo_random_numbers}
 
@@ -629,6 +638,126 @@ It is seen that even though fewer total points are used, the sampling is better 
 \end{figure}
 
 \section{Simulated annealing}
+\label{sec:simulated_annealing}
+
+Simulated annealing is used to find the global maxima of complicated functions.
+It is more robust than traditional hill-climbing techniques at the cost of execution speed.
+If $ P(x) $ is the function to be maximized, then the transition probability is
+\begin{align}
+    A\left(x_n \to x^*\right) &= \min \left( 1, \left( \frac{P\left( x^* \right)}{P \left( x_n \right)} \right)^{1/T_n} \right)
+\end{align}
+
+The temperature, $ T_n $, is a key part of this algorithm.
+When the temperature is set to 1, then this is simply the Metropolis random walk algorithm.
+When $ T_n $ is large (e.g. 100), then the transition probabilities will tend to be high, regardless of $ P(x^*) $ and $ P(x_n) $.
+As the temperature ``cools'' down to near unity, the transition probability approaches $ P(x^*)/P(x_n) $ from the Metropolis algorithm.
+As the temperature ``cools'' further towards 0, the transition probability approaches a step function: it is 1 if $ P(x^*) > P(x_n) $ and $ 0 $ otherwise.
+So for high temperatures, the walk is essentially random, exploring the whole space.
+For small temperatures, the walk approaches pure hill-climbing algorithms, narrowing in on local maxima.
+
+Note that if $ P(E) = e^{-E} $, then
+\begin{align}
+    A\left(x_n \to x^*\right) &= \min \left( 1, e^{(E_n - E^*)/T_n} \right)
+\end{align}
+Making the replacement $ T_n \to k_B T $ demonstrates why this algorithm is called ``simulated annealing.''
+In statistical mechanics, the probability of a transition is proportional to the exponential of the energy difference over $ k_B T $.
+
+The simulated annealing algorithm was implemented by Goffe et al.; this code can be seen in Section~\ref{subsec:simulated_annealing_module_code}.
+This code was used to find the maxima of three functions.
+We used all the recommended settings for the input parameters, suggested within the Goffe et al.\ code.
+
+The first function
+\begin{align}
+    f(x,y) &= e^{-\left(x^2 + y^2\right)}
+\end{align}
+is plotted in Figure~\ref{fig:simulated_annealing_1}.
+There is a single maximum at $ (x,y) = (0,0) $.
+
+The simulated annealing found the maximum at
+\begin{align}
+    (x,y) &= \left( 1.7235 \times 10^{-6}, -4.9737 \times 10^{-6} \right)
+\end{align}
+which is quite close to the actual value.
+The run time, however, was about 43.1 ms, which is quite significant for such a simple task.
+
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Simulated_annealing_1.pdf}
+    \caption{%
+    First function maximized by simulated annealing: $ f(x,y) = e^{-\left(x^2 + y^2\right)} $.
+    }
+    \label{fig:simulated_annealing_1}
+    \end{center}
+\end{figure}
+
+The second function
+\begin{align}
+    f(x,y) &= e^{-\left(x^2 + y^2\right)} 2 e^{-\left( x-1.7 \right)^2 - \left( y - 1.7 \right)^2}
+\end{align}
+is plotted in Figure~\ref{fig:simulated_annealing_2}.
+There is a local maximum at $ (x,y) \approx (0,0) $ and a global maximum at $ (x,y) \approx (1.7, 1.7) $.
+
+The simulated annealing found the maximum at
+\begin{align}
+    (x,y) &= \left( 1.6973, 1.6973 \right)
+\end{align}
+which is quite close to the actual global maximum.
+So the algorithm did not get fooled by the local maximum like a basic hill-climbing algorithm might.
+Again, though, the run time was quite significant at around $ 50.5 $ ms.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Simulated_annealing_2.pdf}
+    \caption{%
+    Second function maximized by simulated annealing: $ f(x,y) = e^{-\left(x^2 + y^2\right)} 2 e^{-\left( x-1.7 \right)^2 - \left( y - 1.7 \right)^2} $.
+    }
+    \label{fig:simulated_annealing_2}
+    \end{center}
+\end{figure}
+
+The final function
+\begin{align}
+    f(x,y) &= (1-x)^2 + 100 (y-x^2)^2
+\end{align}
+is plotted in Figure~\ref{fig:simulated_annealing_3}.
+This time, the simulated annealing algorithm was used to find a global minimum (just a matter of taking the negative of the function).
+There is one minimum of this function at $ (x,y) = (1,1) $.
+
+The simulated annealing found the minimum at
+\begin{align}
+    (x,y) &= \left( 0.99999, 0.99999 \right)
+\end{align}
+which is quite close to the actual global minimum.
+So the algorithm was again successful.
+Again, though, the run time was quite significant at around $ 39.5 $ ms.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Simulated_annealing_3.pdf}
+    \caption{%
+    Second function maximized by simulated annealing: $ f(x,y) = (1-x)^2 + 100 (y-x^2)^2 $.
+    }
+    \label{fig:simulated_annealing_3}
+    \end{center}
+\end{figure}
+
+Overall, this algorithm is quite robust, but it is computationally expensive.
+Simply put, finding the global maximum of a complicated function is going to be hard work.
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+In Section~\ref{sec:pseudo_random_numbers}, we looked at methods for generating pseudo-random numbers.
+We explored a number of different tests for determining the effectiveness of a pseudo-random number generator.
+In Section~\ref{sec:radiative_transfer}, we applied Monte Carlo methods to a real physics problem: photons moving through a slab of material.
+Using this method, we were able to generate the intensity distribution as a function of exit angle for a complicated system which is difficult to deal with analytically.
+In Section~\ref{sec:markov_chain_monte_carlo}, we looked at a classic Markov Chain example: a string of sunny and rainy days in which the weather of the next day depends on the weather of the current day.
+We saw that the system very quickly converges to a probability state which is independent of the original state.
+In Section~\ref{sec:metropolis_hastings_sampling}, we used another Markov Chain method: the Metropolis-Hastings random walk.
+With this, we were able to generate samples from a very complicated probability distribution function which would have been otherwise difficult to sample from.
+In Section~\ref{sec:simulated_annealing}, we used the simulated annealing algorithm to find the global maxima of three functions.
+The algorithm was robust and was not fooled by local maxima, but its runtimes were quite long.
 
 \onecolumn
 
@@ -687,6 +816,18 @@ It is seen that even though fewer total points are used, the sampling is better 
 \label{subsec:metropolis_plotting_code}
 
 \lstinputlisting[breaklines]{../Metropolis.gp}
+\vspace{10pt}
+
+\subsection{Simulated annealing module code}
+\label{subsec:simulated_annealing_module_code}
+
+\lstinputlisting[breaklines]{../../Modules/Simulated_anneal_module.f90}
+\vspace{10pt}
+
+\subsection{Simulated annealing main code}
+\label{subsec:simulated_annealing_main_code}
+
+\lstinputlisting[breaklines]{../../Presentation/Simulated_anneal_tests.f90}
 \vspace{10pt}
 
 \end{document}
