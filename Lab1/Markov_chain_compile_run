@@ -1,0 +1,5 @@
+#!/bin/bash
+gfortran ../Modules/Markov_chain_module.f90 ../Modules/Useful_stuff_module.f90 Markov_chain.f90 -o Markov_chain
+rm markov_chain_module.mod useful_stuff_module.mod
+./Markov_chain
+gnuplot Markov_chain.gp
