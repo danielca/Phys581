@@ -4,26 +4,29 @@ use Useful_stuff_module
 
 implicit none
 
-integer::k, i, j, accepted_values, max_burn_iterations
+integer::k, i, j, accepted_values, acc_vals3, acc_vals4, max_burn_iterations
 real(kind=8)::sigma_burn
 real(kind=8), dimension(3)::sigma
 real(kind=8)::xn, x_star, unit_rand
 integer, dimension(2,3)::file_id
-integer, dimension(2)::max_iterations
+integer, dimension(4)::num_iter
 real(kind=8), allocatable,dimension(:,:)::x1,x2, x3, x4
-integer, dimension(3,50):: hist_data1, hist_data2, hist_data3, hist_data4
+real(kind=8) :: norm_factor1, norm_factor2
+real(kind=8), dimension(3,50):: hist_data1, hist_data2, hist_data3, hist_data4
 real(kind=8),dimension(3,50)::bin_center1, bin_center2, bin_center3, bin_center4
 
-max_iterations(1) = 1000
-max_iterations(2) = 50000
+num_iter(1) = 1000
+num_iter(2) = 50000
+num_iter(3) = 1000
+num_iter(4) = 800
 
 !allocate the arrays
-allocate(x1(3,max_iterations(1)))
-allocate(x2(3,max_iterations(2)))
-allocate(x3(3,1000))
-allocate(x4(3,800))
+allocate(x1(3,num_iter(1)))
+allocate(x2(3,num_iter(2)))
+allocate(x3(3,num_iter(3)))
+allocate(x4(3,num_iter(4)))
 
-!Intialize the 
+!Intialize them
 sigma(1) = 0.025
 sigma(2) = 1.0
 sigma(3) = 50.0
@@ -48,13 +51,14 @@ open(unit=47, file="./Data/Metropolis_sigma-50_50000.txt", action = "write")
 do k=1,2 !Change the max iterations
    do j=1,3 !new standard devation
       xn = -1.0
-      do i=1,max_iterations(k)
+      accepted_values = 0.0
+      do i=1,num_iter(k)
          !find x_star
          unit_rand = random_normal()
          x_star = sigma(j)*unit_rand + xn
          xn = select_new_point(x_star,xn)
          !icrement the accepted_values counter if needed
-         if (x_star .ne. xn) then
+         if (abs(x_star - xn) .ge. 1e-20) then
               accepted_values = accepted_values + 1 
          end if
          
@@ -68,6 +72,7 @@ do k=1,2 !Change the max iterations
          end if
 
       end do
+      write(*,*) sigma(j), accepted_values/real(num_iter(k))
    end do
 end do
    
@@ -98,8 +103,8 @@ open(unit=53,file="./Data/hist_data_sigma-50_50000.txt",action="write")
 
 !deal with the historgrams
 do i =1,3
-   call histogram(x1(i,:),bin_center1(i,:),hist_data1(i,:))
-   call histogram(x2(i,:),bin_center2(i,:),hist_data2(i,:))
+   call normed_histogram(x1(i,:),bin_center1(i,:),hist_data1(i,:))
+   call normed_histogram(x2(i,:),bin_center2(i,:),hist_data2(i,:))
    do j=1,size(bin_center1(i,:))
       write(file_id(1,i),*) bin_center1(i,j), hist_data1(i,j)
       write(file_id(2,i),*) bin_center2(i,j), hist_data2(i,j)
@@ -143,6 +148,8 @@ open(unit=59, file="./Data/Metropolis_Burn2_3.txt", action = "write")
 !main loop
 do j=1,3 !new experiment
   xn = -3.0
+  acc_vals3 = 0.0
+  acc_vals4 = 0.0
   do i=1,max_burn_iterations
     !find x_star
     unit_rand = random_normal()
@@ -157,8 +164,17 @@ do j=1,3 !new experiment
        x4(j,i-200)=xn
        write(file_id(2,j),*) x_star, xn, i-200
     end if
-    
-    end do
+
+    if (abs(x_star - xn) .ge. 1e-20) then
+      acc_vals3 = acc_vals3 + 1 
+      if(i .gt. 200) then
+          acc_vals4 = acc_vals4 + 1
+      end if
+    end if
+
+  end do
+  write(*,*) sigma_burn, "3", acc_vals3/real(max_burn_iterations)
+  write(*,*) sigma_burn, "4", acc_vals4/real(max_burn_iterations-200)
 end do
    
 !close the files
@@ -187,8 +203,8 @@ open(unit=65,file="./Data/hist_data_burn2-3.txt",action="write")
 
 !deal with the historgrams
 do i =1,3
-   call histogram(x3(i,:),bin_center3(i,:),hist_data3(i,:))
-   call histogram(x4(i,:),bin_center4(i,:),hist_data4(i,:))
+   call normed_histogram(x3(i,:),bin_center3(i,:),hist_data3(i,:))
+   call normed_histogram(x4(i,:),bin_center4(i,:),hist_data4(i,:))
    do j=1,size(bin_center3(i,:))
       write(file_id(1,i),*) bin_center3(i,j), hist_data3(i,j)
       write(file_id(2,i),*) bin_center4(i,j), hist_data4(i,j)
@@ -230,7 +246,7 @@ real(kind=8) function select_new_point(x_star,xn)
  !write(*,*) a, rand_number, x_star, xn
  if (a .ge. 1) then
     select_new_point = x_star
- else if (a .lt. rand_number) then
+ else if (a .gt. rand_number) then
     select_new_point = x_star
  else
     select_new_point = xn

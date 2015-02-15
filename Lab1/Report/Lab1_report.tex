@@ -444,6 +444,192 @@ for any $ a, b $ which add up to 1.
 Thus, regardless of the starting condition, the probabilities will always come out to 5/6 and 1/6 in the steady state.
 This was confirmed by a number of manual runs of the code.
 
+\section{Metropolis-Hastings sampling}
+\label{sec:metropolis_hastings_sampling}
+
+As another example of a Markov-Chain Monte Carlo method, we will use the Metropolis-Hastings random walk.
+This can be used to generate samples from complicated probability distributions.
+In this case, we will be generating random samples from a distribution proportional to:
+\begin{align}
+    P(x) &= \frac{1}{2 \sqrt{pi}} \left( \sin 5x + \sin 2x + 2 \right) e^{-x^2}
+    \label{eq:p_of_x}
+\end{align}
+
+For this implementation of the Metropolis-Hastings algorithm, we will use a normalized distribution centred on the current state.
+The proposal distributions are then:
+\begin{align}
+    q\left(x_n | x^*\right) &= q\left(x^* | x_n\right) = \frac{1}{\sigma \sqrt{2\pi}} \exp \left[\frac{(x^* - x_n)^2}{2\sigma^2}\right]
+\end{align}
+
+Our Metropolis-Hastings acceptance probability is
+\begin{align}
+    \min \left( 1, \frac{p(x^*) q(x^*|x_n)}{p(x_n) q(x_n|x^*)} \right)
+\end{align}
+However, since $ q(x^*|x_n) = q(x_n|x^*) $, this reduces to
+\begin{align}
+    \min \left( 1, \frac{p(x^*)}{p(x_n)} \right)
+\end{align}
+which is the Metropolis criterion.
+
+In general, the inclusion of the ratio allows for non-symmetric proposal probabilities.
+If the proposal probability distribution is symmetric (as it is in the case of a normal or uniform distribution centred around the current point), then this ratio is unity and it has no effect.
+
+The key to the Metropolis-Hastings algorithm is the accept-reject step.
+We generate a proposed point $ x^* $ using the distribution $ q(x^* | x_n) $.
+Then we generate a random variable $ r $ which is uniformly distributed between 0 and 1.
+Then the next point $ x_{n+1} $ is given by
+\begin{align}
+    x_{n+1} &= \begin{cases} x^* & \text{if } r < \min \left( 1, \frac{p(x^*)}{p(x_n)} \right) \\ x_n & \text{otherwise} \end{cases}
+\end{align}
+
+Fortran 90 code was created based on this algorithm to sample the distribution $ P(x) $ from Equation~\eqref{eq:p_of_x} above.
+This was done using a starting point $ x_0 = 1 $, and different standard deviation values for the proposal distribution: $ \sigma = 0.025, 1.0, 50.0 $.
+1000 iterations of the algorithm were run---the results are shown in Figures \ref{fig:metropolis_sigma_025_1000}, \ref{fig:metropolis_sigma_1_1000}, and \ref{fig:metropolis_sigma_50_1000}.
+For $ \sigma = 0.025 $, 2.60\% of points were accepted, for $ \sigma = 1 $, 50.0\% of points were selected, and for $ \sigma = 50 $, 98.0\% of points were selected.
+
+It can be seen that $ \sigma = 1 $ gives the best sampling of the distribution.
+This is not surprising, since $ P(x) $ is proportional to $ e^{-x^2} $, which has a characteristic length of 1.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_sigma-025-1000.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.025 $ and 1000 iterations.
+    }
+    \label{fig:metropolis_sigma_025_1000}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_sigma-1-1000.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 1 $ and 1000 iterations.
+    }
+    \label{fig:metropolis_sigma_1_1000}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_sigma-50-1000.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 50 $ and 1000 iterations.
+    }
+    \label{fig:metropolis_sigma_50_1000}
+    \end{center}
+\end{figure}
+
+To improve the sampling, the algorithm was used with the same three $ \sigma $ values, but with 50000 iterations.
+The results are shown in Figures \ref{fig:metropolis_sigma_025_50000}, \ref{fig:metropolis_sigma_1_50000}, and \ref{fig:metropolis_sigma_50_50000}.
+Overall, the sampling is better in all three cases, however, the $ \sigma = 1 $ test is by far the best.
+
+The acceptance rates for 50000 points were nearly identical to the acceptance rates for 1000 iterations.
+For $ \sigma = 0.025 $, 2.12\% of points were accepted, for $ \sigma = 1 $, 50.2\% of points were selected, and for $ \sigma = 50 $, 98.6\% of points were selected.
+This shows that the acceptance rate is more strongly controlled by the selection of points than it is by the number of iterations.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_sigma-025-50000.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.025 $ and 50000 iterations.
+    }
+    \label{fig:metropolis_sigma_025_50000}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_sigma-1-50000.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 1 $ and 50000 iterations.
+    }
+    \label{fig:metropolis_sigma_1_50000}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_sigma-50-50000.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 50 $ and 50000 iterations.
+    }
+    \label{fig:metropolis_sigma_50_50000}
+    \end{center}
+\end{figure}
+
+More tests were run to explore the use of a burn-in phase.
+As a control, three tests were run using $ x_0 = -3 $, $ \sigma = 0.2 $ and 1000 iterations.
+These results are seen in Figures~\ref{fig:metropolis_burn_1_1}, \ref{fig:metropolis_burn_1_2}, and \ref{fig:metropolis_burn_1_3}.
+The acceptance rates were 15.4\%, 16.5\%, and 14.7\%, respectively.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_burn1-1.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.2 $, 1000 iterations, and no burn-in.
+    }
+    \label{fig:metropolis_burn_1_1}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_burn1-1.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.2 $, 1000 iterations, and no burn-in.
+    }
+    \label{fig:metropolis_burn_1_2}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_burn1-1.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.2 $, 1000 iterations, and no burn-in.
+    }
+    \label{fig:metropolis_burn_1_3}
+    \end{center}
+\end{figure}
+
+Three more tests were run using $ x_0 = -3 $, $ \sigma = 0.2 $ and 1000 iterations, but this time the first 200 iterations were ignored.
+These results are seen in Figures~\ref{fig:metropolis_burn_2_1}, \ref{fig:metropolis_burn_2_2}, and \ref{fig:metropolis_burn_2_3}.
+The acceptance rates were 14.4\%, 16.5\%, and 15.0\%, respectively.
+It is seen that even though fewer total points are used, the sampling is better when the first 200 iterations are ignored.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_burn2-1.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.2 $, 1000 iterations, and 200 iteration burn-in.
+    }
+    \label{fig:metropolis_burn_2_1}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_burn2-1.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.2 $, 1000 iterations, and 200 iteration burn-in.
+    }
+    \label{fig:metropolis_burn_2_2}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_burn2-1.pdf}
+    \caption{%
+    Metropolis sampling with $ \sigma = 0.2 $, 1000 iterations, and 200 iteration burn-in.
+    }
+    \label{fig:metropolis_burn_2_3}
+    \end{center}
+\end{figure}
+
+\section{Simulated annealing}
+
 \onecolumn
 
 \section{Code}
@@ -477,6 +663,30 @@ This was confirmed by a number of manual runs of the code.
 \label{subsec:radiative_transfer_plotting_code}
 
 \lstinputlisting[breaklines]{../Radiative_transfer.gp}
+\vspace{10pt}
+
+\subsection{Markov chain main code}
+\label{subsec:markov_chain_main_code}
+
+\lstinputlisting[breaklines]{../Markov_chain.f90}
+\vspace{10pt}
+
+\subsection{Markov chain plotting code}
+\label{subsec:markov_chain_plotting_code}
+
+\lstinputlisting[breaklines]{../Markov_chain.gp}
+\vspace{10pt}
+
+\subsection{Metropolis main code}
+\label{subsec:metropolis_main_code}
+
+\lstinputlisting[breaklines]{../Metropolis.f90}
+\vspace{10pt}
+
+\subsection{Metropolis plotting code}
+\label{subsec:metropolis_plotting_code}
+
+\lstinputlisting[breaklines]{../Metropolis.gp}
 \vspace{10pt}
 
 \end{document}

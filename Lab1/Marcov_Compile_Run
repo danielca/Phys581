@@ -1,4 +1,0 @@
-#!/bin/bash
-gfortran ../Modules/marcov_chain_module.f90 ../Modules/Useful_stuff_module.f90 marcovChain.f90 -o marcovChain
-rm marcov_chain_module.mod useful_stuff_module.mod
-./marcovChain

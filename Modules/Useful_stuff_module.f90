@@ -5,6 +5,7 @@ module Useful_stuff_module
     public :: calculate_chi2
     public :: linspace
     public :: histogram
+    public :: normed_histogram
     public :: new_file_unit
 
 contains
@@ -130,6 +131,26 @@ subroutine histogram(data_array, bin_centres, hist_data)
         closest_ind = minloc(abs(data_array(i) - bin_centres), dim = 1)
         hist_data(closest_ind) = hist_data(closest_ind) + 1
     end do
+
+end subroutine
+
+subroutine normed_histogram(data_array, bin_centres, hist_data)
+    ! Same as histogram, but normalizes the results so that the total area is unity
+    ! (Generates an estimate of the probability distribution function)
+    real(8), dimension(:), intent(in) :: data_array
+    real(8), dimension(:), intent(out) :: hist_data
+    real(8), dimension(:), intent(out) :: bin_centres
+    integer, dimension(:), allocatable :: temp_hist_data
+    real(8) :: norm_factor
+
+    allocate(temp_hist_data(size(hist_data)))
+ 
+    call histogram(data_array, bin_centres, temp_hist_data)
+
+    norm_factor = 1.0/(size(data_array)*(bin_centres(2) - bin_centres(1)))
+    hist_data = temp_hist_data*norm_factor
+
+    deallocate(temp_hist_data)
 
 end subroutine
 

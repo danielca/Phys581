@@ -177,17 +177,17 @@ contains
             theta(i) = acos(mu(i))
         end do
 
-        call histogram(tau, tau_bins, tau_hist)
-        call histogram(mu, mu_bins, mu_hist)
-        call histogram(phi, phi_bins, phi_hist)
-        call histogram(theta, theta_bins, theta_hist)
+        call normed_histogram(tau, tau_bins, tau_pdf)
+        call normed_histogram(mu, mu_bins, mu_pdf)
+        call normed_histogram(phi, phi_bins, phi_pdf)
+        call normed_histogram(theta, theta_bins, theta_pdf)
 
         ! Calculate probability distribution functions
 
-        tau_pdf   =   tau_hist / (real(num_exp)*(  tau_bins(2) -   tau_bins(1)))
-        mu_pdf    =    mu_hist / (real(num_exp)*(   mu_bins(2) -    mu_bins(1)))
-        phi_pdf   =   phi_hist / (real(num_exp)*(  phi_bins(2) -   phi_bins(1)))
-        theta_pdf = theta_hist / (real(num_exp)*(theta_bins(2) - theta_bins(1)))
+        !tau_pdf   =   tau_hist / (real(num_exp)*(  tau_bins(2) -   tau_bins(1)))
+        !mu_pdf    =    mu_hist / (real(num_exp)*(   mu_bins(2) -    mu_bins(1)))
+        !phi_pdf   =   phi_hist / (real(num_exp)*(  phi_bins(2) -   phi_bins(1)))
+        !theta_pdf = theta_hist / (real(num_exp)*(theta_bins(2) - theta_bins(1)))
 
         num_bins = size(tau_hist)
         do i = 1, num_bins
