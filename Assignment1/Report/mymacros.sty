@@ -1,0 +1,48 @@
+\NeedsTeXFormat{LaTeX2e}
+
+\ProvidesPackage{mymacros}[2014/08/07 Chris Deimert's custom LaTeX macros]
+
+\DeclareOption{boldvect}{
+    \newcommand{\vect}[1]{\ensuremath{\boldsymbol{\mathbf{#1}}}}
+    % "boldvect" option makes the "\vect" command create a bold vector symbol. (default option) 
+    \newcommand{\uvect}[1]{\ensuremath{\hat{\boldsymbol{\mathbf{#1}}}}} 
+}
+
+\DeclareOption{linevect}{
+    \renewcommand{\vect}[1]{\ensuremath{\bar{#1}}}
+        % "linevect" option makes the "\vect" command create a vector symbol with a flat line on top
+    \renewcommand{\uvect}[1]{\ensuremath{\hat{#1}}} 
+}
+
+\DeclareOption{arrowvect}{
+    \renewcommand{\vect}[1]{\vec{#1}}
+    % "arrowvect" option makes the "\vect" command equivalent to "\vec" (vectors with arrows on top)
+    \renewcommand{\uvect}[1]{\ensuremath{\hat{#1}}} } 
+\ExecuteOptions{boldvect}
+
+\ProcessOptions\relax
+
+\newcommand{\smallsub}[1]{_{\ensuremath{\scriptscriptstyle{\mathrm{#1}}}}}
+    % Makes a small subscript; useful for capital letters.
+    % e.g. use x\smallsub{E} rather than x_E
+
+\newcommand{\eps}{{\varepsilon}}
+    % Shortcut for varepsilon
+
+\newcommand{\set}[2]{\ensuremath\left\{ {#1} \, \middle| \, {#2} \right\} }
+    % Set-builder notation. \set{x}{y} gives {x|y} with {, |, and } sized correctly
+
+% Quantum mechanics macros (bra-ket notation)
+\newcommand{\bra}[1]{\ensuremath\left\langle {#1} \right|}
+    % Bra <x|
+\newcommand{\ket}[1]{\ensuremath\left| {#1} \right\rangle}
+    % Ket |x>
+\newcommand{\braket}[2]{\ensuremath\left\langle {#1} \, \middle| \, {#2} \right\rangle}
+    % Bra-ket with no operator in the middle. 
+    % e.g. braket{x}{y} gives <x|y>
+\newcommand{\braopket}[3]{\ensuremath\left\langle {#1} \, \middle| \, {#2} \, \middle| \, {#3} \right\rangle}
+    % Bra-ket with an operator in the middle. 
+    % e.g. \braopket{x}{A}{y} gives <x|A|y>
+\renewcommand{\d}{\ensuremath\mathrm{d}}
+
+\endinput
