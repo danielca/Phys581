@@ -1,0 +1,5 @@
+#!/bin/bash
+gfortran ../Modules/Ouyed_random_number_module.f90 ../Modules/Useful_stuff_module.f90 Metropolis.f90 -o Metropolis
+rm ouyed_random_number_module.mod useful_stuff_module.mod
+./Metropolis
+gnuplot Metropolis.gp
