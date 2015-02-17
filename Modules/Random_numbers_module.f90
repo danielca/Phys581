@@ -12,7 +12,7 @@ module Random_numbers_module
     public :: set_lcm_params
     public :: lcm_random_number
     public :: nr_ran0, nr_ran1, nr_ran2, nr_ran3
-    public :: AutoCorrelation
+    public :: AutoCorrelation, auto_correlation
 
 contains
 
@@ -34,26 +34,47 @@ contains
     end function
 
     subroutine AutoCorrelation(x, k, AC)
-      real(dp), dimension(:), intent(in) :: x
-      integer, intent(in) :: k
-      real(dp), intent(out) :: AC
-      real(dp) :: xbar, denom, numerator
-      integer :: i, limit
-      
-      denom = 0
-      numerator = 0
-      limit = size(x)-k
+        real(dp), dimension(:), intent(in) :: x
+        integer, intent(in) :: k
+        real(dp), intent(out) :: AC
+        real(dp) :: xbar, denom, numerator
+        integer :: i, limit
+        
+        denom = 0
+        numerator = 0
+        limit = size(x)-k
 
-      xbar = sum(x)/size(x)
-      
-      do i = 1, limit
-         numerator = numerator + ((x(i)-xbar)*(x(i+k)-xbar))
-         denom = denom + ((x(i)-xbar)**2)
-      enddo
+        xbar = sum(x)/size(x)
+        
+        do i = 1, limit
+            numerator = numerator + ((x(i)-xbar)*(x(i+k)-xbar))
+            denom = denom + ((x(i)-xbar)**2)
+        enddo
 
-      AC = numerator/denom
+        AC = numerator/denom
 
     end subroutine
+
+    real(dp) function auto_correlation(x, k)
+        real(dp), dimension(:), intent(in) :: x
+        integer, intent(in) :: k
+        real(dp) :: xbar, denom, numerator
+        integer :: i, limit
+        
+        denom = 0
+        numerator = 0
+        limit = size(x)-k
+
+        xbar = sum(x)/size(x)
+        
+        do i = 1, limit
+            numerator = numerator + ((x(i)-xbar)*(x(i+k)-xbar))
+            denom = denom + ((x(i)-xbar)**2)
+        enddo
+
+        auto_correlation = numerator/denom
+
+    end function
 
     real(dp) function nr_ran0(idum)
         ! Numerical Recipes random number generator 0

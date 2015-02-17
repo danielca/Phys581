@@ -23,7 +23,7 @@ MODULE Ouyed_random_number_module
 IMPLICIT NONE
 REAL, PRIVATE      :: zero = 0.0, half = 0.5, one = 1.0, two = 2.0,   &
                       vsmall = TINY(1.0), vlarge = HUGE(1.0)
-INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(12, 60)
+INTEGER, PRIVATE, PARAMETER :: dp = SELECTED_REAL_KIND(12, 60)
 
 
 CONTAINS
