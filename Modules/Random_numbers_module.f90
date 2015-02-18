@@ -13,6 +13,7 @@ module Random_numbers_module
     public :: lcm_random_number
     public :: nr_ran0, nr_ran1, nr_ran2, nr_ran3
     public :: AutoCorrelation, auto_correlation
+    public :: gauss_random
 
 contains
 
@@ -259,6 +260,29 @@ contains
         ma(inext)=mj                    ! Store it,
         nr_ran3=mj*FAC                     ! and output the derived uniform deviate.
         return
+    end function
+
+    real(dp) function gauss_random(mean, dev)
+        real(dp), intent(in) :: mean, dev
+        real(dp) :: C1, C2, ran_x, ran_y, gauss_val
+        logical :: success
+
+        C1 = 1.0/(dev*sqrt(2.0*3.14159265))
+        C2 = 1.0/(2.0*dev*dev)
+
+        success = .false.
+        do while (.not. success)
+            call random_number(ran_x)
+            call random_number(ran_y)
+            ran_x = 8.0*dev*ran_x - 4.0*dev + mean
+            ran_y = C1*1.01*ran_y
+            gauss_val = C1*exp(-C2*((ran_x - mean)**2))
+            if (ran_y < gauss_val) then
+                gauss_random = ran_x
+                success = .true.
+            end if 
+        end do
+
     end function
 
 end module

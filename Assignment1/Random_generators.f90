@@ -114,7 +114,7 @@ contains
     end subroutine
 
     subroutine white_noise()
-        real(dp), dimension(100) :: x, ac
+        real(dp), dimension(100) :: x, ac, x_norm, ac_norm
         real(dp) :: uni_rand
         integer :: file_id, i
 
@@ -126,12 +126,14 @@ contains
         do i = 1, 100
             call random_number(uni_rand)
             x(i) = 2.0*sqrt(3.0)*uni_rand - sqrt(3.0)
+            x_norm(i) = random_normal()
         end do
 
         call auto_correlation(x, ac)
+        call auto_correlation(x_norm, ac_norm)
 
         do i = 1, 100
-            write(file_id, *) i, x(i), abs(ac(i))
+            write(file_id, *) i, x(i), abs(ac(i)), x_norm(i), abs(ac_norm(i))
         end do
 
         close(file_id)

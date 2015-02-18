@@ -73,7 +73,7 @@ plot \
     "./Data/Auto_corr_ran1_svd.txt" using 1:3 with lines title "ran1", \
     "./Data/Auto_corr_ran2_svd.txt" using 1:3 with lines title "ran2", \
     "./Data/Auto_corr_ran3_svd.txt" using 1:3 with lines title "ran3", \
-    "./Data/auto_corr_ran4_svd.txt" using 1:3 with lines title "gnuplot"
+    "./Data/Auto_corr_ran4_svd.txt" using 1:3 with lines title "gnuplot"
 
 set terminal pdfcairo enhanced size 4, 4
 
@@ -109,5 +109,40 @@ unset key
 
 plot \
     "./Data/White_noise.txt" using 1:3 with lines , \
+
+unset multiplot 
+
+set output "./Plots/White_noise_gaussian.pdf"
+set multiplot layout 2, 1
+
+set origin 0, 0.5
+set size 1, 0.5
+set title "Gaussian white noise"
+set xlabel "i"
+set ylabel "X[i]"
+set yrange[-3:3]
+unset logscale x
+unset logscale y
+set format x '%g'
+set format y '%g'
+unset key
+
+plot \
+    "./Data/White_noise.txt" using 1:4 with lines , \
+
+set origin 0, 0
+set size 1, 0.5
+set title "Autocorrelation of Gaussian white noise"
+set xlabel "k"
+set ylabel "|AC[k]|"
+set yrange[1e-6:10]
+unset logscale x
+set logscale y
+set format x '%g'
+set format y '10^{%L}'
+unset key
+
+plot \
+    "./Data/White_noise.txt" using 1:5 with lines , \
 
 reset

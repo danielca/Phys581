@@ -157,39 +157,240 @@ In terms of the random variable $ U $ which is uniformly distributed on $ [0, 1)
 
 An example of pseudo-randomly generated white-noise is plotted in Figure~\ref{fig:white_noise}, along with its autocorrelation.
 As expected, the white noise is centred around zero, and most of the values are between $ -1 $ and $ 1 $.
-Also, as expected, the autocorrelation is quite small: around 
+Also, as expected, the autocorrelation is quite small: between $ 10^{-3} $ and $ 10^{-1} $.
 
 \begin{figure}[ht!]
     \begin{center}
     \includegraphics[width = 0.45\textwidth]{../Plots/White_noise.pdf}
     \caption{%
-        Sequence of 100 pseudorandom numbers simulating white noise, along with their autocorrelation.
+        Sequence of 100 uniform pseudorandom numbers simulating white noise, along with their autocorrelation.
         These were generated with the gfortran random number routine.
     }
     \label{fig:white_noise}
     \end{center}
 \end{figure}
 
-%\bigskip
-%\begin{center}
-%    \begin{tabular}{ccccc}
-%        \toprule
-%        Interval & Upper limit & LCM & gfortran & Exp. \\
-%        \midrule
-%        1  & 0.1 &  6 &  6 & 10 \\
-%        2  & 0.2 & 11 & 16 & 10 \\
-%        3  & 0.3 & 12 &  9 & 10 \\
-%        4  & 0.4 &  9 &  6 & 10 \\
-%        5  & 0.5 & 10 & 11 & 10 \\
-%        6  & 0.6 &  9 &  5 & 10 \\
-%        7  & 0.7 &  8 & 12 & 10 \\
-%        8  & 0.8 & 10 &  9 & 10 \\
-%        9  & 0.9 & 11 & 13 & 10 \\
-%        10 & 1.0 & 14 & 13 & 10 \\
-%        \bottomrule
-%    \end{tabular}
-%\end{center}
-%\bigskip
+In the definition of white noise, there is no requirement in terms of what distribution is used, as long as the mean is zero and the variance is unity.
+The Gaussian distribution given by
+\begin{align}
+    f_X(x) &= \frac{1}{\sqrt{2\pi}} e^{-x^2/2}
+\end{align}
+satisfies these conditions, and thus it can be used to generate white noise.
+This kind of Gaussian white noise is seen in Figure~\ref{fig:white_noise_gaussian}.
+Again, the noise is centred around zero, most of the values are between $ -1 $ and $ 1 $, and the autocorrelation is small, as expected.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/White_noise_gaussian.pdf}
+    \caption{%
+        Sequence of 100 Gaussian pseudorandom numbers simulating white noise, along with their autocorrelation.
+        These were generated with Dr Ouyed's random Gaussian number routine.
+    }
+    \label{fig:white_noise_gaussian}
+    \end{center}
+\end{figure}
+
+\section{PDFs and Monte Carlo}
+\label{sec:pdfs_and_monte_carlo}
+
+A probability distribution function (PDF) must integrate to 1, so the distribution
+\begin{align}
+    f(x) &= cx \quad \text{on } [0, 1)
+\end{align}
+must have
+\begin{align}
+    1 &= \int_{0}^{1} cx \, \d x = \frac{c}{2} \quad \Longrightarrow \quad c = 2
+\end{align}
+
+The expected value of a random variable $ X $ with PDF $ f_X(x) $ is
+\begin{align}
+    E[X] &= \int x f_X(x) \, \d x
+\end{align}
+and the variance is
+\begin{align}
+    \text{Var}[X] &= E[X^2] - (E[X])^2
+\end{align}
+
+For example, the expected value of a random variable $ X $ with distribution $ f_X(x) = \lambda e^{-\lambda x} $ is
+\begin{align}
+    E[X] &= \int_{0}^{\infty} x \lambda e^{-\lambda x} \, \d x = \frac{1}{\lambda}
+\end{align}
+We also have
+\begin{align}
+    E[X^2] &= \int_{0}^{\infty} x^2 \lambda e^{-\lambda x} \, \d x = \frac{2}{\lambda^2}
+\end{align}
+which means that
+\begin{align}
+    \text{Var}[X] &= \frac{2}{\lambda^2} - \frac{1}{\lambda^2} = \frac{1}{\lambda^2}
+\end{align}
+
+As an example of a cumulative distribution function (CDF), consider the following table describing the fraction of maintenance checks completed in time less than or equal to $ t $ minutes:
+
+\bigskip
+\begin{center}
+    \begin{tabular}{cc}
+        \toprule
+        $ t $ (min) & CDF, fraction completed \\
+        \midrule
+        0.0  & 0.0  \\
+        5.0  & 0.02 \\
+        10.0 & 0.08 \\
+        15.0 & 0.21 \\
+        20.0 & 0.38 \\
+        25.0 & 0.80 \\
+        30.0 & 0.90 \\
+        \bottomrule
+    \end{tabular}
+\end{center}
+\bigskip
+
+We can see that 21\% of checks are completed in 15 minutes or less, 90\% are completed within 30 minutes or less, and 13\% are completed in between 10 and 15 minutes.
+
+\subsection{Beta distribution}
+\label{subsec:beta_distribution}
+
+Another example of a PDF is the beta distribution.
+With $ \alpha = 3 $ and $ \beta = 2 $, the beta distribution is given by
+\begin{align}
+    f_X(x) &= \frac{1}{B(3,2)} x^{2} (1-x)
+\end{align}
+Normalizing:
+\begin{align}
+    1 &= \int_{0}^{1} f_X(x) \, \d x = \frac{1}{12 B(3,2)} \quad \Longrightarrow B(3,2) = \frac{1}{12}
+\end{align}
+
+The CDF is given by
+\begin{align}
+    F_X(x) &= \int_{0}^{x} 12 x'^2 (1-x') \, \d x' = \left(4 - 3 x \right) x^3
+\end{align}
+
+Using the fundamental principle for sampling, we would need to generate a unit, uniform random number $ U $ and solve the equation
+\begin{align}
+    \left( 4 - 3X \right) X^3  - U &= 0
+\end{align}
+for $ X $ in the domain $ [0, 1) $.
+
+Using the Newton-Raphson method to solve this equation, $ 10^5 $ samples were generated.
+The results are shown in Figure~\ref{fig:beta_fundamental_princ}.
+It can be seen from the scatter plot that the distribution is roughly what would be expected of a beta distribution.
+The sample mean of this sequence was $ 0.6017 $, the standard deviation was $ 0.03998 $, and the runtime was $ 97.9 $ ms.
+The mean and variance are close to the theoretical values of $ 0.6 $ and $ 0.04 $, respectively.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Beta_fundamental_princ.png}
+    \caption{%
+        Sequence of $ 10^5 $ Beta pseudorandom numbers generated with the fundamental principle.
+    }
+    \label{fig:beta_fundamental_princ}
+    \end{center}
+\end{figure}
+
+Another way to generate a Beta sequence is using the accept/reject method.
+The maximum value of $ f_X(x) $ is at
+\begin{align}
+    \frac{\d}{\d x} f_X(x) &= 0 
+    \\
+    12\left(2x - 3x^2\right) &= 0
+    \\
+    \left( x - \frac{2}{3} \right) x &= 0
+\end{align}
+So the maximum value is at $ x = 2/3 $, and it is
+\begin{align}
+    f_{X,\text{max}} &= 12 \left( 2/3 \right)^2 \left( 1 - 2/3 \right) = \frac{16}{9} \approx 1.7778
+\end{align}
+To be safe, we use the region $ 0 \leq x < 1 $ and $ 0 \leq y < 1.8 $ for the accept/reject method.
+
+Using this region, $ 10^5 $ samples were generated, and the results are plotted in Figure~\ref{fig:beta_accept_reject}.
+It can be seen from the scatter plot that the distribution is roughly what would be expected of a beta distribution.
+The sample mean of this sequence was $ 0.6004 $, the standard deviation was $ 0.04001 $, and the runtime was $ 82.3 $ ms.
+The mean and variance are even closer to the theoretical values than the values from the fundamental principle sequence, despite having a slightly shorter runtime.
+This indicates the effectiveness of the accept/reject method over the fundamental principle method for distributions whose CDF's are not easily invertible.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Beta_accept_reject.png}
+    \caption{%
+        Sequence of $ 10^5 $ Beta pseudorandom numbers generated with the accept/reject method.
+    }
+    \label{fig:beta_accept_reject}
+    \end{center}
+\end{figure}
+
+\subsection{Gaussian distribution}
+\label{subsec:gaussian_distribution}
+
+As another example of a non-trivial distribution, we use the Gaussian distribution
+\begin{align}
+    f_X(x) &= \frac{1}{\sigma \sqrt{2 \pi}} \exp \left[ - \frac{(x - \mu)^2}{2 \sigma^2} \right]
+\end{align}
+with $ \mu = 5 $ and $ \sigma = 1.25 $.
+
+The peak value of this distribution is
+\begin{align}
+    f_{X,\text{max}} &= \frac{1}{\sigma \sqrt{2 \pi}} \approx 0.319
+\end{align}
+So, assuming that $ f_X \approx 0 $ for $ |x - \mu| > 4 \sigma $, we take our accept/reject region to be $ 0 < x < 10 $ and $ 0 < y < 0.35 $.
+
+A generic function, \texttt{gauss\_random}, was created which produces a Gaussian-distributed random variable with desired mean and standard deviation. 
+It can be deen in Section~\ref{subsec:random_numbers_module_code}.
+The results of $ 10^6 $ trials with a mean of $ 5 $ and a standard deviation of $ 1.25 $ are shown in Figure~\ref{fig:gauss_accept_reject}.
+The normalized histogram lines up almost perfectly with the expected distribution, demonstrating that the accept/reject method is an effective way to produce Gaussian-distributed random numbers.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Gauss_accept_reject.pdf}
+    \caption{%
+        Histogram of a sequence of $ 10^6 $ Gaussian-distributed pseudorandom numbers generated with the accept/reject method.
+        Histogram has been normalized so that it corresponds to a PDF.
+    }
+    \label{fig:gauss_accept_reject}
+    \end{center}
+\end{figure}
+
+Another way to produce Gaussian-distributed random numbers is by making use of the central limit theorem.
+The central limit theorem says that if $ X_i $ are independent and identically-distributed random variables with mean $ \mu $ and standard deviation $ \sigma $, then
+\begin{align}
+    S_N = \sum_{i=1}^N X_i
+\end{align}
+approaches a Gaussian-distributed random variable with mean $ N \mu $ and standard deviation $ \sqrt{N} \sigma $ in the limit of large $ N $.
+
+In particular, if $ X_i $ are uniformly distributed on $ [a,b) $, we can solve for $ a $, $ b $, and $ N $ so that $ S_N $ has any desired mean and standard deviation.
+If $ \mu_\text{des} $ is the desired mean and $ \sigma_\text{des} $ is the desired standard deviation, then
+\begin{align}
+    a &= \frac{\mu_\text{des}}{N} - \sqrt{\frac{3\sigma^2_\text{des}}{N}}
+    \\
+    b &= \frac{\mu_\text{des}}{N} + \sqrt{\frac{3\sigma^2_\text{des}}{N}}
+\end{align}
+
+So to generate a Gaussian random number of mean $ \mu_\text{des} $ and standard deviation $ \sigma_\text{des} $, we pick an $ N $: large enough that the central limit theorem applies, but not so large as to waste computation time. 
+Then we generate $ N $ uniform random variables on $ [a, b) $, with $ a $ and $ b $ given above.
+We add these numbers together to get the desired result.
+
+This method was applied using $ N = 10 $, $ \mu_\text{des} = 5 $ and $ \sigma_\text{des} = 1.25 $.
+A sequence of $ 10^4 $ random numbers was created, and the results are plotted in Figure~\ref{fig:gauss_central_limit}.
+This histogram clearly lines up with the desired distribution, though the fit is not as clean as it was with the accept/reject method.
+Of course, that comparison is unfair since this histogram was generated from a much smaller sample size.
+
+Though this method is an interesting demonstration of the central limit theorem, it was found that it is not an efficient way to generate Gaussian random numbers compared with the accept/reject approach.
+This is not surprising since at least 10 uniform random numbers must be generated for each Gaussian random number produced.
+For more accurate distribution fits, even more uniform random numbers must be used in the sum.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Gauss_central_limit.pdf}
+    \caption{%
+        Histogram of a sequence of $ 10^4 $ Gaussian-distributed pseudorandom numbers generated with the central limit theorem method.
+        Histogram has been normalized so that it corresponds to a PDF.
+    }
+    \label{fig:gauss_central_limit}
+    \end{center}
+\end{figure}
+
+\section{Markov chain}
+\label{sec:markov_chain}
+
+
 
 \onecolumn
 
@@ -202,8 +403,8 @@ Also, as expected, the autocorrelation is quite small: around
 \lstinputlisting[breaklines]{../Random_generators.f90}
 \vspace{10pt}
 
-\subsection{Random numbers module}
-\label{subsec:random_numbers_module}
+\subsection{Random numbers module code}
+\label{subsec:random_numbers_module_code}
 
 \lstinputlisting[breaklines]{../../Modules/Random_numbers_module.f90}
 \vspace{10pt}
