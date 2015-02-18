@@ -7,12 +7,13 @@ program Radiative_transfer
 
     integer, parameter :: iqp = kind(1_16)
     integer, parameter :: dp  = kind(1.0d0)
+    integer :: i
 
-    call random_generator_test(0)
-    call random_generator_test(1)
-    call random_generator_test(2)
-    call random_generator_test(3)
-    call random_generator_test(4)
+    do i = 0, 4
+    !    call random_generator_test(i)
+    end do
+
+    call white_noise()
 
 contains
 
@@ -65,13 +66,11 @@ contains
             write(test_file, *) num_trials(i), abs(mean - theor_mean), abs(std_dev - theor_std_dev)
 
             if (i == 5) then
-                allocate(auto_corr(10000), auto_corr_sm(10000))
-                do j = 1, 10000
-                    auto_corr(j) = auto_correlation(ran_nums, j*100-1)
-                end do
-                call avg_filter(abs(auto_corr), 100, auto_corr_sm)
-                do j = 1, 10000
-                    write(ac_file, *) j*100-1, abs(auto_corr(j)), abs(auto_corr_sm(j))
+                allocate(auto_corr(num_trials(i)), auto_corr_sm(num_trials(i)))
+                call auto_correlation(ran_nums, auto_corr)
+                call avg_filter(abs(auto_corr), 10, auto_corr_sm)
+                do j = 1, num_trials(i)
+                    write(ac_file, *) j, abs(auto_corr(j)), abs(auto_corr_sm(j))
                 end do
                 deallocate(auto_corr, auto_corr_sm)
             end if
@@ -112,6 +111,30 @@ contains
             x_sm(i) = x_sm(i)*factor
         end do
 
+    end subroutine
+
+    subroutine white_noise()
+        real(dp), dimension(100) :: x, ac
+        real(dp) :: uni_rand
+        integer :: file_id, i
+
+        file_id = new_file_unit()
+        open( unit = file_id, file = "./Data/White_noise.txt", action = 'write')
+
+        call init_random_seed()
+
+        do i = 1, 100
+            call random_number(uni_rand)
+            x(i) = 2.0*sqrt(3.0)*uni_rand - sqrt(3.0)
+        end do
+
+        call auto_correlation(x, ac)
+
+        do i = 1, 100
+            write(file_id, *) i, x(i), abs(ac(i))
+        end do
+
+        close(file_id)
     end subroutine
 
 end program

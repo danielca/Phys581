@@ -55,26 +55,41 @@ contains
 
     end subroutine
 
-    real(dp) function auto_correlation(x, k)
+    subroutine auto_correlation(x, ac)
         real(dp), dimension(:), intent(in) :: x
-        integer, intent(in) :: k
-        real(dp) :: xbar, denom, numerator
-        integer :: i, limit
+        real(dp), dimension(:), intent(out) :: ac
+        real(dp), dimension(:), allocatable :: x_cen, x_cen_sqrd
+        real(dp) :: x_avg, denom, numerator
+        integer :: limit, num_x, i, k
+
+        num_x = size(x)
+        if (size(ac) .ne. num_x) then
+            write(*,*) "ERROR in auto_correlation: array size mismatch"
+        end if
         
-        denom = 0
-        numerator = 0
-        limit = size(x)-k
+        x_avg = sum(x)/real(num_x, kind = dp)
 
-        xbar = sum(x)/size(x)
+        allocate(x_cen(num_x), x_cen_sqrd(num_x))
+
+        do i = 1, num_x
+            x_cen(i) = x(i) - x_avg
+            x_cen_sqrd(i) = x_cen(i)*x_cen(i)
+        end do
+
         
-        do i = 1, limit
-            numerator = numerator + ((x(i)-xbar)*(x(i+k)-xbar))
-            denom = denom + ((x(i)-xbar)**2)
-        enddo
+        do k = 1, num_x
+            denom = 0
+            numerator = 0
+            do i = 1, num_x - k
+                numerator = numerator + (x_cen(i)*x_cen(i+k))
+                denom = denom + x_cen_sqrd(i)
+            end do
+            ac(k) = numerator/denom
+        end do
 
-        auto_correlation = numerator/denom
+        deallocate(x_cen, x_cen_sqrd)
 
-    end function
+    end subroutine
 
     real(dp) function nr_ran0(idum)
         ! Numerical Recipes random number generator 0

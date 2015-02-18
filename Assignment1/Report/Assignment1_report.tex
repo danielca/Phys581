@@ -34,6 +34,9 @@ These methods tend to converge slowly for simple problems, but can be very effic
 \section{Random number generators}
 \label{sec:random_number_generators}
 
+\subsection{Pseudorandom numbers}
+\label{subsec:pseudorandom_numbers}
+
 First, we explore the generation of pseudo-random sequences of numbers.
 These are key in any Monte Carlo method.
 
@@ -54,20 +57,118 @@ giving standard deviation of
     \sigma &= \frac{1}{\sqrt{12}}.
 \end{align}
 
+We now explore some implementations of uniform random number generators, given in Press, Teukolsky, and Vetterling's ``Numerical Recipes.''
+These are implemented in the random numbers module of Section~\ref{subsec:random_numbers_module_code}.
+The first, \texttt{ran0}, implements a simple linear congruential method (LCM) generator:
+\begin{align}
+    I_{j+1} &= a I_j \mod m
+\end{align}
+where $ a = 7^5 $ and $ m = 2^{31}-1 $.
+As a practical matter (avoiding overflow), this is implemented using
+\begin{align}
+I_{j+1} &= \begin{cases} a\left(I_j \mod q\right) - r[z/q] & \text{if it is} \geq 0 \\ a\left( I_j \mod q \right) - r[z/q] + m & \text{otherwise} \end{cases}
+\end{align}
+where $ a = 7^5 $, $ m = 2^{31} - 1 $, $ q = 127773 $, and $ r = 2836 $.
+This generator is suggested as a baseline: any random number generator which does not perform at least as well as this one should probably not be used for serious work.
+The \texttt{ran1} function uses the same LCM formula as \texttt{ran0}, but it also shuffles the resulting sequence around.
+This helps to eliminate certain weaknesses which \texttt{ran0} is known to have.
 
+The \texttt{ran2} generator combines two (LCM) generators with parameters $ m_1 = 2147483563 $, $ a_1 = 40014 $, $ q_1 = 53668 $, $ r_1 = 12211 $, $ m_2 = 2147483399 $, $ a_2 = 40692 $, $ q_2 = 52774 $, $ r_2 = 3791 $.
+By combining two random generators together, we obtain a generator with a period of around $ 10^{18} $ which is a ``perfect'' random number generator for most practical purposes.
 
+For all of the above LCM methods, the upper end point is never returned.
+This is because of the use of $ (\mod m )$, which guarantees that all numbers $ I_j $ are at most $ m - 1 $.
+Then the largest number returned is
+\begin{align}
+    \frac{m-1}{m} &< 1
+\end{align}
 
-%\begin{figure}[ht!]
-%    \begin{center}
-%    \includegraphics[width = 0.45\textwidth]{../Plots/LCM_test_1.pdf}
-%    \caption{%
-%        The correlation plot for $ A = 106 $, $ C = 1283 $, and $ M = 6075 $.
-%        It is seen that the correlation plot is strongly patterned, meaning that this is a relatively predictable sequence of numbers.
-%        Thus, this choice of LCM coefficients is a poor one.
-%    }
-%    \label{fig:lcm_test_1}
-%    \end{center}
-%\end{figure}
+The final generator, \texttt{ran3}, is from Donald Knuth, and it uses a subtractive method rather than an LCM method.
+These methods use
+\begin{align}
+    I_j &= \left( I_{j-k} - I_{j-l} \right) \mod m
+\end{align}
+with fixed $ k $, $ l $, and $ m $.
+Again, the upper end point can never be returned because of the $ (\mod m) $.
+
+Each of these random number generators was tested with different numbers of iterations.
+The gfortran intrinsic random generator is also included for comparison.
+The errors in the mean and standard deviation of the resulting sequences compared to the theoretical mean and standard deviation are plotted in Figures~\ref{fig:random_generators_mean} and \ref{fig:random_generators_std_dev}.
+It is seen that \texttt{ran0} deviates the furthest from the expected theoretical mean and standard deviation.
+The others are roughly equivalent with the gfortran generator doing slightly better.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Random_generators_mean.pdf}
+    \caption{%
+        Absolute difference between the means of pseudo-random sequences and the theoretical mean $ (1/2) $.
+        Smaller values as sample size increases indicates a better random number generator.
+    }
+    \label{fig:random_generators_mean}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Random_generators_std_dev.pdf}
+    \caption{%
+        Absolute difference between the standard deviations of pseudo-random sequences and the theoretical standard deviation $ (1/\sqrt{12}) $.
+        Smaller values as sample size increases indicates a better random number generator.
+    }
+    \label{fig:random_generators_std_dev}
+    \end{center}
+\end{figure}
+
+As another test, the autocorrelation function was calculated for the sequences of $ 10^6 $ numbers.
+This is plotted in Figure~\ref{fig:random_generators_auto_corr}.
+The \texttt{ran0} function again performs the worst: its autocorrelation is higher on average, and we can see peaks in the autocorrelation which indicate that certain elements of the sequence are strongly correlated to each other.
+It is difficult to see the plots of the other three functions because of the sheer density of points.
+It is important to plot with this density, though, because otherwise important features like the peaks in the \texttt{ran0} plot may be lost.
+The other functions perform about the same in terms of autocorrelation: better than \texttt{ran0}, with lower autocorrelations on average and no major peaks.
+All of the functions see an increase in the autocorrelation for higher values of $ k $.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Random_generators_auto_corr.png}
+    \caption{%
+        Absolute value of the autocorrelation function for each random sequence.
+        A truly random sequence should have an autocorrelation of close to zero for every $ k $.
+    }
+    \label{fig:random_generators_auto_corr}
+    \end{center}
+\end{figure}
+
+\subsection{White noise from random numbers}
+\label{subsec:white_noise_from_random_numbers}
+
+The distribution for a uniform random variable $ X $ is given by
+\begin{align}
+    f_X(x) &= \begin{cases} \frac{1}{b-a} & \text{for } a \leq x \leq b \\ 0 & \text{otherwise} \end{cases}
+\end{align}
+It is easy to show that this distribution has expected value $ \left\langle X \right\rangle = \frac{1}{2} (a+b) $ and variance $ (\Delta X)^2 = \frac{1}{12} (b-a)^2 $.
+We can obtain zero mean and unit variance by setting
+\begin{align}
+    a = -\sqrt{3} ; \qquad b = \sqrt{3}
+\end{align}
+In terms of the random variable $ U $ which is uniformly distributed on $ [0, 1) $, $ X $ is given by:
+\begin{align}
+    X &= 2 \sqrt{3} U - \sqrt{3}
+\end{align}
+
+An example of pseudo-randomly generated white-noise is plotted in Figure~\ref{fig:white_noise}, along with its autocorrelation.
+As expected, the white noise is centred around zero, and most of the values are between $ -1 $ and $ 1 $.
+Also, as expected, the autocorrelation is quite small: around 
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/White_noise.pdf}
+    \caption{%
+        Sequence of 100 pseudorandom numbers simulating white noise, along with their autocorrelation.
+        These were generated with the gfortran random number routine.
+    }
+    \label{fig:white_noise}
+    \end{center}
+\end{figure}
 
 %\bigskip
 %\begin{center}
@@ -95,7 +196,22 @@ giving standard deviation of
 \section{Code}
 \label{sec:code}
 
-%\lstinputlisting[breaklines]{../../Presentation/Something.f90}
-%\vspace{10pt}
+\subsection{Random generators code}
+\label{subsec:random_generators_code}
+
+\lstinputlisting[breaklines]{../Random_generators.f90}
+\vspace{10pt}
+
+\subsection{Random numbers module}
+\label{subsec:random_numbers_module}
+
+\lstinputlisting[breaklines]{../../Modules/Random_numbers_module.f90}
+\vspace{10pt}
+
+\subsection{Random generators plotting code}
+\label{subsec:random_generators_plotting_code}
+
+\lstinputlisting[breaklines]{../Random_generators.gp}
+\vspace{10pt}
 
 \end{document}
