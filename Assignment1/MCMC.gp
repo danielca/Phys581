@@ -1,5 +1,5 @@
 reset
 
-set terminal cairopdf enhanced
+set terminal pdfcairo enhanced
 
 reset
