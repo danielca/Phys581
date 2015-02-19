@@ -390,7 +390,165 @@ For more accurate distribution fits, even more uniform random numbers must be us
 \section{Markov chain}
 \label{sec:markov_chain}
 
+\subsection{Weather example}
+\label{subsec:weather_example}
 
+Consider a classic Markov chain: the weather in a city is only sunny or cloudy, and the weather tomorrow only depends on the weather today.
+Let $ X_i $ be the weather on day $ i $, where $ X_i = 1 $ corresponds to sunny and $ X_i = 0 $ corresponds to cloudy.
+Then the relevant probabilities are
+\begin{align}
+    P[1|1] = P[X_{i+1} = 1 | X_{i} = 1] &= 0.75
+    \\
+    P[0|1] = P[X_{i+1} = 0 | X_{i} = 1] &= 0.25
+    \\
+    P[1|0] = P[X_{i+1} = 1 | X_{i} = 0] &= 0.50
+    \\
+    P[0|0] = P[X_{i+1} = 0 | X_{i} = 0] &= 0.50
+\end{align}
+
+The transition equation in matrix form is
+\begin{align}
+    \mat{P[X_{i+1} = 1] \\ P[X_{i+1} = 0]} &= \mat{P[1|1] & P[1|0] \\ P[0|1] & P[0|0]} \mat{P[X_{i} = 1] \\ P[X_{i} = 0]}
+    \\
+    \mat{P[X_{i+1} = 1] \\ P[X_{i+1} = 0]} &= \mat{0.75 & 0.50 \\ 0.25 & 0.50} \mat{P[X_{i} = 1] \\ P[X_{i} = 0]}
+\end{align}
+
+In the limiting case, we have
+\begin{align}
+    \mat{P[X_\infty = 1] \\ P[X_\infty = 0]} &= \mat{0.75 & 0.50 \\ 0.25 & 0.50} \mat{P[X_\infty = 1] \\ P[X_\infty = 0]}
+    \\
+    \Longrightarrow \quad \mat{0 \\ 0} &= \mat{-0.25 & 0.50 \\ 0.25 & -0.50} \mat{P[X_\infty = 1] \\ P[X_\infty = 0]}
+\end{align}
+Which implies that $ P[X_\infty = 1] = 2 P[X_\infty = 0] $.
+Insisting that the probabilities add up to 1 gives the steady-state probabilities.
+\begin{align}
+    \mat{P[X_\infty = 1] \\ P[X_\infty = 0]} &= \mat{2/3 \\ 1/3}
+\end{align}
+
+Alternatively, we can find that the eigenvectors of the transition matrix are $ [2,1]^T $ and $ [-1,1]^T $ with eigenvalues $ 1 $ and $ 1/4 $, respectively.
+We want the eigenvector corresponding to the eigenvalue $ 1 $: the matrix applied to the steady state probabilities should return the same state.
+So we discard the eigenvector corresponding to the eigenvalue $ 1/4 $.
+(This is not surprising, since that eigenvector would give negative probabilities).
+Normalizing so that the probabilities add up to 1, we get the same result:
+\begin{align}
+    \mat{P[X_\infty = 1] \\ P[X_\infty = 0]} &= \mat{2/3 \\ 1/3}
+\end{align}
+
+A simulation of this Markov Chain was performed, with the results shown in Figure~\ref{fig:weather_simulation}.
+In calculating the probability of a sunny day, the first 10 days were discarded (``burn-in'').
+It was calculated that the probability of a sunny day was $0.720$, which is not quite the theoretical value of $ 0.6667 $.
+However, with an increased number of trials, this value converges to the theoretical one.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Weather_simulation.pdf}
+    \caption{%
+        Simulation of the weather Markov Chain, with the expected and calculated probabilities of a sunny day shown for reference.
+    }
+    \label{fig:weather_simulation}
+    \end{center}
+\end{figure}
+
+\subsection{Edged square}
+\label{subsec:edged_square}
+
+Let $ P_{n \to m} $ be the probability of moving from corner $ n $ to corner $ m $, and let $ P_n[i] $ be the probability of being on corner $ n $ on the $ i $th move.
+Then the transition equation is
+\begin{align}
+    \mat{P_1[i+1] \\ P_2[i+1] \\ P_3[i+1] \\ P_4[i+1]} &= 
+    \mat{P_{1 \to 1} & P_{2 \to 1} & P_{3 \to 1} & P_{4 \to 1} \\
+         P_{1 \to 2} & P_{2 \to 2} & P_{3 \to 2} & P_{4 \to 2} \\
+         P_{1 \to 3} & P_{2 \to 3} & P_{3 \to 3} & P_{4 \to 3} \\
+         P_{1 \to 4} & P_{2 \to 4} & P_{3 \to 4} & P_{4 \to 4} }
+    \mat{P_1[i] \\ P_2[i] \\ P_3[i] \\ P_4[i]} 
+\end{align}
+Plugging in the values, we get
+\begin{align}
+    \mat{P_1[i+1] \\ P_2[i+1] \\ P_3[i+1] \\ P_4[i+1]} &= 
+    \mat{0 & 1/2 & 1/3 & 1/2 \\
+         1/3 & 0 & 1/3 & 0 \\
+         1/3 & 1/2 & 0 & 1/2 \\
+         1/3 & 0 & 1/3 & 0 }
+    \mat{P_1[i] \\ P_2[i] \\ P_3[i] \\ P_4[i]} 
+\end{align}
+
+The steady state condition is then
+\begin{align}
+    \mat{-1 & 1/2 & 1/3 & 1/2 \\
+         1/3 & -1 & 1/3 & 0 \\
+         1/3 & 1/2 & -1 & 1/2 \\
+        1/3 & 0 & 1/3 & -1 }
+    \mat{P_1[\infty] \\ P_2[\infty] \\ P_3[\infty] \\ P_4[\infty]} &= \mat{0 \\ 0 \\ 0 \\ 0 }
+\end{align}
+which has solutions
+\begin{align}
+    P_1[\infty] &= \frac{3}{2} P_4[\infty]
+    \\
+    P_2[\infty] &= P_4[\infty]
+    \\
+    P_3[\infty] &= \frac{3}{2} P_4[\infty]
+\end{align}
+
+With the condition that all the probabilities add up to unity, we get
+\begin{align}
+    P_1[\infty] &= \frac{3}{10}
+    \\
+    P_2[\infty] &= \frac{1}{5}
+    \\
+    P_3[\infty] &= \frac{3}{10}
+    \\
+    P_4[\infty] &= \frac{1}{5}
+\end{align}
+
+Alternatively, we can show that the eigenvectors are $ [1.5, 1, 1.5, 1]^T $, $ [-1, 1, -1, 1]^T $, $ [-1, 0, 1, 0]^T $, $ [0, -1, 0, 1]^T $ with eigenvalues $ 1 $, $ -2/3 $, $ -1/3 $, and $ 0 $, respectively.
+Normalizing the eigenvector corresponding to eigenvalue 1 so that its elements add up to unity gives the result above.
+
+\subsection{Business example}
+\label{subsec:business_example}
+
+As another example, we look at customer transitions between brands.
+The transition equation is given by
+\begin{align}
+    \mat{P_1[i+1] \\ P_2[i+1] \\ P_3[i+1]} &= 
+    \mat{P_{1 \to 1} & P_{2 \to 1} & P_{3 \to 1} \\
+         P_{1 \to 2} & P_{2 \to 2} & P_{3 \to 2} \\
+         P_{1 \to 3} & P_{2 \to 3} & P_{3 \to 3} }
+    \mat{P_1[i] \\ P_2[i] \\ P_3[i] \\ P_4[i]} 
+\end{align}
+\begin{align}
+    \mat{P_1[i+1] \\ P_2[i+1] \\ P_3[i+1]} &= 
+    \mat{0.80 & 0.03 & 0.20 \\
+         0.10 & 0.95 & 0.05 \\
+         0.10 & 0.02 & 0.75 }
+    \mat{P_1[i] \\ P_2[i] \\ P_3[i]} 
+\end{align}
+
+The initial state (month 1) is.
+\begin{align}
+    \mat{P_1[1] \\ P_2[1] \\ P_3[1]} &= \mat{0.45 \\ 0.25 \\ 0.30}
+\end{align}
+
+We find the month 3 state by applying the transition matrix twice:
+\begin{align}
+    \mat{P_1[3] \\ P_2[3] \\ P_3[3]} &= 
+    \mat{0.80 & 0.03 & 0.20 \\
+         0.10 & 0.95 & 0.05 \\
+         0.10 & 0.02 & 0.75 }^2
+    \mat{0.45 \\ 0.25 \\ 0.30} 
+    \\
+    \mat{P_1[3] \\ P_2[3] \\ P_3[3]} &= \mat{0.405925 \\ 0.339125 \\ 0.254950}
+\end{align}
+
+The steady state solution is given by the eigenvector corresponding to an eigenvalue of 1.
+After normalizing this eigenvector so that the elements add up to unity, we get the steady state solution as
+\begin{align}
+    \mat{P_1[\infty] \\ P_2[\infty] \\ P_3[\infty]} &= \mat{0.237113 \\ 0.618556 \\ 0.144330}
+\end{align}
+So this model predicts that Brand 2 will take most of the market share in the long run.
+
+Whether the market will actually approach these values depends strongly on our confidence in the model.
+We have assumed that the transition rates do not change from month to month, which is probably not a valid assumption long-term.
+This ignores a wide array of unexpected events which could effect market shares.
 
 \onecolumn
 
