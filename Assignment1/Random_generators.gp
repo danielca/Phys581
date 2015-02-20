@@ -37,7 +37,7 @@ plot \
     "./Data/Test_ran3_svd.txt" using 1:3 with linespoints pt 6 title "ran3", \
     "./Data/Test_ran4_svd.txt" using 1:3 with linespoints pt 6 title "gfortran"
 
-set terminal png enhanced size 1280, 960
+set terminal png enhanced #size 1280, 960
 
 set output "./Plots/Random_generators_auto_corr.png" 
 
@@ -55,7 +55,7 @@ plot \
     "./Data/Auto_corr_ran1_svd.txt" using 1:2 with lines title "ran1", \
     "./Data/Auto_corr_ran2_svd.txt" using 1:2 with lines title "ran2", \
     "./Data/Auto_corr_ran3_svd.txt" using 1:2 with lines title "ran3", \
-    "./Data/Auto_corr_ran4_svd.txt" using 1:2 with lines title "gnuplot"
+    "./Data/Auto_corr_ran4_svd.txt" using 1:2 with lines title "gfortran"
 
 set output "./Plots/Random_generators_auto_corr_smoothed.png"
 
@@ -73,7 +73,7 @@ plot \
     "./Data/Auto_corr_ran1_svd.txt" using 1:3 with lines title "ran1", \
     "./Data/Auto_corr_ran2_svd.txt" using 1:3 with lines title "ran2", \
     "./Data/Auto_corr_ran3_svd.txt" using 1:3 with lines title "ran3", \
-    "./Data/Auto_corr_ran4_svd.txt" using 1:3 with lines title "gnuplot"
+    "./Data/Auto_corr_ran4_svd.txt" using 1:3 with lines title "gfortran"
 
 set terminal pdfcairo enhanced size 4, 4
 
