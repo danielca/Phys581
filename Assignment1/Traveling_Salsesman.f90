@@ -20,14 +20,14 @@ contains
 
 subroutine SimulatedAnealing(distanceArray)
 real(kind=8), dimension(:,:), intent(in) :: distanceArray
-integer, dimension(6) :: points, points2, minPoints
+integer, dimension(5) :: points, points2, minPoints
 real(kind=8) :: minDistance, T, increments, distance1, distance2
 integer :: i, arbitrary_max, flip
 real :: time_begin, time_end
 
 call cpu_time(time_begin)
 
-points = (/1, 2, 3, 4, 5, 1/)
+points = (/1, 2, 3, 4, 5/)
 minPoints = points
 minDistance = distance(points, distanceArray)
 arbitrary_max = 100
@@ -56,11 +56,12 @@ do i=1,arbitrary_max
 	end if
 	T = T + increments
 end do
+minDistance = minDistance + distanceArray(points(5),1)
 call cpu_time(time_end)
 write(*,*) "-----------------------------------------------------"
 write(*,*) "           Simulated Annealing"
 write(*,*) "The shortets distance found was ", minDistance
-write(*,*) "Via the path 1 ", points
+write(*,*) "Via the path 1 ", points, " 1"
 write(*,*) "Completed in ", time_end-time_begin, " Seconds"
 write(*,*) "-----------------------------------------------------"
 
@@ -150,7 +151,7 @@ call cpu_time(end_time)
 write(*,*) "-----------------------------------------------------"
 write(*,*) "              Brute Force"
 write(*,*) "The shortest distance was ", shortest_distance
-write(*,*) "Via the path 1 ", points
+write(*,*) "Via the path 1 ", points, " 1"
 write(*,*) "Completed in ", end_time-begin_time, " Seconds"
 write(*,*) "-----------------------------------------------------"
 					
@@ -168,11 +169,11 @@ call cpu_time(time_begin)
 k=1
 max_iterations = shape(distanceArray)
 avalilLocations = (/1,2,3,4,5/)
-do i =1,max_iterations(1)-1
+do i =1,max_iterations(1)-2
 	!distances is an array of distance from the current point to the next possissible locations
 	!Distance are set to 10 so when a min search is done, they don't get selected, and only values entered are.
 	distances = (/10.0, 10.0, 10.0, 10.0, 10.0/)
-	do j = 1,max_iterations(2)
+	do j = 2,max_iterations(2)
 		!our current location doesnt count
 		if (k .eq. j) then
 			continue
