@@ -25,9 +25,9 @@ do while (Temp .ge. 0.01)
 		!gather the precious data
 		if (Temp .eq. 1.0) then
 			T1(i) = x
-		else if (Temp .eq. 0.4) then
+		else if ((Temp .lt. 0.401) .and. (Temp .gt. 0.399)) then
 			T04(i) = x
-		else if (Temp .eq. 0.1) then
+		else if ((Temp .lt. 0.101) .and. (Temp .gt. 0.099)) then
 			T02(i) = x
 		end if
 		!if (j .ge. 1000)
@@ -55,7 +55,6 @@ do while (Temp .ge. 0.01)
 		
 		
 	end do
-	write(*,*) T1(1)
 	Temp = Temp - Temp_Decrease
 end do
 
@@ -68,9 +67,9 @@ open(unit = 42, file="./Data/SA_Temp1.txt", action = "write")
 open(unit = 43, file="./Data/SA_Temp04.txt", action = "write")
 open(unit = 44, file="./Data/SA_Temp01.txt", action = "write")
 
+
 do i=1,size(T1)
 	write(42,*) T1(i), func(T1(i))
-	write(*,*) T1(i)
 	write(43,*) T04(i), func(T04(i))
 	write(44,*) T02(i), func(T02(i))
 end do
@@ -78,9 +77,11 @@ close(42)
 close(43)
 close(44)
 
+
+
 open(unit = 45, file="./Data/SA_All.txt", action = "write")
-do i=1,size(TAll)
-	write(45,*) TAll(i), i
+do i=1,1000
+	write(45,*) TAll(i), func(TALL(i))
 end do
 close(45)
 
@@ -96,10 +97,10 @@ open(unit=48, file="./Data/SA_Hist_T01.txt", action="write")
 open(unit=49, file="./Data/SA_Hist_TAll.txt", action="write")
 
 do i=1,size(bin_center1)
-	write(46,*) bin_center1(i), hist_data1
-	write(47,*) bin_center2(i), hist_data2
-	write(48,*) bin_center3(i), hist_data3
-	write(49,*) bin_center4(i), hist_data4
+	write(46,*) bin_center1(i), hist_data1(i)
+	write(47,*) bin_center2(i), hist_data2(i)
+	write(48,*) bin_center3(i), hist_data3(i)
+	write(49,*) bin_center4(i), hist_data4(i)
 end do
 
 close(46)

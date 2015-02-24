@@ -20,14 +20,14 @@ contains
 
 subroutine SimulatedAnealing(distanceArray)
 real(kind=8), dimension(:,:), intent(in) :: distanceArray
-integer, dimension(5) :: points, points2, minPoints
+integer, dimension(6) :: points, points2, minPoints
 real(kind=8) :: minDistance, T, increments, distance1, distance2
 integer :: i, arbitrary_max, flip
 real :: time_begin, time_end
 
 call cpu_time(time_begin)
 
-points = (/1, 2, 3, 4, 5/)
+points = (/1, 2, 3, 4, 5, 1/)
 minPoints = points
 minDistance = distance(points, distanceArray)
 arbitrary_max = 100
@@ -60,7 +60,7 @@ call cpu_time(time_end)
 write(*,*) "-----------------------------------------------------"
 write(*,*) "           Simulated Annealing"
 write(*,*) "The shortets distance found was ", minDistance
-write(*,*) "Via the path ", points
+write(*,*) "Via the path 1 ", points
 write(*,*) "Completed in ", time_end-time_begin, " Seconds"
 write(*,*) "-----------------------------------------------------"
 
@@ -136,7 +136,7 @@ do i=2,5
 			do l=2,5
 				!Current path is 0-i-j-k-l
 				if ((i .ne. j) .and. (i .ne. k) .and. (i .ne. l) .and. (j .ne. k) .and. (j .ne. l) .and. (k .ne. l)) then
-					current_distance = distanceArray(1,i) + distanceArray(i,j) + distanceArray(j,k) + distanceArray(k,l)
+					current_distance = distanceArray(1,i) + distanceArray(i,j) + distanceArray(j,k) + distanceArray(k,l) + distanceArray(l,1)
 					if (current_distance .lt. shortest_distance) then
 						shortest_distance = current_distance
 						points = (/i, j, k,l/)
@@ -192,11 +192,12 @@ do i =1,max_iterations(1)-1
 	locations(i) = loc
 
 end do
+totalDistance = totalDistance + distanceArray(loc,1)
 call cpu_time(time_end)
 write(*,*) "-----------------------------------------------------"
 write(*,*) "           Shortest Distance Algoritm"
 write(*,*) "The shortets distance found was ", totalDistance(1)
-write(*,*) "Via the path 0, ", locations
+write(*,*) "Via the path 1 ", locations
 write(*,*) "Completed in ", time_end-time_begin, " Seconds"
 write(*,*) "-----------------------------------------------------"
 

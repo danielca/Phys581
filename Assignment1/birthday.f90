@@ -1,4 +1,7 @@
 program birthday
+
+use Ouyed_random_number_module
+
 implicit none
 integer, dimension(10000):: rand_nums
 real::temp_num
@@ -12,6 +15,7 @@ birthday_counter = 0
 
 !initialize the days array
 
+call init_random_seed()
 
 do j=1,365
 	days1(j) = 0

@@ -1,5 +1,5 @@
-set terminal png
-set output "Finance1.png"
+set terminal pdfcairo
+set output "./Plots/Finance1.pdf"
 
 set multiplot layout 1,2
 unset key
@@ -14,4 +14,5 @@ set xtics ("0" 0,"1" 38, "2" 76, "3" 114, "4" 152, "5" 190, "6" 228, "7" 266, "8
 plot "./Data/StockPrices8Hour.txt" using 1:2 with lines
 
 unset multiplot
+unset out
 reset
