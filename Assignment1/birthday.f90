@@ -3,58 +3,44 @@ program birthday
 use Ouyed_random_number_module
 
 implicit none
-integer, dimension(10000):: rand_nums
 real::temp_num
-integer, dimension(365)::days1, days2
-integer::birthday_counter, i, j
-integer, dimension(2)::max_iterations
+integer, dimension(365)::days
+integer::birthday_counter, i, j,k, max_iterations, trails, found_birthdays, index
+max_iterations = 10000
+trails = 30
+found_birthdays = 0
 
-max_iterations(1) = 30
-max_iterations(2) = 10000
-birthday_counter = 0
 
 !initialize the days array
+do k=1,max_iterations
 
-call init_random_seed()
+   birthday_counter = 0
+   call init_random_seed()
+ 
+   do j=1,365
+      days(j) = 0
+   end do
 
-do j=1,365
-	days1(j) = 0
-	days2(j) = 0
-end do		
 
+   do i=1,trails
+      call random_number(temp_num)
+      index = int(temp_num * (365+1-1)) + 1 
+      days(index) = days(index) + 1
+   end do
 
-do i=1,max_iterations(2)
-	call random_number(temp_num)
-	temp_num = int(temp_num * (365+1-1)) + 1 
-	rand_nums(i) = temp_num
+   do i=1,365
+      if (days(i) .gt. 1) then
+         birthday_counter = birthday_counter + days(i)
+      end if
+   end do
+   if (birthday_counter .gt. 0) then
+      found_birthdays = found_birthdays + 1
+   end if
 end do
-
-do i=1,max_iterations(1)
-	days1(rand_nums(i)) = days1(rand_nums(i)) + 1
-end do
-
-do i=1,365
-	if (days1(i) .gt. 1) then
-		birthday_counter = birthday_counter + days1(i)
-	end if
-end do 
-
-write(*,*) "Found ", birthday_counter, " are the same out of 30 people"
-
-birthday_counter = 0
+write(*,*) "Found ", found_birthdays, " out of ", max_iterations, " trials"
 
 
-do i=1,max_iterations(2)
-	days2(rand_nums(i)) = days2(rand_nums(i)) + 1
-end do
 
-do i=1,365
-	if (days2(i) .gt. 1) then
-		birthday_counter = birthday_counter + days2(i)
-	end if
-end do 
-
-write(*,*) "Found ", birthday_counter, " are the same out of 1000 people"
 
 
 
