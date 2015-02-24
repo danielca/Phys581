@@ -51,6 +51,10 @@ do i=1,arbitrary_max
 			points = points2
 		end if
 	end if
+	if (t .le. 0) then
+		exit
+	end if
+	T = T + increments
 end do
 call cpu_time(time_end)
 write(*,*) "-----------------------------------------------------"
