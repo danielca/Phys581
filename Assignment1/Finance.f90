@@ -12,8 +12,8 @@ r=0.14
 v=0.2
 
 open(unit=42, file="./Data/StockPrices3Day.txt", action = "write")
-s0=10
-dTime=1/122
+s0=10.0
+dTime=1.0/122.0
 write(42,*) 0, s0
 do i=1,122
 	call StepInTime(dTime,r,v,s0,dStockPrice)
@@ -24,10 +24,11 @@ close(42)
 
 
 open(unit=43, file="./Data/StockPrices8Hour.txt", action="write")
-s0 = 10
-dTime = 1/457
+s0 = 10.0
+dTime = 1.0/457.0
 write(43,*) 0, s0
 do i=1,457
+	write(*,*) "dtime is ", dTime
 	call StepInTime(dTime, r, v, s0, dStockPrice)
 	s0 = s0 + dStockPrice
 	write(43,*) i, s0
@@ -44,7 +45,7 @@ subroutine StepInTime(dTime, r, v, s0, dStockPrice)
 	real(kind=8)::e 
 
 	e = random_normal()
-	write(*,*) "random is ", e
+	write(*,*) "random is ", dTime
 
 	dStockPrice = (r*s0*dTime) + (v+s0*e*sqrt(dTime))
 end subroutine 
