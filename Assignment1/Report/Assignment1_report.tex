@@ -711,6 +711,115 @@ Choosing a poor proposal distribution gives a poorly-mixed chain which does a po
 The result is then a bad estimate of the target distribution.
 We should aim to pick a proposal distribution so that the walk explores the space thoroughly and efficiently.
 
+\section{Simulated Annealing}
+Simulated Annealing is a useful tool to search for the global minimum or maximum. We will show this using the following equation.
+\begin{equation}
+V(x) = x^4 - x^2 + 0.1x
+\end{equation}
+we can see in Figure \ref{fig:SA1} that there is not only a global minimum, but also a local minimum at $\pm 5$. Figure \ref{fig:SA1} shows the initial temperature of 1.0. We can see a wide exploration of the space, spanning both sides of the equation. When we lower the temperature to 0.4, as in figure \ref{fig:SA04} we see a bit more of focus around the global minimum. Again decreasing the temperature to 0.1, as in figure \ref{fig:SA01}, we see an even more narrow focus on the solution. This behaviour is a property of simulated annealing. With a higher temperature we see more exploration of the system, and as the temperature decreases, the simulation begins to converge on the solution. The entire simulation is displayed in figure \ref{fig:SAAll}. We see that most of the time was spent on the two solutions, and did find the global minimum of -0.26 at the point -0.54. Comparing this to the analytical solution of -0.32 at the point -0.73, the found solution is close. Simulated annealing is not a method to always find the global, but rather a close enough solution. The advantage to this method is for very complex, and multidimensional functions, Simulated Annealing is more efficient than directly solving for the maximum or minimum.  
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/SA1.pdf}
+    \caption{%
+        Left: The time series exploration of the function for a temperature of 1.0
+        Right: Histogram showing the distribution of the the points explored for a temperature of 1.0
+    }
+    \label{fig:SA1}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/SA04.pdf}
+    \caption{%
+        Left: The time series exploration of the function for a temperature of 0.4
+        Right: Histogram showing the distribution of the the points explored for a temperature of 0.4
+    }
+    \label{fig:SA04}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/SA01.pdf}
+    \caption{%
+        Left: The time series exploration of the function for a temperature of 0.1
+        Right: Histogram showing the distribution of the the points explored for a temperature of 0.1
+    }
+    \label{fig:SA01}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/SA_All.pdf}
+    \caption{%
+        Left: The time series exploration of the function for the entire simulation
+        Right: Histogram showing the distribution of the the points explored for the entire simulation
+            }
+    \label{fig:SAAll}
+    \end{center}
+\end{figure}
+
+\section{Birthday Problem}
+Using the prescribed method, we were able to simulate 30 people having random birthdays 10000 times. We found that approximately 7100 trials out of 1000 had one or more people sharing birthdays. 
+
+\section{Finance}
+ We were able to simulate a stock using the following formula. 
+ \begin{equation}
+ dS = rS(t)dt + vS(t)\epsilon \sqrtsign{dt}
+ \end{equation}
+ We can make this a discrete process by transforming from infinitesimal to discrete changes in dS and dt and arrive at the following.
+ \begin{equation}
+ S_{n+1} = S_{n} + rS_{n}\Delta t + vS_{n}\epsilon \sqrtsign{\Delta t}
+ \end{equation}
+ Where $\epsilon$ is a normally distributed random variable. Figure \ref{fig:Finance} shows two values for $\Delta t$, one being 3 days and 8 hours, and the effects they have on the stock, both over a period of one year. We can see a more granular movement in the stock prices, which in turn can lead to a more accurate simulation. Running this simulation yields similar end results, however the path to that point does vary significantly. This is the random nature playing it's effect. 
+ 
+ \begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Finance1.pdf}
+    \caption{%
+        Left: Simulation of stock prices over a one year period with a 3 day interval
+        Right: Stock prices simulation over one year with an 8 hour interval
+            }
+    \label{fig:Finance}
+    \end{center}
+\end{figure}
+ 
+ If we instead start looking at the logarithm of the change of stock prices, and substitute $L=log(S)$, $\mu = rdt$, and $\sigma = v\sqrtsign{dt}$ we can derive the equation:
+ \begin{equation}
+ dL = \mu + \sigma\epsilon
+ \end{equation}
+ where $\epsilon$ is a normally distributed random variable. 
+ Thus $ dL $ is a normally distributed random variable with a variance of $\sigma^2$ and mean of $\mu$. To find the balance point between the two, we can set the two equal to each other and find that the are the same for a time interval $\Delta t = \frac{v^{2}}{r^{2}}$.
+Here we have naively replaced the infinitesimal $ dt $ with the finite $ \Delta t $.
+This can actually be justified with the central limit theorem
+
+The actual formula for $\Delta L$ is essentially an integral of infinitesimal random variables $dL_{i}$:
+\begin{equation}
+    \Delta L = \lim_{dt \to 0} \sum^{N}_{i=1} dL_i
+\end{equation}
+ 
+where
+\begin{align}
+    N=\frac{\Delta t}{dt} 
+\end{align}
+The Central Limit Theorem says the for a large $N$ (which it will be as $ dt \to 0 $), $\Delta L$ is a gaussian distribution with expected value
+\begin{align}
+    \text{E}[\Delta L]=N \cdot \text{E}[dL_{i}]=\frac{\Delta t}{dt}rdt = r dt 
+\end{align}
+and variance
+\begin{align}
+    \text{Var}[\Delta L]=N \cdot \text{Var}[dL_{i}] = \frac{\Delta t}{dt}v^{2}dt = \Delta tv^{2} 
+\end{align}
+So, to to find the distribution of $ \Delta L $, we simply take the distribution of $ dL $ and replace $ dt $ with $ \Delta t $.
+This is a somewhat surprising result, confirming our naive approach.
+
+So with $r=0.12$ and $v=0.2$ we can expect an change in price of 1.02 with a variance of 0.003. 
+With such a small variance we can see that there is a likely to be a small amount of money made in a time period of one month. 
+It would however be better to wait longer for larger expectation values, however this comes at the cost of an increase variance, increasing the probability of not having the expected return.
+
 \section{Metropolis-Hastings and the Ising model}
 \label{sec:metropolis_hastings_and_the_ising_model}
 
@@ -744,17 +853,78 @@ With higher temperatures, the higher energy states become more and more probable
 \end{figure}
 
 The mean energies are plotted in Figure~\ref{fig:ising_mean_energy}.
+After around 10000 iterations, the means of all the energies have stopped fluctuating noticeably.
+(More importantly, the mean magnetizations have settled at this point.
+Magnetization is discussed later.)
+This is most easily seen by plotting the results, however a more rigorous condition would be to require that the largest change in the last 10 cycles is less than some threshold.
 
 \begin{figure}[ht!]
     \begin{center}
     \includegraphics[width = 0.45\textwidth]{../Plots/Ising_mean_energy.pdf}
     \caption{%
+        Mean energy of the system as a function of cycles (discarding the first 500).
     }
     \label{fig:ising_mean_energy}
     \end{center}
 \end{figure}
 
+It should be noted that the number of accepted information increases as a function of temperature $ T $.
+This is because as $ T $ increases, the probability of the system moving into higher energy states increases.
 
+The magnetization was also calculated for each sweep.
+These results are plotted in Figures~\ref{fig:ising_magnetization} and \ref{fig:ising_mean_magnetization_vs_temp}.
+First, note that the variation of the average magnetization as a function of temperature matches up nicely with the predicted theoretical results.
+Second, note that negative magnetizations have the same energy as positive magnetizations.
+Thus, it is possible for the system to ``flip'' its orientation, though it is extremely unlikely at low temperatures.
+This flip would be most likely at just below the Curie temperature, where the magnetization has a noticeable magnetude, but the temperature makes a change in state more likely.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Ising_magnetization.pdf}
+    \caption{%
+        Mean magnetization of the Ising model as a function of sweep number.
+        Only the first 2000 sweeps are shown.
+    }
+    \label{fig:ising_magnetization}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Ising_mean_magnetization_vs_temp.pdf}
+    \caption{%
+        Mean energy of the system as a function of cycles (discarding the first 500).
+    }
+    \label{fig:ising_mean_magnetization_vs_temp}
+    \end{center}
+\end{figure}
+
+
+
+\section{Traveling Salesman}
+We were able to build the 3 solutions to the traveling salesman problem. 
+The attached animated gif displays our solutions. 
+We found that both the brute force and the nearest neighbour were able to find the shortest round trip of 16. 
+Using Simulated Annealing found a solution of 18 Units. 
+Where Simulated Annealing shines is in the time complexity of it's solutions. 
+The brute force method has a time complexity of $O((n-1)!)$ since we know the starting points. 
+This solution requires n-1 nested loops, and we found a run time of approximately 5 seconds. 
+The shortest distance algorithm has a time complexity of $O(n^{2})$. 
+While this is a nicer solution, we still found a run time of 5 seconds. 
+The time complexity of the simulated annealing approach is different, as it does not scale with the number of points. 
+Instead it scales with the temperature range and the cooling schedule. 
+It's time complexity is $O(\Delta T \times (T_{increment} + \sigma))$, where $\Delta T$ is the temperature range, $T_{increment}$ is the amount the temperature is cooled each time, and $\sigma$ is the number of iterations before cooling. 
+The important thing to note here is none of these directly scale with the complexity of the problem. 
+It is wise to adjust these schedules for larger problems, however that is at your discretion. 
+We were able to find run that section of code in approximately 2 seconds.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+In this report we have explored in detail a number of applications of Monte Carlo methods.
+The wide range of applicability of this method is astonishing.
+
+(Also this assignment took a really, really long time!)
 
 \onecolumn
 
@@ -802,5 +972,76 @@ The mean energies are plotted in Figure~\ref{fig:ising_mean_energy}.
 
 \lstinputlisting[breaklines]{../MCMC.gp}
 \vspace{10pt}
+
+\subsection{Metropolis-Hastings code}
+\label{subsec:metropolis_hastings_code}
+
+\lstinputlisting[breaklines]{../Metropolis_Hastings.f90}
+\vspace{10pt}
+
+\subsection{Metropolis-Hastings module}
+\label{subsec:metropolis_hastings_module}
+
+\lstinputlisting[breaklines]{../../Modules/Metropolis_Hastings_module.f90}
+\vspace{10pt}
+
+\subsection{Metropolis-Hastings plotting code}
+\label{subsec:metropolis_hastings_plotting_code}
+
+\lstinputlisting[breaklines]{../Metropolis_Hastings.gp}
+\vspace{10pt}
+
+\subsection{Simulated annealing code}
+\label{subsec:simulated_anealing_code}
+
+\lstinputlisting[breaklines]{../Simulated_Anealing.f90}
+\vspace{10pt}
+
+\subsection{Simulated annealing plotting code}
+\label{subsec:simulated_anealing_plotting_code}
+
+\lstinputlisting[breaklines]{../SA.gp}
+\vspace{10pt}
+
+\subsection{Birthday problem code}
+\label{subsec:birthday_problem_code}
+
+\lstinputlisting[breaklines]{../birthday.f90}
+\vspace{10pt}
+
+\subsection{Finance code}
+\label{subsec:finance_code}
+
+\lstinputlisting[breaklines]{../Finance.f90}
+\vspace{10pt}
+
+\subsection{Finance plotting code}
+\label{subsec:finance_plotting_code}
+
+\lstinputlisting[breaklines]{../Finacne1.gp}
+\vspace{10pt}
+
+\subsection{Ising code}
+\label{subsec:ising_code}
+
+\lstinputlisting[breaklines]{../Ising.f90}
+\vspace{10pt}
+
+\subsection{Ising plotting code}
+\label{subsec:ising_plotting_code}
+
+\lstinputlisting[breaklines]{../Ising.gp}
+\vspace{10pt}
+
+\subsection{Traveling salesman code}
+\label{subsec:traveling_salesman_code}
+
+\lstinputlisting[breaklines]{../Traveling_Salsesman.f90}
+
+\subsection{Traveling salesman plotting code}
+\label{subsec:traveling_salesman_plotting_code}
+
+\lstinputlisting[breaklines]{../Traveling.gp}
+
 
 \end{document}
