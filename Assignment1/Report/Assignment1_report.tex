@@ -436,14 +436,16 @@ Normalizing so that the probabilities add up to 1, we get the same result:
 
 A simulation of this Markov Chain was performed, with the results shown in Figure~\ref{fig:weather_simulation}.
 In calculating the probability of a sunny day, the first 10 days were discarded (``burn-in'').
-It was calculated that the probability of a sunny day was $0.720$, which is not quite the theoretical value of $ 0.6667 $.
-However, with an increased number of trials, this value converges to the theoretical one.
+It is seen that the calculated probabilities do not exactly match the theoretical ones.
+However, with an increased number of trials, the values do converge to the theoretical ones.
 
 \begin{figure}[ht!]
     \begin{center}
     \includegraphics[width = 0.45\textwidth]{../Plots/Weather_simulation.pdf}
     \caption{%
-        Simulation of the weather Markov Chain, with the expected and calculated probabilities of a sunny day shown for reference.
+        Simulation of the weather Markov Chain.
+        The calculated frequencies are plotted with black boxes, and the expected probabilities are shown with vertical red lines.
+        On the $ x $-axis, state 0 is rainy day, and state 1 is sunny day (as in the analysis above).
     }
     \label{fig:weather_simulation}
     \end{center}
@@ -503,6 +505,25 @@ With the condition that all the probabilities add up to unity, we get
 Alternatively, we can show that the eigenvectors are $ [1.5, 1, 1.5, 1]^T $, $ [-1, 1, -1, 1]^T $, $ [-1, 0, 1, 0]^T $, $ [0, -1, 0, 1]^T $ with eigenvalues $ 1 $, $ -2/3 $, $ -1/3 $, and $ 0 $, respectively.
 Normalizing the eigenvector corresponding to eigenvalue 1 so that its elements add up to unity gives the result above.
 
+This system was simulated four times in Monte Carlo, once with each possible starting state (corner).
+For each run, a burn-in period of 50 iterations was used, followed by 500 iterations which were used to estimate the probabilities.
+The results are plotted in Figure~\ref{fig:square_simulation}.
+It can be seen that the results are in good alignment with the probabilities expected from theory.
+Increasing the number of iterations would improve the match.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Square_simulation.pdf}
+    \caption{%
+        Simulation of the edged square Markov Chain.
+        The calculated frequencies are plotted with black boxes, and the expected probabilities are shown with vertical red lines.
+        On the $ x $-axis, state $ n $ corresponds to corner $ n $.
+    }
+    \label{fig:square_simulation}
+    \end{center}
+\end{figure}
+
+
 \subsection{Business example}
 \label{subsec:business_example}
 
@@ -549,6 +570,191 @@ So this model predicts that Brand 2 will take most of the market share in the lo
 Whether the market will actually approach these values depends strongly on our confidence in the model.
 We have assumed that the transition rates do not change from month to month, which is probably not a valid assumption long-term.
 This ignores a wide array of unexpected events which could effect market shares.
+
+\section{Random-walk Metropolis}
+\label{sec:random_walk_metropolis}
+
+In this section, we use the random walk metropolis algorithm as a way to sample from arbitrary (possibly complicated) distributions.
+First, a code was written to perform a pure random walk.
+At each step, the point moves a distance $ \delta = 1 $ either to the right or to the left with equal probability.
+After 200 steps, the position is recorded.
+Repeating this trial $ 10^4 $ times, we can use a histogram to estimate the probability density.
+
+The resulting distribution is binomial, but because the number of steps is large (200), the central limit theorem suggests that it is a good approximation to a Gaussian distribution.
+This is confirmed by the simulation results, plotted in Figure~\ref{fig:simple_random_walk}.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Simple_random_walk.pdf}
+    \caption{%
+        Histogram of simple random walk simulation.
+    }
+    \label{fig:simple_random_walk}
+    \end{center}
+\end{figure}
+
+A more interesting test uses the random walk Metropolis algorithm to sample a Gaussian distribution proportional to $ \exp(-0.2x^2) $.
+The distribution was calculated using a starting point of 0, 5000 trials, and a uniform proposal distribution of width equal to the standard deviation of the target distribution.
+The convergence of the mean is shown in Figure~\ref{fig:metropolis_gauss_mean}.
+The mean gets ``roughly'' close within a few thousand iteration, but the convergence rate gets slower as the number of iterations increases.
+It takes tens of thousands of iterations before the mean is negligibly far from the actual value.
+
+The histogram resulting from this random walk is plotted in Figure~\ref{fig:metropolis_gauss_distribution}.
+The histogram is a fairly good fit compared to the exact one, and the fit gets closer as the number of trials increases.
+More importantly, this algorithm is efficient: it took 6 ms to run while the above method took 33 ms.
+(That's because in the above algorithm, 200 uniform random numbers have to be generated for each sample, while in this method only 1 uniform random number needs to be generated per sample).
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_Gauss_mean.pdf}
+    \caption{%
+        Convergence of the mean for a Metropolis sampling of a Gaussian distribution.
+        The blue line is the actual mean.
+    }
+    \label{fig:metropolis_gauss_mean}
+    \end{center}
+\end{figure}
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Metropolis_Gauss_distribution.pdf}
+    \caption{%
+        Gaussian distribution estimated with a Metropolis random walk. 
+        The blue line is the actual distribution.
+    }
+    \label{fig:metropolis_gauss_distribution}
+    \end{center}
+\end{figure}
+
+As another test, the Metropolis-Hastings algorithm was used in three different situations, seen in Figure~\ref{fig:mh_hist}.
+In each case $ 10^6 $ trials were performed.
+
+In the first case, the target distribution was $ N(5,1) $ and the proposal distribution was $ N(-5,1) $.
+It is seen that this choice of target distribution was extremely poor.
+Most of the time, the point did not move at all, and if it did, it tended to move to the left.
+Thus, it did a very poor job exploring the space.
+
+In the second case, the target distribution was $ N(0,5) $ and the proposal distribution was $ N(0,0.5) $.
+This is a much better choice of proposal distribution, giving a close match to the actual target distribution.
+
+In the third case, the target distribution was $ t(1) $ and the proposal distribution was $ N(0,1) $.
+Again, this proposal distribution and the Metropolis-Hastings algorithm did a good job exploring the target distribution.
+This particular target distribution is much wider than the Gaussian in terms of tails (despite having the same mean), making it more challenging to effectively sample.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Student_t.pdf}
+    \caption{%
+        Student's t distribution for different parameter values.
+        For high $ \nu $, the distribution lines up with a Gaussian distribution.
+    }
+    \label{fig:student_t}
+    \end{center}
+\end{figure}
+
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/MH_hist.pdf}
+    \caption{%
+        Distributions estimated with the Metropolis-Hastings algorithm.
+        Actual distributions are plotted in blue.
+    }
+    \label{fig:mh_hist}
+    \end{center}
+\end{figure}
+
+As a final example, we use Metropolis-Hastings to sample the following PDF:
+\begin{align}
+    P(x) &= C x^{-5/2} e^{-2/x}
+\end{align}
+
+For a symmetric proposal distribution, the acceptance probability of moving from $ x = 1 $ to $ x = 39.82 $ is
+\begin{align}
+    A(1 \to 39.82) &= 0.00001422
+\end{align}
+This transition is extremely unlikely to happen.
+
+This target distribution was sampled using a proposal distribution $ N(0, 100) $ with a starting point of 1 and 500 iterations.
+See Figure~\ref{fig:mh_mixing_normal}.
+This is an example of a poorly-mixed sequence.
+Because of the large standard deviation of the proposal distribution, only a very small percentage of the point are accepted, leading to poor exploration of the space.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/MH_mixing_normal.pdf}
+    \caption{%
+        Complicated distribution sampled using Metropolis-Hastings with a $ N(0, 100) $ proposal distribution.
+    }
+    \label{fig:mh_mixing_normal}
+    \end{center}
+\end{figure}
+
+The same target distribution was sampled again using a $ \chi^2_1 $ distribution, which is highly asymmetric.
+See Figure~\ref{fig:mh_mixing_chi2}.
+This is another example of a poorly-mixed sequence.
+In this case, the acceptance rate is good, but because the distribution is so asymmetric, this means that most of the accepted movements are in one direction.
+Thus the walk tends to continue moving up, doing a poor job exploring the space.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/MH_mixing_chi2.pdf}
+    \caption{%
+        Complicated distribution sampled using Metropolis-Hastings with a $ \chi^2_1 $ proposal distribution.
+    }
+    \label{fig:mh_mixing_chi2}
+    \end{center}
+\end{figure}
+
+Both of these examples demonstrate the importance of selecting a good proposal distribution in the Metropolis-Hastings algorithm.
+Choosing a poor proposal distribution gives a poorly-mixed chain which does a poor job exploring the space.
+The result is then a bad estimate of the target distribution.
+We should aim to pick a proposal distribution so that the walk explores the space thoroughly and efficiently.
+
+\section{Metropolis-Hastings and the Ising model}
+\label{sec:metropolis_hastings_and_the_ising_model}
+
+As an application of the Metropolis-Hastings Monte Carlo method, we simulate a system of $ N $ particles following the Ising model.
+The $ i $th particle has spin $ s_i $ which is either up ($ +1 $) or down ($ -1 $), and the energy of the system is given by
+\begin{align}
+    E &= -J \sum_{\substack{i,j \\ \text{pairs}}} s_i s_j - \mu H \sum_{i=1}^{N} s_i
+\end{align}
+With some simplifying assumptions, a simulation was made of a $ 32 \times 32 $ system of particles.
+It was run with temperatures $ T = 1, 2.25, 2.5, $ and $ 3 $.
+For each run, $ N_\text{MC} = 12\,000 $ sweeps were performed to ensure that the means of the quantities of interest settled.
+
+The energy of the system plotted in Figure~\ref{fig:ising_energy}.
+It is seen in this plot that by around 100 sweeps (conservatively), the energy appears to have settled into its equilibrium variation for all temperatures.
+The number of sweeps taken appears to depend on temperature, with the $ T = 2.25 $ curve taking longer to settle in than the others, and the $ T = 1.00 $ curve settling quite quickly.
+
+These energy plots behave exactly as expected.
+The initial state, with all spins up, is the ground state of the system.
+For the low temperature $ T = 1.00 $, the system spends much of its time in the ground state and only occasionally jumps into higher energy states.
+With higher temperatures, the higher energy states become more and more probable, and we see the energy curve move upward.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Ising_energy.pdf}
+    \caption{%
+        Energy from the Ising model simulation for each temperature as a function of sweep number.
+        Only the first 1000 sweeps are included in the plot so that the relevant detail is not lost.
+    }
+    \label{fig:ising_energy}
+    \end{center}
+\end{figure}
+
+The mean energies are plotted in Figure~\ref{fig:ising_mean_energy}.
+
+\begin{figure}[ht!]
+    \begin{center}
+    \includegraphics[width = 0.45\textwidth]{../Plots/Ising_mean_energy.pdf}
+    \caption{%
+    }
+    \label{fig:ising_mean_energy}
+    \end{center}
+\end{figure}
+
+
 
 \onecolumn
 

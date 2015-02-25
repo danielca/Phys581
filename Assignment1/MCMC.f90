@@ -8,9 +8,19 @@ program Markov_chain_Monte_Carlo
     integer, parameter :: iqp = kind(1_16)
     integer, parameter :: dp  = kind(1.0d0)
 
-    call simple_random_walk()
+    real(dp) :: time_begin, time_end
 
+    call cpu_time(time_begin)
+    call simple_random_walk()
+    call cpu_time(time_end)
+
+    write(*,*) "Random walk time: ", time_end - time_begin
+
+    call cpu_time(time_begin)
     call metropolis_gauss_distribution()
+    call cpu_time(time_end)
+
+    write(*,*) "Metropolis Hastings time: ", time_end - time_begin
 
 contains
 
