@@ -1,0 +1,181 @@
+\documentclass[twocolumn]{myarticle}
+
+\usepackage{mymacros}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{mathtools}
+
+\lstset{%
+basicstyle=\small\ttfamily,
+columns=flexible,
+breaklines=true,
+numbers=left,
+stepnumber=1,}
+
+\newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\sinc}{\text{sinc}}
+\renewcommand{\d}{\mathrm{d}}
+
+\begin{document}
+
+\title{Physics 581, Assignment 2:\\Hooray for Fourier!}
+\author{Casey Daniel and Chris Deimert}
+\date{\today}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:introduction}
+
+\section{Fourier series and general concepts}
+\label{sec:fourier_series_and_general_concepts}
+
+\subsection{Basic results}
+\label{subsec:basic_results}
+
+In this section, we look at some of the basic concepts of Fourier series.
+A periodic function $ f(t+T) = f(t) $ can always be decomposed into a linear combination of complex exponentials:
+\begin{align}
+    f(t) &= \sum_{n = -\infty}^{-\infty} c_n e^{j n \omega_0 t}
+\end{align}
+where
+\begin{align}
+    \omega_0 &= \frac{2 \pi}{T}
+    \\
+    c_n &= \frac{1}{T} \int_{T} f(t) e^{-j n \omega_0 t} \d t
+\end{align}
+
+Using Euler's formula $ e^{jx} = \cos x + j \sin x $, this becomes
+\begin{align}
+    f(t) &= \sum_{n = -\infty}^{-\infty} c_n \left[ \cos (n \omega_0 t) + j \sin (n \omega_0 t) \right]
+    \\
+    f(t) &= c_0 + \sum_{n = 1}^{-\infty} \left[ (c_n + c_{-n}) \cos (n \omega_0 t) + \right.
+    \nonumber \\
+    &\qquad \qquad \quad \left. + j (c_n - c_{-n}) \sin (n \omega_0 t) \right]
+\end{align}
+(Since $ \cos $ is even and $ \sin $ is odd.)
+
+If we define
+\begin{align}
+    a_n &= c_n + c_{-n} = \frac{2}{T} \int_{T} f(t) \cos(n \omega_0 t) \d t \label{eq:a_n_def}
+    \\
+    b_n &= j(c_n - c_{-n}) = \frac{2}{T} \int_{T} f(t) \sin(n \omega_0 t) \d t \label{eq:b_n_def}
+\end{align}
+then this becomes
+\begin{align}
+    f(t) &= \frac{a_0}{2} + \sum_{n = 1}^{\infty} \left[ a_n \cos (n \omega_0 t) + b_n \sin (n \omega_0 t) \right]
+\end{align}
+
+Note that even though $ a_n $ and $ b_n $ are only used with non-negative $ n $, they are actually defined for all $ n $, positive or negative.
+So we can write
+\begin{align}
+    c_n &= \frac{a_n - j b_n}{2}
+\end{align}
+for all $ n $.
+
+For an odd function we have
+\begin{align}
+    a_n &= 0
+    \\
+    c_n &= - c_{-n}
+    \\
+    b_n &= 2 j c_n
+\end{align}
+
+For an even function we have:
+\begin{align}
+    b_n &= 0
+    \\
+    c_n &= c_{-n}
+    \\
+    a_n &= 2 c_n
+\end{align}
+
+By Parseval's theorem the average power of the signal is
+\begin{align}
+    P_\text{avg} &= \sum_{n = -\infty}^{\infty} \left| c_n \right|^2 
+    \\
+    P_\text{avg} &= \sum_{n = -\infty}^{\infty} \left| \frac{1}{2} \left( a_n + j b_n \right) \right|^2
+    \\
+    P_\text{avg} &= \frac{1}{4} \sum_{n = -\infty}^{\infty} \left[ \left| a_n \right|^2 + \left| b_n \right|^2 + j \left( a_n^* b_n - a_n b_n^* \right) \right]
+    \label{eq:parseval_1}
+\end{align}
+However, from Equations~\ref{eq:a_n_def} and~\ref{eq:b_n_def}, we can see that
+\begin{align}
+    a_n = a_{-n} \quad \text{and} \quad b_n = -b_{-n}
+\end{align}
+Which means that
+\begin{align}
+    \left| a_n \right|^2 + \left| a_{-n} \right|^2 &= 2 \left| a_n \right|^2
+    \\
+    \left| b_n \right|^2 + \left| b_{-n} \right|^2 &= 2 \left| b_n \right|^2
+\end{align}
+and
+\begin{align}
+    b_0 = 0
+\end{align}
+and
+\begin{align}
+    j \left( a_n^* b_n - a_n b_n^* \right) + j \left( a_{-n}^* b_{-n} - a_{-n} b_{-n}^* \right) &= 0
+\end{align}
+
+Applying all these results, Equation~\ref{eq:parseval_1} becomes
+\begin{align}
+    P_\text{avg} &= \frac{|a_0|^2}{4} + \frac{1}{2} \sum_{n = 1}^{\infty} \left[ \left| a_n \right|^2 + \left| b_n \right|^2 \right]
+\end{align}
+
+Thus, we have demonstrated the formula for average power in terms of $ c_n $ versus $ a_n $ and $ b_n $ as desired.
+
+\subsection{An example}
+\label{subsec:an_example}
+
+Consider the periodic function defined by
+\begin{align}
+    f(t) &= \begin{cases} 1 & \text{for } |t| < \frac{T}{4} \\ 0 & \text{for } \frac{T}{4} < |t| < \frac{T}{2} \end{cases}
+    \\
+    f(t) &= f(t + T)
+\end{align}
+
+The Fourier coefficients are
+\begin{align}
+    c_n &= \frac{1}{T} \int_{T} f(t) e^{-j n \omega_0 t} \d t
+    \\
+    c_n &= \frac{1}{T} \int_{-T/4}^{T/4} e^{-j n \omega_0 t} \d t
+\end{align}
+
+For $ n = 0 $, the integrand is 1, so
+\begin{align}
+    c_0 &= \frac{1}{T} \cdot \frac{T}{2} = \frac{1}{2}
+\end{align}
+
+For $ n \neq 0 $,
+\begin{align}
+    c_n &= \frac{1}{T} \left[ \frac{1}{-j n \omega_0} \left( e^{-j n \omega_0 T/4} - e^{jn \omega_0 T/4} \right) \right]
+    \\
+    c_n &= \frac{1}{T} \left[ \frac{2}{ n \omega_0} \sin\left(\frac{n \omega_0 T}{4} \right) \right]
+    \\
+    c_n &= \frac{1}{n \pi} \sin\left(\frac{n \pi}{2} \right)
+    \\
+    c_n &= \frac{1}{2} \sinc\left(\frac{n \pi}{2} \right)
+\end{align}
+
+Using the $ \sinc $ function is advantageous here because $ \sinc(0) $ is defined to be 1. 
+Thus, the above formula applies for all $ n $, not just $ n \neq 0 $. 
+
+Then we can write out the Fourier series for $ f(t) $:
+\begin{align}
+    f(t) &= \frac{1}{2} \sum_{n = -\infty}^{\infty} \sinc \left( \frac{n \pi}{2} \right) e^{- j 2 \pi n t / T}
+\end{align}
+
+
+\onecolumn
+
+\section{Code}
+\label{sec:code}
+
+%\lstinputlisting[breaklines]{../Traveling.gp}
+%\vspace{10pt}
+
+\end{document}
