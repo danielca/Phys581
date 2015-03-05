@@ -5,7 +5,7 @@ module Fourier_analysis_module
     private
     integer, parameter :: dp = kind(1.0d0)
 
-    public :: fft_clean
+    public :: fft_clean, Hanning, Hamming, Blackman, BlackmanHarris
 
 contains
 
@@ -130,5 +130,44 @@ subroutine fft_nr(dat, nn, i_sign)
     end do
     return
     end subroutine 
+
+subroutine Hanning(Xin)
+    real(kind=8), intent(inout), dimension(:)::Xin
+    real(kind=8):: N, PI
+    integer::i
+
+    N = DBLE(size(Xin))
+    PI = 3.14159
+
+    do i=1,N
+        Xin(i) = Xin(i) * (0.5 - 0.5*cos(2*PI*(DBLE(i)/N)))
+    end do
+end subroutine
+
+subroutine Hamming(Xin)
+    real(kind=8), intent(inout), dimension(:)::Xin
+    real(kind=8):: N, PI
+    integer::i
+
+    N = DBLE(size(Xin))
+    PI = 3.14159
+
+    do i=1,N
+        Xin(i) = Xin(i) * (0.54 - 0.46*cos(2*PI*(DBLE(i)/N)))
+    end do
+end subroutine
+
+subroutine Blackman(Xin)
+    real(kind=8), intent(inout), dimension(:)::Xin
+    real(kind=8):: N, PI
+    integer::i
+
+    N = DBLE(size(Xin))
+    PI = 3.14159
+
+    do i=1,N
+        Xin(i) = Xin(i) * (0.42 - 0.5*cos(2*PI*(DBLE(i)/N)) + 0.08*cos(4*PI*(DBL(i)/N)))
+    end do
+end subroutine
 
 end module
