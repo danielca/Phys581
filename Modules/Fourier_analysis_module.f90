@@ -15,8 +15,9 @@ subroutine fft_clean(dat, sp_rate, dft_dat, freq)
     complex(dp), dimension(:), intent(out) :: dft_dat
     real(dp), dimension(:), intent(out) :: freq
     real(dp), dimension(:), allocatable :: real_dat
-    real(dp) :: factor
-    integer :: num_dat, pow, nn, i
+    real(dp) :: factor, temp
+    complex(dp) :: temp2
+    integer :: num_dat, pow, nn, i, ip1, nn2, nn4
 
     num_dat = size(dat)
 
@@ -54,11 +55,35 @@ subroutine fft_clean(dat, sp_rate, dft_dat, freq)
     end do
 
     factor = sp_rate/real(nn, kind=dp)
-    do i = 1, nn/2
+
+    nn2 = nn/2
+    nn4 = nn/4
+
+    do i = 1, nn2
         freq(i) = (i - 1)*factor
     end do
-    do i = nn/2 + 1, nn
+    do i = nn2 + 1, nn
         freq(i) = -(nn - i + 1)*factor
+    end do
+
+    ! Reorder the arrays so that the frequencies end up in order
+    do i = 0, nn4-1
+        ip1 = i + 1
+        temp = freq(nn2 - i)
+        freq(nn2 - i) = freq(ip1)
+        freq(ip1) = temp
+
+        temp = freq(nn - i)
+        freq(nn - i) = freq(nn2 + ip1)
+        freq(nn2 + ip1) = temp
+
+        temp2 = dft_dat(nn2 - i)
+        dft_dat(nn2 - i) = dft_dat(ip1)
+        dft_dat(ip1) = temp2
+
+        temp2 = dft_dat(nn - i)
+        dft_dat(nn - i) = dft_dat(nn2 + ip1)
+        dft_dat(nn2 + ip1) = temp2
     end do
 
     freq = - freq   ! Because numerical recipes defines positive frequency opposite to how most people define it

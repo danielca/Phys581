@@ -1,0 +1,5 @@
+#!/bin/bash
+gfortran ../Modules/Fourier_analysis_module.f90 Warm_up.f90 -o Warm_up
+rm fourier_analysis_module.mod
+./Warm_up
+gnuplot Warm_up.gp
