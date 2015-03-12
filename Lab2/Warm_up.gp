@@ -43,4 +43,18 @@ unset key
 
 plot "./Data/Warm_up.txt" using 1:5 with lines
 
+unset multiplot
+
+set output "./Plots/My_voice.pdf"
+
+set size 1, 1
+set origin 0, 0
+set title "My voice spectrum"
+set xlabel "Frequency (Hz)"
+set ylabel "Signal power (dB)"
+set xrange [-32768:32768]
+unset key
+
+plot "./Data/myself-fft.dat" with lines
+
 reset

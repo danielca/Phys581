@@ -1,0 +1,5 @@
+#!/bin/bash
+gfortran ../Modules/Useful_stuff_module.f90 ../Modules/Ouyed_random_number_module.f90 ../Modules/Random_numbers_module.f90 ../Modules/Fourier_analysis_module.f90 Noise_and_FFT.f90 -o Noise_and_FFT
+rm useful_stuff_module.mod ouyed_random_number_module.mod random_numbers_module.mod fourier_analysis_module.mod
+./Noise_and_FFT
+gnuplot Noise_and_FFT.gp

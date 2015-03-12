@@ -77,15 +77,14 @@ contains
             x_cen_sqrd(i) = x_cen(i)*x_cen(i)
         end do
 
-        
-        do k = 1, num_x
-            denom = 0
-            numerator = 0
+        denom = sum(x_cen_sqrd)/(num_x - 1.0d0)
+
+        do k = 0, num_x-1
+            numerator = 0.0
             do i = 1, num_x - k
                 numerator = numerator + (x_cen(i)*x_cen(i+k))
-                denom = denom + x_cen_sqrd(i)
             end do
-            ac(k) = numerator/denom
+            ac(k+1) = numerator/(denom*(num_x - k))
         end do
 
         deallocate(x_cen, x_cen_sqrd)

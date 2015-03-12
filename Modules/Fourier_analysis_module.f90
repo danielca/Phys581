@@ -5,15 +5,69 @@ module Fourier_analysis_module
     private
     integer, parameter :: dp = kind(1.0d0)
 
-    public :: fft_clean, Hanning, Hamming, Blackman, BlackmanHarris
+    public :: fft, ifft, fft_nr
+    public :: calc_power, calc_phase
+    public :: reorder_cmplx, reorder_real
+    !public :: hanning, hamming, blackman, blackman_harris
+
+    interface fft
+        module procedure fft_complex, fft_real
+    end interface
+
+    interface calc_power
+        module procedure calc_power_real, calc_power_cmplx
+    end interface
+
+    interface calc_phase
+        module procedure calc_power_real, calc_power_cmplx
+    end interface
+
 
 contains
 
-subroutine fft_clean(dat, sp_rate, dft_dat, freq)
+
+
+subroutine fft_complex(dat, del_t, freq, dft_dat)
     complex(dp), dimension(:), intent(in) :: dat
-    real(dp), intent(in) :: sp_rate
+    real(dp), intent(in) :: del_t
     complex(dp), dimension(:), intent(out) :: dft_dat
     real(dp), dimension(:), intent(out) :: freq
+
+    call fft_nr_cleanup(dat, del_t, freq, dft_dat, 1)
+
+end subroutine
+
+
+subroutine fft_real(dat, del_t, freq, dft_dat)
+    real(dp), dimension(:), intent(in) :: dat
+    real(dp), intent(in) :: del_t
+    complex(dp), dimension(:), intent(out) :: dft_dat
+    real(dp), dimension(:), intent(out) :: freq
+
+    call fft_nr_cleanup(cmplx(dat, 0.0d0, kind = dp), del_t, freq, dft_dat, 1)
+
+end subroutine
+
+
+subroutine ifft(dat, del_f, time, idft_dat)
+    complex(dp), dimension(:), intent(in) :: dat
+    real(dp), intent(in) :: del_f
+    complex(dp), dimension(:), intent(out) :: idft_dat
+    real(dp), dimension(:), intent(out) :: time
+
+    call fft_nr_cleanup(dat, del_f, time, idft_dat, -1)
+
+    idft_dat = idft_dat / real(size(dat), kind = dp)
+
+end subroutine
+
+subroutine fft_nr_cleanup(dat, del_t, freq, dft_dat, i_sign)
+    complex(dp), dimension(:), intent(in) :: dat
+    real(dp), intent(in) :: del_t
+    complex(dp), dimension(:), intent(out) :: dft_dat
+    real(dp), dimension(:), intent(out) :: freq
+    integer, intent(in) :: i_sign
+    complex(dp), dimension(:), allocatable :: dat_temp
     real(dp), dimension(:), allocatable :: real_dat
     real(dp) :: factor, temp
     complex(dp) :: temp2
@@ -22,75 +76,120 @@ subroutine fft_clean(dat, sp_rate, dft_dat, freq)
     num_dat = size(dat)
 
     pow = nint(log(1.0*size(dft_dat))/log(2.0))
-
     nn = 2**pow
+
     if (nn .ne. size(dft_dat)) then
-        write(*,*) "ERROR in fft_clean: size(dft_dat) must be power of 2 "
+        write(*,*) "ERROR in fft: size(dft_dat) must be power of 2 "
         write(*,*) "Terminating program."
         call exit()
     end if
     if (size(dft_dat) .ne. size(freq)) then
-        write(*,*) "ERROR in fft_clean: size mismatch"
+        write(*,*) "ERROR in fft: size mismatch"
         write(*,*) "Terminating program."
         call exit()
     end if
-    if (nn < num_dat) then
-        write(*,*) "ERROR in fft_clean: 2**pow must be > size(dat) "
+    if (num_dat .ne. size(dft_dat)) then
+        write(*,*) "ERROR in fft: size mismatch"
+        write(*,*) "Terminating program."
+        call exit()
+    end if
+    if ((i_sign .ne. 1) .and. (i_sign .ne. -1)) then
+        write(*,*) "ERROR in fft: i_sign must be +1 or -1"
         write(*,*) "Terminating program."
         call exit()
     end if
 
     allocate(real_dat(2*nn))
+    allocate(dat_temp(nn))
+    dat_temp = dat
+
+    if (i_sign == -1) then
+        call reorder_cmplx(dat_temp)
+    end if
 
     real_dat = 0.0
     do i = 1, num_dat
-        real_dat(2*i - 1) = real(dat(i))
-        real_dat(2*i) = aimag(dat(i))
+        real_dat(2*i - 1) = real(dat_temp(i))
+        real_dat(2*i) = aimag(dat_temp(i))
     end do
 
-    call fft_nr(real_dat, nn, 1)
+    call fft_nr(real_dat, nn, i_sign)
 
     do i = 1, nn
         dft_dat(i) = cmplx(real_dat(2*i-1), real_dat(2*i))
     end do
 
-    factor = sp_rate/real(nn, kind=dp)
+    factor = 1.0/(nn*del_t)
 
     nn2 = nn/2
     nn4 = nn/4
 
-    do i = 1, nn2
-        freq(i) = (i - 1)*factor
-    end do
-    do i = nn2 + 1, nn
-        freq(i) = -(nn - i + 1)*factor
-    end do
+    if (i_sign == 1) then
+        do i = 1, nn2
+            freq(i) = (i - 1)*factor
+        end do
+        do i = nn2 + 1, nn
+            freq(i) = -(nn - i + 1)*factor
+        end do
 
-    ! Reorder the arrays so that the frequencies end up in order
-    do i = 0, nn4-1
-        ip1 = i + 1
-        temp = freq(nn2 - i)
-        freq(nn2 - i) = freq(ip1)
-        freq(ip1) = temp
+        call reorder_real(freq)
+        call reorder_cmplx(dft_dat)
 
-        temp = freq(nn - i)
-        freq(nn - i) = freq(nn2 + ip1)
-        freq(nn2 + ip1) = temp
-
-        temp2 = dft_dat(nn2 - i)
-        dft_dat(nn2 - i) = dft_dat(ip1)
-        dft_dat(ip1) = temp2
-
-        temp2 = dft_dat(nn - i)
-        dft_dat(nn - i) = dft_dat(nn2 + ip1)
-        dft_dat(nn2 + ip1) = temp2
-    end do
-
-    freq = - freq   ! Because numerical recipes defines positive frequency opposite to how most people define it
+        freq = - freq       ! NR defines pos/neg frequency opposite to most people
+    else
+        do i = 1, nn
+            freq(i) = (i-1)*factor
+        end do
+    end if
 
     deallocate(real_dat)
 
 end subroutine
+
+subroutine reorder_real(arr)
+    real(dp), dimension(:), intent(inout) :: arr
+    real(dp) :: temp
+    integer :: nn, nn2, nn4, ip1, i
+
+    nn = size(arr)
+    nn2 = nn/2
+    nn4 = nn/4
+
+    do i = 0, nn4-1
+        ip1 = i + 1
+        temp = arr(nn2 - i)
+        arr(nn2 - i) = arr(ip1)
+        arr(ip1) = temp
+
+        temp = arr(nn - i)
+        arr(nn - i) = arr(nn2 + ip1)
+        arr(nn2 + ip1) = temp
+    end do
+
+end subroutine
+
+subroutine reorder_cmplx(arr)
+    complex(dp), dimension(:), intent(inout) :: arr
+    complex(dp) :: temp
+    integer :: nn, nn2, nn4, ip1, i
+
+    nn = size(arr)
+    nn2 = nn/2
+    nn4 = nn/4
+
+    do i = 0, nn4-1
+        ip1 = i + 1
+        temp = arr(nn2 - i)
+        arr(nn2 - i) = arr(ip1)
+        arr(ip1) = temp
+
+        temp = arr(nn - i)
+        arr(nn - i) = arr(nn2 + ip1)
+        arr(nn2 + ip1) = temp
+    end do
+
+end subroutine
+
 
 subroutine fft_nr(dat, nn, i_sign)
     integer i_sign, nn
@@ -154,45 +253,75 @@ subroutine fft_nr(dat, nn, i_sign)
         mmax=istep
     end do
     return
-    end subroutine 
 
-subroutine Hanning(Xin)
-    real(kind=8), intent(inout), dimension(:)::Xin
-    real(kind=8):: N, PI
-    integer::i
+end subroutine 
 
-    N = DBLE(size(Xin))
-    PI = 3.14159
+subroutine calc_power_real(signal, power)
+    real(dp), dimension(:), intent(in) :: signal
+    real(dp), dimension(:), intent(out) :: power
 
-    do i=1,N
-        Xin(i) = Xin(i) * (0.5 - 0.5*cos(2*PI*(DBLE(i)/N)))
-    end do
+    power = 20.0*log10(abs(signal))
 end subroutine
 
-subroutine Hamming(Xin)
-    real(kind=8), intent(inout), dimension(:)::Xin
-    real(kind=8):: N, PI
-    integer::i
+subroutine calc_power_cmplx(signal, power)
+    complex(dp), dimension(:), intent(in) :: signal
+    real(dp), dimension(:), intent(out) :: power
 
-    N = DBLE(size(Xin))
-    PI = 3.14159
-
-    do i=1,N
-        Xin(i) = Xin(i) * (0.54 - 0.46*cos(2*PI*(DBLE(i)/N)))
-    end do
+    power = 20.0*log10(abs(signal))
 end subroutine
 
-subroutine Blackman(Xin)
-    real(kind=8), intent(inout), dimension(:)::Xin
-    real(kind=8):: N, PI
-    integer::i
+subroutine calc_phase_real(signal, phase)
+    real(dp), dimension(:), intent(in) :: signal
+    real(dp), dimension(:), intent(out) :: phase
 
-    N = DBLE(size(Xin))
-    PI = 3.14159
-
-    do i=1,N
-        Xin(i) = Xin(i) * (0.42 - 0.5*cos(2*PI*(DBLE(i)/N)) + 0.08*cos(4*PI*(DBL(i)/N)))
-    end do
+    phase = atan2(0.0d0, signal)
 end subroutine
 
+subroutine calc_phase_complex(signal, phase)
+    complex(dp), dimension(:), intent(in) :: signal
+    real(dp), dimension(:), intent(out) :: phase
+
+    phase = atan2(aimag(signal), real(signal))
+end subroutine
+
+
+!subroutine Hanning(Xin)
+!    real(kind=8), intent(inout), dimension(:)::Xin
+!    real(kind=8):: N, PI
+!    integer::i
+!
+!    N = DBLE(size(Xin))
+!    PI = 3.14159
+!
+!    do i=1,N
+!        Xin(i) = Xin(i) * (0.5 - 0.5*cos(2*PI*(DBLE(i)/N)))
+!    end do
+!end subroutine
+!
+!subroutine Hamming(Xin)
+!    real(kind=8), intent(inout), dimension(:)::Xin
+!    real(kind=8):: N, PI
+!    integer::i
+!
+!    N = DBLE(size(Xin))
+!    PI = 3.14159
+!
+!    do i=1,N
+!        Xin(i) = Xin(i) * (0.54 - 0.46*cos(2*PI*(DBLE(i)/N)))
+!    end do
+!end subroutine
+!
+!subroutine Blackman(Xin)
+!    real(kind=8), intent(inout), dimension(:)::Xin
+!    real(kind=8):: N, PI
+!    integer::i
+!
+!    N = DBLE(size(Xin))
+!    PI = 3.14159
+!
+!    do i=1,N
+!        Xin(i) = Xin(i) * (0.42 - 0.5*cos(2*PI*(DBLE(i)/N)) + 0.08*cos(4*PI*(DBL(i)/N)))
+!    end do
+!end subroutine
+!
 end module
