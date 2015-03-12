@@ -4,11 +4,14 @@ module Fourier_analysis_module
 
     private
     integer, parameter :: dp = kind(1.0d0)
+    real(dp), parameter :: pi = 4.0d0*atan(1.0d0)
+
 
     public :: fft, ifft, fft_nr
     public :: calc_power, calc_phase
     public :: reorder_cmplx, reorder_real
-    !public :: hanning, hamming, blackman, blackman_harris
+    public :: window_rect, window_hanning, window_hamming
+    public :: window_blackmann, window_blackhar
 
     interface fft
         module procedure fft_complex, fft_real
@@ -19,7 +22,7 @@ module Fourier_analysis_module
     end interface
 
     interface calc_phase
-        module procedure calc_power_real, calc_power_cmplx
+        module procedure calc_phase_real, calc_phase_cmplx
     end interface
 
 
@@ -60,6 +63,7 @@ subroutine ifft(dat, del_f, time, idft_dat)
     idft_dat = idft_dat / real(size(dat), kind = dp)
 
 end subroutine
+
 
 subroutine fft_nr_cleanup(dat, del_t, freq, dft_dat, i_sign)
     complex(dp), dimension(:), intent(in) :: dat
@@ -146,6 +150,7 @@ subroutine fft_nr_cleanup(dat, del_t, freq, dft_dat, i_sign)
 
 end subroutine
 
+
 subroutine reorder_real(arr)
     real(dp), dimension(:), intent(inout) :: arr
     real(dp) :: temp
@@ -167,6 +172,7 @@ subroutine reorder_real(arr)
     end do
 
 end subroutine
+
 
 subroutine reorder_cmplx(arr)
     complex(dp), dimension(:), intent(inout) :: arr
@@ -256,12 +262,14 @@ subroutine fft_nr(dat, nn, i_sign)
 
 end subroutine 
 
+
 subroutine calc_power_real(signal, power)
     real(dp), dimension(:), intent(in) :: signal
     real(dp), dimension(:), intent(out) :: power
 
     power = 20.0*log10(abs(signal))
 end subroutine
+
 
 subroutine calc_power_cmplx(signal, power)
     complex(dp), dimension(:), intent(in) :: signal
@@ -270,6 +278,7 @@ subroutine calc_power_cmplx(signal, power)
     power = 20.0*log10(abs(signal))
 end subroutine
 
+
 subroutine calc_phase_real(signal, phase)
     real(dp), dimension(:), intent(in) :: signal
     real(dp), dimension(:), intent(out) :: phase
@@ -277,7 +286,8 @@ subroutine calc_phase_real(signal, phase)
     phase = atan2(0.0d0, signal)
 end subroutine
 
-subroutine calc_phase_complex(signal, phase)
+
+subroutine calc_phase_cmplx(signal, phase)
     complex(dp), dimension(:), intent(in) :: signal
     real(dp), dimension(:), intent(out) :: phase
 
@@ -285,43 +295,90 @@ subroutine calc_phase_complex(signal, phase)
 end subroutine
 
 
-!subroutine Hanning(Xin)
-!    real(kind=8), intent(inout), dimension(:)::Xin
-!    real(kind=8):: N, PI
-!    integer::i
-!
-!    N = DBLE(size(Xin))
-!    PI = 3.14159
-!
-!    do i=1,N
-!        Xin(i) = Xin(i) * (0.5 - 0.5*cos(2*PI*(DBLE(i)/N)))
-!    end do
-!end subroutine
-!
-!subroutine Hamming(Xin)
-!    real(kind=8), intent(inout), dimension(:)::Xin
-!    real(kind=8):: N, PI
-!    integer::i
-!
-!    N = DBLE(size(Xin))
-!    PI = 3.14159
-!
-!    do i=1,N
-!        Xin(i) = Xin(i) * (0.54 - 0.46*cos(2*PI*(DBLE(i)/N)))
-!    end do
-!end subroutine
-!
-!subroutine Blackman(Xin)
-!    real(kind=8), intent(inout), dimension(:)::Xin
-!    real(kind=8):: N, PI
-!    integer::i
-!
-!    N = DBLE(size(Xin))
-!    PI = 3.14159
-!
-!    do i=1,N
-!        Xin(i) = Xin(i) * (0.42 - 0.5*cos(2*PI*(DBLE(i)/N)) + 0.08*cos(4*PI*(DBL(i)/N)))
-!    end do
-!end subroutine
-!
+subroutine window_rect(sig, win_sig)
+    real(dp), intent(in), dimension(:) :: sig
+    real(dp), intent(out), dimension(:) :: win_sig
+
+    win_sig = sig
+
+end subroutine
+
+
+subroutine window_hanning(sig, win_sig)
+    real(dp), intent(in), dimension(:) :: sig
+    real(dp), intent(out), dimension(:) :: win_sig
+    real(dp) :: factor
+    integer :: num, i
+
+    num = size(sig)
+
+    factor = 2.0d0*pi/(num - 1.0d0)
+    do i = 0, num - 1
+        win_sig(i+1) = sig(i+1) * (0.5 - 0.5*cos(factor*i))
+    end do
+
+end subroutine
+
+
+subroutine window_hamming(sig, win_sig)
+    real(dp), intent(in), dimension(:) :: sig
+    real(dp), intent(out), dimension(:) :: win_sig
+    real(dp) :: factor
+    integer :: num, i
+
+    num = size(sig)
+
+    factor = 2.0d0*pi/(num - 1.0d0)
+    do i = 1, num
+        win_sig(i) = sig(i) * (0.54 - 0.46*cos(factor*i))
+    end do
+
+end subroutine
+
+
+subroutine window_blackmann(sig, win_sig)
+    real(dp), intent(in), dimension(:) :: sig
+    real(dp), intent(out), dimension(:) :: win_sig
+    real(dp) :: win, factor1, factor2
+    integer :: num, i
+
+    num = size(sig)
+
+    factor1 = 2.0d0*pi/(num - 1.0d0)
+    factor2 = 4.0d0*pi/(num - 1.0d0)
+
+    do i = 1, num
+        win = 0.42d0
+        win = win - 0.5d0*cos(factor1*i)
+        win = win + 0.08d0*sin(factor2*i)
+
+        win_sig(i) = sig(i) * win
+    end do
+
+end subroutine
+
+
+subroutine window_blackhar(sig, win_sig)
+    real(dp), intent(in), dimension(:) :: sig
+    real(dp), intent(out), dimension(:) :: win_sig
+    real(dp) :: win, factor1, factor2, factor3
+    integer :: num, i
+
+    num = size(sig)
+
+    factor1 = 2.0d0*pi/(num - 1.0d0)
+    factor2 = 4.0d0*pi/(num - 1.0d0)
+    factor3 = 6.0d0*pi/(num - 1.0d0)
+
+    do i = 1, num
+        win = 0.35875d0
+        win = win - 0.48829d0*cos(factor1*i)
+        win = win + 0.14128d0*sin(factor2*i)
+        win = win - 0.01168d0*sin(factor3*i)
+
+        win_sig(i) = sig(i) * win
+    end do
+
+end subroutine
+
 end module

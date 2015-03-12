@@ -11,12 +11,14 @@ program Noise_and_FFT
 
     call white_noise()
     call noise_reduction()
+    call signal_with_trend()
 
 contains
 
 subroutine white_noise()
-    real(dp), dimension(8192) :: noise, auto_corr, dft
-    real(dp), dimension(4096) :: spectrum, freq, phase
+    real(dp), dimension(8192) :: noise, auto_corr, win, auto_corr_w, dft
+    complex(dp), dimension(8192) :: auto_corr_dft
+    real(dp), dimension(8192) :: freq, spectrum
     real(dp) :: rand
     integer :: num, num_spec, fid, i, j
 
@@ -32,10 +34,18 @@ subroutine white_noise()
     do i = 1, num
         call random_number(rand)
         noise(i) = 2.0*(rand - 0.5)*sqrt(3.0)
+        win(i) = 1.0 !0.54 - 0.46*cos(2*pi*(i-1)/(num - 1.0))
     end do
 
     call auto_correlation(noise, auto_corr)
-    call fft_real(auto_corr(1:4096), 1.0d0, freq, spectrum, phase)
+
+    do i = 1, num
+        auto_corr_w(i) = auto_corr(i)*win(i)
+    end do
+
+    call fft(auto_corr_w(1:num_spec), 1.0d0, freq, auto_corr_dft)
+
+    call calc_power(auto_corr_dft, spectrum)
 
     call linspace(freq, -pi, pi)
 
@@ -58,7 +68,9 @@ subroutine white_noise()
     end do
 
     call auto_correlation(noise, auto_corr)
-    call fft_real(auto_corr(1:4096), 1.0d0, freq, spectrum, phase)
+    call fft(auto_corr(1:num_spec), 1.0d0, freq, auto_corr_dft)
+
+    call calc_power(auto_corr_dft, spectrum)
 
     call linspace(freq, -pi, pi)
 
@@ -73,6 +85,7 @@ subroutine white_noise()
         write(fid, *) freq(i), spectrum(i)
     end do
 
+    write(*,*) sum(auto_corr_dft)/real(size(spectrum))
 
     close(fid)
 
@@ -104,10 +117,11 @@ subroutine noise_reduction()
         noisy_sig(i) = sig(i) + rand - 0.5
     end do
 
-    call fft_clean(cmplx(sig, 0.0d0, kind = dp), 1.0/del_t, freq, sig_dft)
-    call fft_clean(cmplx(noisy_sig, 0.0d0, kind = dp), 1.0/del_t, freq, noisy_sig_dft)
+    call fft(sig, del_t, freq, sig_dft)
+    call fft(noisy_sig, del_t, freq, noisy_sig_dft)
 
-    noisy_sig_pow = 20.0*log10(abs(noisy_sig_dft))
+    call calc_power(sig_dft, sig_pow)
+    call calc_power(noisy_sig_dft, noisy_sig_pow)
     do i = 1, num
         if (noisy_sig_pow(i) < 25.0) then
             clean_sig_dft(i) = cmplx(1.0d-20, 1.0d-20)
@@ -116,19 +130,131 @@ subroutine noise_reduction()
         end if
     end do
 
-    call ifft_clean(noisy_sig_dft, 1.0/del_t, temp, noisy_sig_idft) 
+    call ifft(clean_sig_dft, freq(2) - freq(1), temp, clean_sig_idft) 
 
     do i = 1, num
-        write(fid, *) time(i), sig(i), noisy_sig(i), abs(clean_sig_idft(i))
-        write(*,*) noisy_sig_idft(i)
+        write(fid, *) time(i)*1d3, sig(i), noisy_sig(i), real(clean_sig_idft(i))
     end do
     write(fid, *) ""
     write(fid, *) ""
     do i = 1, num
-        write(fid, *) freq(i), sig_pow(i), noisy_sig_pow(i), 20.0*log10(abs(clean_sig_dft(i)))
+        write(fid, *) freq(i)*1d-3, sig_pow(i), noisy_sig_pow(i), 20.0*log10(abs(clean_sig_dft(i)))
     end do
 
     close(fid)
+end subroutine
+
+subroutine signal_with_trend()
+    real(dp), dimension(512) :: t, f, t_idft
+    real(dp), dimension(512) :: x, x_pow, y, y_pow, g, yc_pow
+    complex(dp), dimension(512) :: x_dft, y_dft, yc_dft, yc
+    real(dp) :: f0, f1, df, dt, ran, crit_pow
+    integer :: i, num, fid
+
+    open(   unit = new_file_unit(fid), &
+            file = "./Data/Signal_with_trend.txt", &
+            action = "Write" )
+
+    f0 = 9.0/512.0
+    f1 = 4.0/512.0
+
+    num = size(x)
+
+    call init_random_seed()
+
+    do i = 0, num-1
+        t(i+1) = i
+        g(i+1) = 1.0 + i*0.025
+        x(i+1) = 2.0*sin(2.0*pi*f0*i) + cos(2.0*pi*f1*i) + g(i+1)
+        call random_number(ran)
+        y(i+1) = x(i+1) + (ran - 0.5)*12.0
+    end do
+
+    dt = t(2) - t(1)
+
+    call fft(x, dt, f, x_dft)
+    call fft(y, dt, f, y_dft)
+
+    call calc_power(x_dft, x_pow)
+    call calc_power(y_dft, y_pow)
+
+    crit_pow = 20.0*log10(9.0) + 10.0*log10(512.0)
+    do i = 1, num
+        if (y_pow(i) < crit_pow) then
+            yc_dft(i) = cmplx(0.0d-20, 0.0d-20)
+        else
+            yc_dft(i) = y_dft(i)
+        end if
+    end do
+
+    call calc_power(yc_dft, yc_pow)
+
+    df = f(2) - f(1)
+
+    call ifft(yc_dft, df, t_idft, yc)
+
+    do i = 1, num
+        write(fid, *) t(i), x(i), y(i), real(yc(i))
+    end do
+
+    write(fid, *) ""
+    write(fid, *) ""
+
+    do i = 1, num
+        write(fid, *) f(i), x_pow(i), y_pow(i), yc_pow(i), crit_pow
+    end do
+
+    write(fid, *) ""
+    write(fid, *) ""
+
+    do i = 0, num-1
+        t(i+1) = i
+        g(i+1) = 1.0 + i*0.025
+        x(i+1) = 2.0*sin(2.0*pi*f0*i) + cos(2.0*pi*f1*i)
+        call random_number(ran)
+        y(i+1) = x(i+1) + (ran - 0.5)*12.0
+    end do
+
+    dt = t(2) - t(1)
+
+    call fft(x, dt, f, x_dft)
+    call fft(y, dt, f, y_dft)
+
+    call calc_power(x_dft, x_pow)
+    call calc_power(y_dft, y_pow)
+
+    crit_pow = 20.0*log10(9.0) + 10.0*log10(512.0)
+    do i = 1, num
+        if (y_pow(i) < crit_pow) then
+            yc_dft(i) = cmplx(0.0d-20, 0.0d-20)
+        else
+            yc_dft(i) = y_dft(i)
+        end if
+    end do
+
+    call calc_power(yc_dft, yc_pow)
+
+    df = f(2) - f(1)
+
+    call ifft(yc_dft, df, t_idft, yc)
+
+    yc = yc + g
+    x = x + g
+    y = y + g
+
+    do i = 1, num
+        write(fid, *) t(i), x(i), y(i), real(yc(i))
+    end do
+
+    write(fid, *) ""
+    write(fid, *) ""
+
+    do i = 1, num
+        write(fid, *) f(i), x_pow(i), y_pow(i), yc_pow(i), crit_pow
+    end do
+
+    close(fid)
+
 end subroutine
 
 end program

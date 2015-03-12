@@ -60,25 +60,88 @@ set multiplot
 
 set origin 0.0, 0.5
 set title "Time domain signals"
-set xrange[0:0.012]
-set xlabel "Time (s)"
+set xrange[0:12]
+set yrange[-2:4]
+set xlabel "Time (ms)"
 set ylabel ""
+set key
 
 plot \
     "./Data/Noise_reduction.txt" index 0 using 1:2 title "No noise" with lines lc 1, \
     "./Data/Noise_reduction.txt" index 0 using 1:3 title "Noise" with lines lc 3, \
-    "./Data/Noise_reduction.txt" index 0 using 1:4 title "Cleaned" with lines lc 4
+    "./Data/Noise_reduction.txt" index 0 using 1:4 title "Cleaned" with lines lc 2
 
 set origin 0.0, 0.0
 set title "Frequency domain signals"
-set xrange[-22500:22500]
-set xlabel "Frequency (Hz)"
-set ylabel ""
-
+set xrange[-22.5:22.5]
+set yrange[-50:80]
+set xlabel "Frequency (kHz)"
+set ylabel "Power (dB)"
 plot \
     "./Data/Noise_reduction.txt" index 1 using 1:2 title "No noise" with lines lc 1, \
     "./Data/Noise_reduction.txt" index 1 using 1:3 title "Noise" with lines lc 3, \
-    "./Data/Noise_reduction.txt" index 1 using 1:4 title "Cleaned" with lines lc 4
+    "./Data/Noise_reduction.txt" index 1 using 1:4 title "Cleaned" with lines lc 2
+
+unset multiplot
+
+set output "./Plots/Signal_with_trend.pdf"
+
+set multiplot
+
+set origin 0.0, 0.5
+set title "Time domain signals"
+set xrange[0:512]
+set yrange[-10:40]
+set xlabel "Time"
+set ylabel ""
+
+plot \
+    "./Data/Signal_with_trend.txt" index 0 using 1:2 title "No noise" with lines lc 1, \
+    "./Data/Signal_with_trend.txt" index 0 using 1:3 title "Noise" with lines lc 3, \
+    "./Data/Signal_with_trend.txt" index 0 using 1:4 title "Cleaned" with lines lc 2
+
+set origin 0.0, 0.0
+set title "Frequency domain signals"
+set xrange[-0.5:0.5]
+set yrange[0:100]
+set xlabel "Frequency"
+set ylabel "Power (dB)"
+
+plot \
+    "./Data/Signal_with_trend.txt" index 1 using 1:2 title "No noise" with lines lc 1, \
+    "./Data/Signal_with_trend.txt" index 1 using 1:3 title "Noise" with lines lc 3, \
+    "./Data/Signal_with_trend.txt" index 1 using 1:5 title "Critical power" with lines lc 0
+
+unset multiplot
+
+set output "./Plots/Signal_with_trend2.pdf"
+
+set multiplot
+
+set origin 0.0, 0.5
+set title "Time domain signals"
+set xrange[0:512]
+set yrange[-10:40]
+set xlabel "Time"
+set ylabel ""
+
+plot \
+    "./Data/Signal_with_trend.txt" index 2 using 1:2 title "No noise" with lines lc 1, \
+    "./Data/Signal_with_trend.txt" index 2 using 1:3 title "Noise" with lines lc 3, \
+    "./Data/Signal_with_trend.txt" index 2 using 1:4 title "Cleaned" with lines lc 2
+
+set origin 0.0, 0.0
+set title "Frequency domain signals (minus trend)"
+set xrange[-0.5:0.5]
+set yrange[0:100]
+set xlabel "Frequency"
+set ylabel "Power (dB)"
+
+plot \
+    "./Data/Signal_with_trend.txt" index 3 using 1:2 title "No noise" with lines lc 1, \
+    "./Data/Signal_with_trend.txt" index 3 using 1:3 title "Noise" with lines lc 3, \
+    "./Data/Signal_with_trend.txt" index 3 using 1:5 title "Critical power" with lines lc 0
+
 
 
 reset
