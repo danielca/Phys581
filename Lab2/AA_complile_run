@@ -1,0 +1,5 @@
+#!/bin/bash
+gfortran ../Modules/Fourier_analysis_module.f90 AA.f90 -o AA
+rm fourier_analysis_module.mod
+./AA
+gnuplot AA.gp
