@@ -3,7 +3,7 @@ use Fourier_analysis_module
 
 implicit none
 
-!call Transform()
+call Transform()
 call windowing()
 
 
