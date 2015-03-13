@@ -142,6 +142,85 @@ plot \
     "./Data/Signal_with_trend.txt" index 3 using 1:3 title "Noise" with lines lc 3, \
     "./Data/Signal_with_trend.txt" index 3 using 1:5 title "Critical power" with lines lc 0
 
+unset multiplot
+
+set terminal pdfcairo enhanced size 6, 4
+
+set output "./Plots/Stocks.pdf"
+
+set multiplot
+
+set size 0.4, 0.5
+set origin 0.0, 0.5
+set title "Stock prices"
+set xrange[1:64]
+set yrange[0.1:10000]
+set xlabel "Month"
+set ylabel "Stock price"
+unset key
+set logscale y
+
+plot \
+    "./Data/Stocks_out.txt" index 0 using 1:2 with lines title "SANDP", \
+    "./Data/Stocks_out.txt" index 0 using 1:3 with lines title "FORD", \
+    "./Data/Stocks_out.txt" index 0 using 1:4 with lines title "GM", \
+    "./Data/Stocks_out.txt" index 0 using 1:5 with lines title "MICROSOFT", \
+    "./Data/Stocks_out.txt" index 0 using 1:6 with lines title "SUN", \
+    "./Data/Stocks_out.txt" index 0 using 1:7 with lines title "USTB3M"
+
+set size 0.6, 0.5
+set origin 0.4, 0.5
+set title "Compounded returns"
+set xrange[1:64]
+set yrange[-1:1]
+set xlabel "Month"
+set ylabel "R"
+set key outside
+unset logscale y
+
+plot \
+    "./Data/Stocks_out.txt" index 1 using 1:2 with lines title "SANDP", \
+    "./Data/Stocks_out.txt" index 1 using 1:3 with lines title "FORD", \
+    "./Data/Stocks_out.txt" index 1 using 1:4 with lines title "GM", \
+    "./Data/Stocks_out.txt" index 1 using 1:5 with lines title "MICROSOFT", \
+    "./Data/Stocks_out.txt" index 1 using 1:6 with lines title "SUN", \
+    "./Data/Stocks_out.txt" index 1 using 1:7 with lines title "USTB3M"
+
+set size 0.4, 0.5
+set origin 0.0, 0.0
+set title "Auto-correlation"
+set xrange[1:64]
+set yrange[0.001:2]
+set xlabel "Month"
+set ylabel "AC"
+unset key
+set logscale y
+
+plot \
+    "./Data/Stocks_out.txt" index 2 using 1:2 with lines title "SANDP", \
+    "./Data/Stocks_out.txt" index 2 using 1:3 with lines title "FORD", \
+    "./Data/Stocks_out.txt" index 2 using 1:4 with lines title "GM", \
+    "./Data/Stocks_out.txt" index 2 using 1:5 with lines title "MICROSOFT", \
+    "./Data/Stocks_out.txt" index 2 using 1:6 with lines title "SUN", \
+    "./Data/Stocks_out.txt" index 2 using 1:7 with lines title "USTB3M"
+
+set size 0.6, 0.5
+set origin 0.4, 0.0
+set title "Spectrum"
+set xrange[-0.5:0.5]
+set yrange[-25:35]
+set xlabel "k"
+set ylabel "S(k) (dB)"
+set key outside
+unset logscale y
+
+plot \
+    "./Data/Stocks_out.txt" index 3 using 1:2 with lines title "SANDP", \
+    "./Data/Stocks_out.txt" index 3 using 1:3 with lines title "FORD", \
+    "./Data/Stocks_out.txt" index 3 using 1:4 with lines title "GM", \
+    "./Data/Stocks_out.txt" index 3 using 1:5 with lines title "MICROSOFT", \
+    "./Data/Stocks_out.txt" index 3 using 1:6 with lines title "SUN", \
+    "./Data/Stocks_out.txt" index 3 using 1:7 with lines title "USTB3M"
 
 
 reset

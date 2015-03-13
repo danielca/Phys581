@@ -60,7 +60,7 @@ contains
         real(dp), dimension(:), intent(in) :: x
         real(dp), dimension(:), intent(out) :: ac
         real(dp), dimension(:), allocatable :: x_cen, x_cen_sqrd
-        real(dp) :: x_avg, denom, numerator
+        real(dp) :: x_avg, denom, denom1, denom2, numerator
         integer :: limit, num_x, i, k
 
         num_x = size(x)
@@ -77,14 +77,19 @@ contains
             x_cen_sqrd(i) = x_cen(i)*x_cen(i)
         end do
 
-        denom = sum(x_cen_sqrd)/(num_x - 1.0d0)
+        !denom = sum(x_cen_sqrd)/(num_x - 1.0d0)
 
         do k = 0, num_x-1
             numerator = 0.0
+            denom1 = 0.0
+            denom2 = 0.0
             do i = 1, num_x - k
                 numerator = numerator + (x_cen(i)*x_cen(i+k))
+                denom1 = denom1 + x_cen_sqrd(i)
+                denom2 = denom2 + x_cen_sqrd(i+k)
             end do
-            ac(k+1) = numerator/(denom*(num_x - k))
+            !ac(k+1) = numerator/(denom*(num_x-k))
+            ac(k+1) = numerator/sqrt(denom1*denom2)
         end do
 
         deallocate(x_cen, x_cen_sqrd)

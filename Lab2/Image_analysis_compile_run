@@ -1,0 +1,4 @@
+#!/bin/bash
+gfortran  ../Modules/Fourier_analysis_module.f90 Image_analysis.f90 -o Image_analysis
+rm fourier_analysis_module.mod
+./Image_analysis

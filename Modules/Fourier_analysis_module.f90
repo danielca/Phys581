@@ -7,14 +7,19 @@ module Fourier_analysis_module
     real(dp), parameter :: pi = 4.0d0*atan(1.0d0)
 
 
+    public :: calc_dft, calc_idft, dft_2d, idft_2d
     public :: fft, ifft, fft_nr
     public :: calc_power, calc_phase
     public :: reorder_cmplx, reorder_real
     public :: window_rect, window_hanning, window_hamming
     public :: window_blackmann, window_blackhar
 
+    interface calc_dft
+        module procedure dft_real, dft_cmplx
+    end interface
+
     interface fft
-        module procedure fft_complex, fft_real
+        module procedure fft_real, fft_cmplx
     end interface
 
     interface calc_power
@@ -26,11 +31,134 @@ module Fourier_analysis_module
     end interface
 
 
+
 contains
 
 
 
-subroutine fft_complex(dat, del_t, freq, dft_dat)
+subroutine dft_2d(dat, dft_dat)
+    real(dp), dimension(:,:), intent(in) :: dat
+    complex(dp), dimension(:,:), intent(out) :: dft_dat
+    complex(dp) :: c1, c2
+    integer :: num1, num2, n1, n2, k1, k2
+
+    num1 = size(dat, 1)
+    num2 = size(dat, 2)
+
+    c1 = exp(cmplx(0.0d0, -2.0*pi/dble(num1)))
+    c2 = exp(cmplx(0.0d0, -2.0*pi/dble(num2)))
+
+    do k1 = 0, num1-1
+        do k2 = 0, num2-1
+            dft_dat(k1+1, k2+1) = 0.0
+            do n1 = 0, num1-1
+                do n2 = 0, num2-1
+                    dft_dat(k1+1, k2+1) = dft_dat(k1+1, k2+1) + &
+                                          dat(n1+1, n2+1)*(c1**(k1*n1))*(c2**(k2*n2))
+                end do
+            end do
+        end do
+    end do
+
+end subroutine
+
+
+subroutine idft_2d(dat, idft_dat)
+    complex(dp), dimension(:,:), intent(in) :: dat
+    complex(dp), dimension(:,:), intent(out) :: idft_dat
+    complex(dp) :: c1, c2
+    integer :: num1, num2, n1, n2, k1, k2
+
+    num1 = size(dat, 1)
+    num2 = size(dat, 2)
+
+    c1 = exp(cmplx(0.0d0, 2.0*pi/dble(num1)))
+    c2 = exp(cmplx(0.0d0, 2.0*pi/dble(num2)))
+
+    do k1 = 0, num1-1
+        do k2 = 0, num2-1
+            idft_dat(k1+1, k2+1) = 0.0
+            do n1 = 0, num1-1
+                do n2 = 0, num2-1
+                    idft_dat(k1+1, k2+1) = idft_dat(k1+1, k2+1) + &
+                                           dat(n1+1, n2+1)*(c1**(k1*n1))*(c2**(k2*n2))
+                end do
+            end do
+        end do
+    end do
+
+    idft_dat = idft_dat/dble(num1*num2)
+
+end subroutine
+
+
+subroutine dft_real(dat, dft_dat)
+    real(dp), dimension(:), intent(in) :: dat
+    complex(dp), dimension(:), intent(out) :: dft_dat
+
+    call dft_cmplx(cmplx(dat, 0.0, kind = dp), dft_dat)
+
+end subroutine
+
+
+subroutine dft_cmplx(dat, dft_dat)
+    complex(dp), dimension(:), intent(in) :: dat
+    complex(dp), dimension(:), intent(out) :: dft_dat
+    complex(dp) :: factor
+    integer :: num, n, k, ind, min_k
+
+    num = size(dat)
+
+    if (num .ne. size(dft_dat)) then
+        write(*,*) "ERROR in dft: size mismatch"
+        write(*,*) "Terminating program."
+        call exit()
+    end if
+
+    min_k = -nint(num/2.0 - 0.75)
+
+    dft_dat = 0.0
+    factor = exp(cmplx(0.0d0, -2.0*pi/dble(num)))
+    do k = min_k, min_k + num - 1
+        ind = k - min_k + 1
+        do n = 0, num-1
+            dft_dat(ind) = dft_dat(ind) + dat(n+1)*(factor**(k*n))
+        end do
+    end do
+
+end subroutine
+
+
+subroutine calc_idft(dat, idft_dat)
+    complex(dp), dimension(:), intent(in) :: dat
+    complex(dp), dimension(:), intent(out) :: idft_dat
+    complex(dp) :: factor
+    integer :: num, n, k, ind, min_k
+
+    num = size(dat)
+
+    if (num .ne. size(idft_dat)) then
+        write(*,*) "ERROR in dft: size mismatch"
+        write(*,*) "Terminating program."
+        call exit()
+    end if
+
+    min_k = -nint(num/2.0 - 0.75)
+
+    idft_dat = 0.0
+    factor = exp(cmplx(0.0d0, 2.0*pi/dble(num)))
+    do k = min_k, min_k + num - 1
+        ind = k - min_k + 1
+        do n = 0, num-1
+            idft_dat(n+1) = idft_dat(n+1) + dat(ind)*(factor**(k*n))
+        end do
+    end do
+    idft_dat = idft_dat/dble(num)
+
+end subroutine
+
+
+subroutine fft_cmplx(dat, del_t, freq, dft_dat)
     complex(dp), dimension(:), intent(in) :: dat
     real(dp), intent(in) :: del_t
     complex(dp), dimension(:), intent(out) :: dft_dat

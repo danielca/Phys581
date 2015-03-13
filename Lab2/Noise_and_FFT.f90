@@ -12,11 +12,12 @@ program Noise_and_FFT
     call white_noise()
     call noise_reduction()
     call signal_with_trend()
+    call stock_analysis()
 
 contains
 
 subroutine white_noise()
-    real(dp), dimension(8192) :: noise, auto_corr, win, auto_corr_w, dft
+    real(dp), dimension(8192) :: noise, auto_corr, auto_corr_win, dft
     complex(dp), dimension(8192) :: auto_corr_dft
     real(dp), dimension(8192) :: freq, spectrum
     real(dp) :: rand
@@ -34,16 +35,13 @@ subroutine white_noise()
     do i = 1, num
         call random_number(rand)
         noise(i) = 2.0*(rand - 0.5)*sqrt(3.0)
-        win(i) = 1.0 !0.54 - 0.46*cos(2*pi*(i-1)/(num - 1.0))
     end do
 
     call auto_correlation(noise, auto_corr)
 
-    do i = 1, num
-        auto_corr_w(i) = auto_corr(i)*win(i)
-    end do
+    call window_hamming(auto_corr, auto_corr_win)
 
-    call fft(auto_corr_w(1:num_spec), 1.0d0, freq, auto_corr_dft)
+    call fft(auto_corr_win, 1.0d0, freq, auto_corr_dft)
 
     call calc_power(auto_corr_dft, spectrum)
 
@@ -68,7 +66,10 @@ subroutine white_noise()
     end do
 
     call auto_correlation(noise, auto_corr)
-    call fft(auto_corr(1:num_spec), 1.0d0, freq, auto_corr_dft)
+
+    call window_hamming(auto_corr, auto_corr_win)
+
+    call fft(auto_corr_win, 1.0d0, freq, auto_corr_dft)
 
     call calc_power(auto_corr_dft, spectrum)
 
@@ -85,7 +86,7 @@ subroutine white_noise()
         write(fid, *) freq(i), spectrum(i)
     end do
 
-    write(*,*) sum(auto_corr_dft)/real(size(spectrum))
+    write(*,*) "Average auto-correlation = ", sum(auto_corr_dft)/real(size(spectrum))
 
     close(fid)
 
@@ -255,6 +256,95 @@ subroutine signal_with_trend()
 
     close(fid)
 
+end subroutine
+
+subroutine stock_analysis()
+    real(dp), dimension(6, 64) :: stocks, ret, ac, spec, freq
+    complex(dp), dimension(6, 64) :: ac_dft
+    integer :: fin, fout
+    integer :: num, i, j
+
+    num = 64
+
+    open(   unit = new_file_unit(fin), &
+            file = "./Data/Stocks.txt", &
+            action = "read" )
+
+    open(   unit = new_file_unit(fout), &
+            file = "./Data/Stocks_out.txt", &
+            action = "write" )
+
+    do i = 1, num
+        read(fin, *) stocks(1, i), &
+                     stocks(2, i), &
+                     stocks(3, i), &
+                     stocks(4, i), &
+                     stocks(5, i), &
+                     stocks(6, i)
+
+        write(fout, *)  i, &
+                        stocks(1, i), &
+                        stocks(2, i), &
+                        stocks(3, i), &
+                        stocks(4, i), &
+                        stocks(5, i), &
+                        stocks(6, i)
+    end do
+
+    write(fout, *) ""
+    write(fout, *) ""
+
+    do j = 1, 6
+        ret(j,1) = log(1.0)
+        do i = 2, num
+            ret(j, i) = log(stocks(j,i)/stocks(j,i-1))
+        end do
+    end do
+
+    do i = 1, num
+        write(fout, *)  i, &
+                        ret(1, i), &
+                        ret(2, i), &
+                        ret(3, i), &
+                        ret(4, i), &
+                        ret(5, i), &
+                        ret(6, i)
+    end do
+
+    write(fout, *) ""
+    write(fout, *) ""
+
+    do i = 1, 6
+        call auto_correlation(stocks(i, :), ac(i, :))
+        call fft(ac(i, :), 1.0d0, freq(i, :), ac_dft(i, :))
+        call calc_power(ac_dft(i, :), spec(i, :))
+    end do
+
+    do i = 1, num
+        write(fout, *)  i, &
+                        abs(ac(1, i)), &
+                        abs(ac(2, i)), &
+                        abs(ac(3, i)), &
+                        abs(ac(4, i)), &
+                        abs(ac(5, i)), &
+                        abs(ac(6, i))
+    end do
+
+    write(fout, *) ""
+    write(fout, *) ""
+
+    do i = 1, num
+        write(fout, *)  freq(1, i), &
+                        spec(1, i), &
+                        spec(2, i), &
+                        spec(3, i), &
+                        spec(4, i), &
+                        spec(5, i), &
+                        spec(6, i)
+    end do
+
+    close(fin)
+    close(fout)
 end subroutine
 
 end program
