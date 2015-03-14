@@ -57,18 +57,21 @@ set title "Sine Wave"
 set xrange [0:64]
 set yrange [-1:1]
 set ytics (-1,0,1)
+set xtics (0,20,40,60)
 plot "./Data/Window1.txt" using 1:2 with lines
 
 set title "Modified Sine Wave"
 set xrange [0:64]
 set yrange [-1:1]
 set ytics (-1,0,1)
+set xtics (0,20,40,60)
 plot "./Data/Window1.txt" using 1:3 with lines
 
 set title "Windowed Sine Wave"
 set xrange [0:64]
 set yrange [-1:1]
 set ytics (-1,0,1)
+set xtics (0,20,40,60)
 plot "./Data/Window1.txt" using 1:4 with lines
 
 set title " "
@@ -76,6 +79,7 @@ set xrange [-31:31]
 set yrange [-125:32]
 set ytics (-120, -90,-60, -30, 0, 30)
 set xtics (-30, -15, 0, 15, 30)
+set xtics (-30,-15,0,15,30)
 plot "./Data/Window1.txt" using 5:6 with lines
 
 set title "Power Measured in dB"
@@ -105,18 +109,21 @@ set title "Sine Wave"
 set xrange [0:64]
 set yrange [-1:1]
 set ytics (-1,0,1)
+set xtics (0,20,40,60)
 plot "./Data/Window2.txt" using 1:2 with lines
 
 set title "Modified Sine Wave"
 set xrange [0:64]
 set yrange [-1:1]
 set ytics (-1,0,1)
+set xtics (0,20,40,60)
 plot "./Data/Window2.txt" using 1:3 with lines
 
 set title "Windowed Sine Wave"
 set xrange [0:64]
 set yrange [-1:1]
 set ytics (-1,0,1)
+set xtics (0,20,40,60)
 plot "./Data/Window2.txt" using 1:4 with lines
 
 set title " "

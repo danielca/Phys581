@@ -82,6 +82,82 @@ This is a very wide-band message with a large amplitude, so we would expect the 
 This is why we do not see any significant peaks near $ \SI{100}{Hz} $ or any drop-off at higher frequencies.
 Thanks to aliasing and the wide-band nature of the signal, we see a near-uniform mess of power across the frequency range of the DFT.
 
+\section{Anti-Aliasing, Spectral Leakage, and the FFT}
+\subsection{DFTs}
+To make a DFT, we can simply take a finite number of periodic samples of a continuous signal. Let's take the following cosine with frequency $\omega$.
+\begin{equation*}
+x(t)=cos(\omega t)
+\end{equation*}
+If we take N samples, at a sampling frequency of $f_{S}$ we arrive with the following.
+\begin{equation*}
+x[n]=cos(\frac{\omega n}{f_{s}})
+\end{equation*}
+We are now ready for the DFT.
+\begin{equation*}
+X_{k} = \sum^{N-1}_{n=0}x[n]e^{\frac{-2\pi i(k)n}{N}} = \sum^{N-1}_{n=0}cos(\frac{\omega n}{f_{s}})e^{\frac{-2\pi i(k)n}{N}}
+\end{equation*}
+
+Now let $\omega_{s}=2\pi f_{s}$ be the angular sampling frequency. We can also let $\omega_{s} = \pm \omega$.
+\begin{equation*}
+X_{K}=\sum^{N-1}_{n=0}cos(\frac{2\pi \omega n}{\omega_{s}})e^{\frac{-2\pi ikn}{N}}=\sum^{N-1}_{n=0}cos(\pm 2\pi n)e^{\frac{-2\pi ikn}{N}} = \sum^{N-1}_{n=0}e^{\frac{-2\pi i(k)n}{N}}
+\end{equation*}
+This leaves us with a geometric series of the form 
+\begin{equation*}
+\sum_{n=0}^{N-1}e^{nq} = \frac{1-e^{qN}}{1-e^{q}}
+\end{equation*}
+where $q=-2\pi i(m-k)n$ This leaves us with the following.
+\begin{equation*}
+X_{m} = \frac{1}{2} \frac{1-e^{-i2\pi (k-m)}}{1-e^{\frac{-i2\pi (k-,)}{N}}}
+\end{equation*}
+At the point of interest, k=m, we run into a problem where $X_{k}=\frac{0}{0}$. However Using L'Hopitals rule, the entire term goes N. This leaves us with a nice answer.
+\begin{equation*}
+X_{k}=\frac{N}{2}
+\end{equation*}.
+
+Looking now at a different function $x(n)=cos(2\pi fn\deta t)$. Using the attached source code, we were able to sample this function, and preform an DFT.
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../Plots/AA1.pdf}
+    \caption{%
+        DFT of $x(n)=cos(2\pi fn\deta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
+    }
+    \label{fig:AA1}
+\end{figure*}
+
+The first thing to notice in figure \ref{fig:AA1} is the time series does not look like your typical cosine function. Our sampeling frequency is close to that of our wave. This grabs a majority of the information, however the exact curves are lost. We do see our peaks at our frequency of 0.25Hz. In the power spectrum we can see the power is at it's lowest in the center at 0Hz. This is because we have no DC offset. 
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../Plots/AA2.pdf}
+    \caption{%
+        DFT of the modified cosine of $x(n)=cos(2\pi (f+0.008) + n\deta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
+    }
+    \label{fig:AA2}
+\end{figure*}
+Shifting the frequency to $f=f+\frac{\pi}{8}$ distorts the time signal, as shown in figure \ref{fig:AA2}. This is because we have changed the frequency in such a way that we see the odd distortion. We are still below our Nyquist frequency of 0.5Hz. This is because we are sampling close to that of the waveform. We can see in both the FFT and the power spectrum this has had. The size of the peaks have been reduced, and the entire spectrum has a higher floor. This is most noticeable in the power spectrum, where when compared to figure \ref{fig:AA1} the power is higher over all, and the peaks are less defined.   
+
+\subsection{Gibbs Phenomenon}
+Gibbs phenomenon is not restricted to Fourier series, but can also be found in DFTs. There is an implicit assumption in the DFT that the finite time series is repeated from negative infinity and to positive infinity. When the start and end points are the same, this is fine. However as we see in middle panel of figure \ref{fig:Window1} that a mismatch of the start and end does have a very large effect. The power spectrum below shows a very large increase in overall power and less-defined peaks. This is because the DFT is trying to compensate for the mismatch by adding in larger frequencies. Windowing is a way to lessen these effects. The Hanning window is a raised cosine that has a frequency of twice the period. Multiplying the window and the time series we can see it's effect in the third panel. The power spectrum shows better defined peaks, and a lower power between them. While not as defined as the first panel, the result is still better then with no window. Another commonly used windows is the Blackman Window, as shown in figure \ref{fig:Window2}. The overall result is the same, however the Blackman window has slightly better defined peaks, and less power in the sides of the peaks. Both these windows help when your data set does not have the same boundary points.
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../Plots/Window1.pdf}
+    \caption{%
+        Looking at the Hanning window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectrums.
+    }
+    \label{fig:Window1}
+\end{figure*}
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../Plots/Window2.pdf}
+    \caption{%
+        Looking at the Blackman window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectrums.
+    }
+    \label{fig:Window2}
+\end{figure*}
+
 \onecolumn
 
 \section{Code}
