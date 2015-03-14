@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{booktabs}
-\usepackage{mathtools}
+\usepackage{mathtools, cuted}
 
 \lstset{%
 basicstyle=\small\ttfamily,
@@ -38,7 +38,7 @@ stepnumber=1,}
 In this section, we take the discrete Fourier transform (DFT) of four sampled signals using the fast Fourier transform (FFT) routine from Numerical Recipes.
 The resulting power spectra (in dB) are shown in Figure~\ref{fig:warm_up}.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Warm_up.pdf}
     \caption{%
@@ -97,7 +97,7 @@ Typically, we would expect these high frequency components to carry less power t
 This feature is likely due to the clipping of the signal, which can be seen in the time domain representation.
 This was caused by the poor recording equipment of the laptop.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/My_voice.png}
     \caption{The time and frequency domain representations of 10 seconds of speech.}
@@ -178,7 +178,7 @@ We now look at a different function
 \end{align}
 Using the attached source code, we were able to sample this function, and perform a DFT.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/AA1.pdf}
     \caption{%
@@ -197,7 +197,7 @@ Consistent with the results above, we see that the maximum amplitude in the freq
 Since $ \omega/\omega_s $ is an integer here, the results above tell us that the DFT will be zero for all $ k $ other than the peak value, which is what we see.
 In the power spectrum, we see that these values are not exactly zero, but they are at $ -120 $ dB, which is likely just due to numerical error.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/AA2.pdf}
     \caption{%
@@ -238,7 +238,7 @@ Another commonly used windows is the Blackman Window, as shown in figure \ref{fi
 The overall result is the same, however the Blackman window has slightly better defined peaks, and less power in the sides of the peaks. 
 Both these windows help when your data set does not have the same boundary points.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Window1.pdf}
     \caption{%
@@ -247,7 +247,7 @@ Both these windows help when your data set does not have the same boundary point
     \label{fig:Window1}
 \end{figure*}
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Window2.pdf}
     \caption{%
@@ -293,7 +293,7 @@ A white noise signal was generated using the gfortran PRN generator, shifted and
 The autocorrelation function and the resulting spectrum are plotted in Figure~\ref{fig:white_noise_uniform}.
 We can see that the autocorrelation function approximates $ \delta[k] $ and that the auto-correlation function is approximately unity (0 dB) across the frequencies.
 
-\begin{figure}[htpb]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/White_noise_uniform.pdf}
     \caption{Autocorrelation and power spectral density of uniform white noise.}
@@ -303,7 +303,7 @@ We can see that the autocorrelation function approximates $ \delta[k] $ and that
 Another white noise signal was generated, but this time using Gaussian random variables of zero mean and unit variance.
 The autocorrelation function and the resulting spectrum are plotted in Figure~\ref{fig:white_noise_gaussian}.
 
-\begin{figure}[htpb]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/White_noise_gaussian.pdf}
     \caption{Autocorrelation and power spectral density of Gaussian white noise.}
@@ -329,7 +329,7 @@ Thus, if $ r_i $ is a uniform random variable, it would need to have a range of 
 
 By zeroing out the frequency components which have low power, we end up with a cleaned signal which matches the original signal quite closely.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Noise_reduction.pdf}
     \caption{Use of Fourier transform to remove noise from a signal.}
@@ -351,14 +351,14 @@ If the trend can't be removed before the noise reduction, it may be difficult or
 This suggests a possible encryption technique: adding a trend to a signal makes it very difficult to decrypt the signal unless the trend is known.
 Thus, the trend acts as a kind of ``key'' for the signal, so that only people who know what the trend is are able to recover the original signal.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Signal_with_trend.pdf}
     \caption{Noise removed from a signal with a trend.}
     \label{fig:signal_with_trend}
 \end{figure*}
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Signal_with_trend2.pdf}
     \caption{Noise removed from a signal with a trend. This time the trend was removed before the noise was removed, and then added back in later.}
@@ -372,7 +372,7 @@ As another example of Fourier analysis on noisy data, we look at real world stoc
 In Figure~\ref{fig:stocks}, we see the series of stocks for each company.
 We also see the continuously compounded returns, the auto-correlation function and the power spectrum in the frequency domain.
 
-\begin{figure*}[htpb]
+\begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Stocks.pdf}
     \caption{Analysis of real world stock prices.}
@@ -387,6 +387,144 @@ From the spectrum, we see that most of the power is concentrated near DC and low
 However, there are still noticeable higher-frequency components.
 Since the spectrum is not flat, this does not look like white noise superimposed on an underlying signal.
 Rather, the spectrum looks like noise with a stronger low-frequency component.
+
+\section{Image analysis}
+\label{sec:image_analysis}
+
+\subsection{Simple example}
+\label{subsec:simple_example}
+
+Here we take the 2D DFT of a simple matrix:
+\begin{align}
+    X &= \begin{bmatrix} 1 & 2 & 3 & 9 \\ 8 & 5 & 1 & 2 \\ 9 & 8 & 7 & 2 \end{bmatrix}
+\end{align}
+
+First we take the 1D DFT along each column to obtain the partially transformed matrix $ X_1 $.
+Next we take the 1D DFT of $ X_1^T $, and then take the transpose again to obtain $ X_2 $, which is the 2D DFT of $ X $.
+These results are shown below, broken up into real and imaginary parts.
+
+\begin{align}
+    \text{Re}[X_1] &= 
+    \begin{bmatrix}
+         15.0000  &
+         -2.0000  &
+         -7.0000  &
+         -2.0000 
+         \\
+         16.0000  &
+          7.0000  &
+          2.0000  &
+          7.0000 
+         \\
+         26.0000  &
+          2.0000  &
+          6.0000  &
+          2.0000 
+    \end{bmatrix}
+    \\
+    \text{Im}[X_1] &= 
+    \begin{bmatrix}
+          0.0000 &
+          7.0000 &
+          0.0000 &
+         - 7.0000
+        \\ 
+          0.0000 &
+         - 3.0000 &
+          0.0000 &
+          3.0000
+        \\ 
+          0.0000 &
+         - 6.0000 &
+         - 0.0000 &
+          6.0000
+    \end{bmatrix}
+    \\
+    \text{Re}[X_2] &=
+    \begin{bmatrix}
+         57.0000 &
+          7.0000 &
+          1.0000 &
+          7.0000
+         \\
+         -6.0000 &
+         -3.9019 &
+        -11.0000 &
+         -9.0981
+         \\
+         -6.0000 &
+         -9.0981 &
+        -11.0000 &
+         -3.9019
+    \end{bmatrix}
+    \\
+    \text{Im}[X_2] &=
+    \begin{bmatrix}
+          0.0000 &
+        -  2.0000 &
+          0.0000 &
+          2.0000
+        \\
+          8.6603 &
+          7.1699 &
+          3.4641 &
+        - 15.8301
+        \\
+        -  8.6603 &
+         15.8301 &
+        -  3.4641 &
+        -  7.1699
+    \end{bmatrix}
+\end{align}
+
+These results are exactly the same as the results predicted by Mathematica and Matlab.
+
+\subsection{Convolution, noisy image, and filtering}
+\label{subsec:convolution_noisy_image_and_filtering}
+
+First, as an example of convolution, we convolve $ f(t) = t $ and $ h(t) = \sin t $.
+\begin{align}
+    (f * h)(t) &= \int_{0}^{t} f(t - \tau) h(\tau) d \tau
+    \\
+    (f * h)(t) &= \int_{0}^{t} (t - \tau) \sin(\tau) d \tau
+    \\
+    (f * h)(t) &= t \int_{0}^{t} \sin(\tau) d \tau - \int_{0}^{t} \tau \sin (\tau) d \tau
+    \\
+    (f * h)(t) &= t \left[ -\cos(t) + \cos(0) \right] - 
+    \nonumber \\
+    &\quad - \left[ \sin(t) - t \cos(t) - \sin(0) + 0 \cdot \cos(0) \right]
+    \\
+    (f * h)(t) &= - t \cos(t) + t - \sin(t) + t \cos(t)
+    \\
+    (f * h)(t) &= t - \sin(t)
+\end{align}
+
+As an example of noise reduction in an image, we take $ F(u,v) = 10^{-5} $, $ H(u,v) = 10^{-3} $, and $ N(u,v) = 10^{-6} $.
+The distorted image at $ (u,v) $ is then
+\begin{align}
+    G(u,v) &= F(u,v) H(u,v) + N(u,v)
+    \\
+    G(u,v) &= 10^{-5} 10^{-3} + 10^{-6}
+    \\
+    G(u,v) &= 1.01 \times 10^{-6}
+\end{align}
+Now, if we try to calculate the original signal using $ F = G/H $, we get
+\begin{align}
+    \tilde{F}(u,v) &= \frac{1.01 \times 10^{-6}}{10^{-3}}
+    \\
+    \tilde{F}(u,v) &= 1.01 \times 10^{-3}
+\end{align}
+
+So even though the signal is larger than the noise, small noise $ N $ in combination with small $ H $ gives a completely wrong estimate of $ F $.
+
+\subsection{Commonly used software}
+\label{subsec:commonly_used_software}
+
+By looking at the options menus of the popular image manipulating tool \emph{ImageMagick}, we can see some of the image processing techniques we've learned.
+The Reduce Noise and Add Noise functions are likely subtractive and additive filters.
+They allow us to pick the noise radius, which allows us to specify the nature of $ N(u,v) $ (whether it is Gaussian, white, etc.).
+The sharpen and blur features likely apply multiplicative filters $ H(u,v) $.
+The radius and standard deviation options let us specify what the impulse response function $ h(x,y) $ looks like.
 
 \onecolumn
 

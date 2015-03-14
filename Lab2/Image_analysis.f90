@@ -27,6 +27,18 @@ program Image_analysis
 
     wstr = "(f8.4, a, f8.4, a)"
 
+    write(*,*) "----- x1: -----"
+    do i = 1, 3
+        do j = 1, 4
+            if (aimag(x1(i,j)) >= 0) then
+                write(*,wstr) real(x1(i, j)), " + i", aimag(x1(i, j)), " &"
+            else
+                write(*,wstr) real(x1(i, j)), " - i", -aimag(x1(i, j)), " &"
+            end if
+        end do
+        write(*,*) "\\"
+    end do
+
     write(*,*) "----- x2: -----"
     do i = 1, 3
         do j = 1, 4
