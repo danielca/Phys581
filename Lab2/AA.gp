@@ -1,24 +1,32 @@
-set terminal pdfcairo
+set terminal pdfcairo enhanced size 6, 6
 set output "./Plots/AA1.pdf"
 
 set nokey
 
+set samples 10000
+
 set multiplot layout 3,1 title "FFT Cos(ft)"
-set title "Time Serries" 
+set title "Time Series" 
 set xrange [0:64]
-set yrange [-1:1]
+set yrange [-1.5:1.5]
+set xlabel "Time"
+set ylabel "Signal"
 set ytics(-1,0,1)
-plot "./Data/AA1.txt" using 1:2 with lines
+plot cos(2*3.1415926*0.25*x) with lines, "./Data/AA1.txt" using 1:2 with points lc 3
 
 set title "Magnitude of the FFT"
 set xrange [-0.5:0.5]
-set yrange [0:40]
+set yrange [-5:40]
+set xlabel "Frequency (Hz)"
+set ylabel "Amplitude"
 set ytics 40/4
 plot "./Data/AA1.txt" using 3:4 with lines
 
 set title "Power in dB"
 set xrange [-0.5:0.5]
-set yrange [-120:40]
+set yrange [-140:40]
+set xlabel "Frequency (Hz)"
+set ylabel "Power (dB)"
 set ytics (-120, -60, 0, 40)
 plot "./Data/AA1.txt" using 3:5 with lines
 
@@ -28,21 +36,27 @@ unset out
 #--------------Second Plot-----------------------
 set output "./Plots/AA2.pdf"
 set multiplot layout 3,1 title "FFT Cos(ft) with modified frequency"
-set title "Time Serries" 
+set title "Time Series" 
 set xrange [0:64]
 set yrange [-1:1]
+set xlabel "Time"
+set ylabel "Signal"
 set ytics (-1,0,1)
-plot "./Data/AA2.txt" using 1:2 with lines
+plot cos(2*3.1415926*(0.25 + 3.1415926/8.0)*x) with lines, "./Data/AA2.txt" using 1:2 with points lc 3
 
 set title "Magnitude of the FFT"
 set xrange [-0.5:0.5]
 set yrange [0:40]
+set xlabel "Frequency (Hz)"
+set ylabel "Amplitude"
 set ytics 40/4
 plot "./Data/AA2.txt" using 3:4 with lines
 
 set title "Power in dB"
 set xrange [-0.5:0.5]
 set yrange [-120:40]
+set xlabel "Frequency (Hz)"
+set ylabel "Power (dB)"
 set ytics (-120, -60, 0, 40)
 plot "./Data/AA2.txt" using 3:5 with lines
 
@@ -56,6 +70,8 @@ set multiplot layout 2,3 title "Effects of Hanning Window"
 set title "Sine Wave"
 set xrange [0:64]
 set yrange [-1:1]
+set xlabel "Time"
+set ylabel "Signal"
 set ytics (-1,0,1)
 set xtics (0,20,40,60)
 plot "./Data/Window1.txt" using 1:2 with lines
@@ -77,6 +93,8 @@ plot "./Data/Window1.txt" using 1:4 with lines
 set title " "
 set xrange [-31:31]
 set yrange [-125:32]
+set xlabel "Frequency (Hz)"
+set ylabel "Power (dB)"
 set ytics (-120, -90,-60, -30, 0, 30)
 set xtics (-30, -15, 0, 15, 30)
 set xtics (-30,-15,0,15,30)

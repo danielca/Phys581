@@ -209,7 +209,7 @@ set origin 0.4, 0.0
 set title "Spectrum"
 set xrange[-0.5:0.5]
 set yrange[-25:35]
-set xlabel "k"
+set xlabel "Frequency (1/month)"
 set ylabel "S(k) (dB)"
 set key outside
 unset logscale y

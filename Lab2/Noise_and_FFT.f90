@@ -39,7 +39,7 @@ subroutine white_noise()
 
     call auto_correlation(noise, auto_corr)
 
-    call window_hamming(auto_corr, auto_corr_win)
+    call window_rect(auto_corr, auto_corr_win)
 
     call fft(auto_corr_win, 1.0d0, freq, auto_corr_dft)
 
@@ -67,7 +67,7 @@ subroutine white_noise()
 
     call auto_correlation(noise, auto_corr)
 
-    call window_hamming(auto_corr, auto_corr_win)
+    call window_rect(auto_corr, auto_corr_win)
 
     call fft(auto_corr_win, 1.0d0, freq, auto_corr_dft)
 

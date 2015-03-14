@@ -112,7 +112,7 @@ subroutine Transform()
 
     open (unit=42, file="./Data/AA1.txt")
     do i=1,N
-        write(42,*) i, vec1(i), freq1(i), magnitude1(i), magnitude_db1(i)
+        write(42,*) i-1, vec1(i), freq1(i), magnitude1(i), magnitude_db1(i)
     end do
     close(42)
 
@@ -129,7 +129,7 @@ subroutine Transform()
 
     open (unit=43, file="./Data/AA2.txt")
     do i=1,N
-        write(43,*) i, vec2(i), freq2(i), magnitude2(i), magnitude_db2(i)
+        write(43,*) i-1, vec2(i), freq2(i), magnitude2(i), magnitude_db2(i)
     end do
 
     close(43)

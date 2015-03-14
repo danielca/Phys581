@@ -38,7 +38,7 @@ stepnumber=1,}
 In this section, we take the discrete Fourier transform (DFT) of four sampled signals using the fast Fourier transform (FFT) routine from Numerical Recipes.
 The resulting power spectra (in dB) are shown in Figure~\ref{fig:warm_up}.
 
-\begin{figure*}[ht]
+\begin{figure*}[htpb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Warm_up.pdf}
     \caption{%
@@ -180,7 +180,7 @@ Using the attached source code, we were able to sample this function, and perfor
 
 \begin{figure*}[htpb]
     \centering
-    \includegraphics[width=0.8\linewidth]{../Plots/AA1.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/AA1.pdf}
     \caption{%
         DFT of $x[n]=\cos(2\pi fn\Delta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
     }
@@ -190,25 +190,35 @@ Using the attached source code, we were able to sample this function, and perfor
 The first thing to notice in figure \ref{fig:AA1} is the time series does not look like your typical cosine function. 
 Our sampling frequency is close to that of our wave. 
 This grabs a majority of the information, however the exact curves are lost. 
-We do see our peaks at our frequency of 0.25Hz. 
-In the power spectrum we can see the power is at it's lowest in the center at 0Hz. 
-This is because we have no DC offset. 
+
+In the frequency domain, we see exactly what we expect: peaks at frequencies of $ \pm 0.25 $ Hz. 
+Consistent with the results above, we see that the maximum amplitude in the frequency domain is $ N/2 = 32 $.
+
+Since $ \omega/\omega_s $ is an integer here, the results above tell us that the DFT will be zero for all $ k $ other than the peak value, which is what we see.
+In the power spectrum, we see that these values are not exactly zero, but they are at $ -120 $ dB, which is likely just due to numerical error.
 
 \begin{figure*}[htpb]
     \centering
-    \includegraphics[width=0.8\linewidth]{../Plots/AA2.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/AA2.pdf}
     \caption{%
-        DFT of the modified cosine of $x[n]=\cos(2\pi (f+0.008) + n\Delta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
+        DFT of the modified cosine of $x[n]=\cos(2\pi (f+\pi/8) n\Delta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
     }
     \label{fig:AA2}
 \end{figure*}
-Shifting the frequency to $f=f+\frac{\pi}{8}$ distorts the time signal, as shown in figure \ref{fig:AA2}. 
-This is because we have changed the frequency in such a way that we see the odd distortion. 
-We are still below our Nyquist frequency of 0.5Hz. 
-This is because we are sampling close to that of the waveform. 
-We can see in both the FFT and the power spectrum this has had. 
-The size of the peaks have been reduced, and the entire spectrum has a higher floor. 
-This is most noticeable in the power spectrum, where when compared to figure \ref{fig:AA1} the power is higher over all, and the peaks are less defined.   
+Shifting the frequency to $f=f+\frac{\pi}{8}$ distorts the sampled time signal significantly, as shown in figure \ref{fig:AA2}. 
+This is because the sampling frequency no longer aligns nicely with the signal frequency.
+However, in the frequency domain, we can see that the signal is not distorted nearly as much.
+We still have peaks of about $ N/2 = 32 $, but the other $ k $ values are no longer exactly zero.
+
+This demonstrates the Shannon sampling theorem.
+Even though the sampling rate is low enough that the time signal looks completely distorted, we can see from the frequency domain that we still have most of the information about the signal.
+
+%This is because we have changed the frequency in such a way that we see the odd distortion. 
+%We are still below our Nyquist frequency of 0.5Hz. 
+%This is because we are sampling close to that of the waveform. 
+%We can see in both the FFT and the power spectrum this has had. 
+%The size of the peaks have been reduced, and the entire spectrum has a higher floor. 
+%This is most noticeable in the power spectrum, where when compared to figure \ref{fig:AA1} the power is higher over all, and the peaks are less defined.   
 
 \subsection{Gibbs Phenomenon}
 \label{sec:gibbs_phenomenon}
@@ -230,7 +240,7 @@ Both these windows help when your data set does not have the same boundary point
 
 \begin{figure*}[htpb]
     \centering
-    \includegraphics[width=0.8\linewidth]{../Plots/Window1.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/Window1.pdf}
     \caption{%
         Looking at the Hanning window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectra.
     }
@@ -239,12 +249,144 @@ Both these windows help when your data set does not have the same boundary point
 
 \begin{figure*}[htpb]
     \centering
-    \includegraphics[width=0.8\linewidth]{../Plots/Window2.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/Window2.pdf}
     \caption{%
         Looking at the Blackman window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectra.
     }
     \label{fig:Window2}
 \end{figure*}
+
+\section{Noise and the FFT}
+\label{sec:noise_and_the_fft}
+
+\subsection{Auto-correlation and power spectral density}
+\label{subsec:auto_correlation_and_power_spectral_density}
+
+For white noise, $ x[n] $ is an independent random variable for each $ n $ with zero mean and unit variance.
+The autocorrelation is
+\begin{align}
+    AC[k] &= E \left( x[n] x[n-k] \right)
+\end{align}
+For $ k \neq 0 $, $ x[n] $ and $ x[n-k] $ are independent by definition, so $ AC[k \neq 0] = 0 $.
+For $ k = 0 $,
+\begin{align}
+    AC[0] &= E \left( (x[n])^2 \right)
+\end{align}
+Since $ x[n] $ has zero mean, this is just the variance of $ x[n] $, which is 1.
+Thus
+\begin{align}
+    AC[k] &= \delta[k]
+\end{align}
+
+The spectrum is then
+\begin{align}
+    S(\omega) &= \sum_{k = -\infty}^{\infty} AC[k] e^{-j \omega k}
+    \\
+    S(\omega) &= \sum_{k = -\infty}^{\infty} \delta[k] e^{-j \omega k}
+    \\
+    S(\omega) &= e^{-j \omega 0}
+    \\
+    S(\omega) &= 1
+\end{align}
+
+A white noise signal was generated using the gfortran PRN generator, shifted and scaled so that each step was a uniform random variable with zero mean and unit variance.
+The autocorrelation function and the resulting spectrum are plotted in Figure~\ref{fig:white_noise_uniform}.
+We can see that the autocorrelation function approximates $ \delta[k] $ and that the auto-correlation function is approximately unity (0 dB) across the frequencies.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/White_noise_uniform.pdf}
+    \caption{Autocorrelation and power spectral density of uniform white noise.}
+    \label{fig:white_noise_uniform}
+\end{figure}
+
+Another white noise signal was generated, but this time using Gaussian random variables of zero mean and unit variance.
+The autocorrelation function and the resulting spectrum are plotted in Figure~\ref{fig:white_noise_gaussian}.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/White_noise_gaussian.pdf}
+    \caption{Autocorrelation and power spectral density of Gaussian white noise.}
+    \label{fig:white_noise_gaussian}
+\end{figure}
+
+Comparing the two, we see that the Gaussian white noise has more power near zero frequency.
+This is not surprising, since the Gaussian distribution is peaked near zero while the uniform distribution is not.
+
+\subsection{Noise reduction}
+\label{subsec:noise_reduction}
+
+As an application of Fourier transforms, we add noise to a signal and then remove it in the frequency domain.
+The process is seen in Figure~\ref{fig:noise_reduction}.
+We can see the noise added in both domains.
+In the frequency domain, we see the flat power spectral density of white noise added to the spectrum of the original signal.
+
+Because the noise does not have too much power, we can still see dominant frequencies at 0.44 and 0.88 kHz.
+These peaks correspond to the spectrum of the original signal, which has a 440 Hz and an 880 Hz sinusoid.
+To completely distort the signal, we would need the spectral power of the white noise to overwhelm the power of the original signal, which is about 40 dB.
+This means that the variance of $ r_i $ would need to be on the order of $ 100 $.
+Thus, if $ r_i $ is a uniform random variable, it would need to have a range of about 10.
+
+By zeroing out the frequency components which have low power, we end up with a cleaned signal which matches the original signal quite closely.
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Noise_reduction.pdf}
+    \caption{Use of Fourier transform to remove noise from a signal.}
+    \label{fig:noise_reduction}
+\end{figure*}
+
+\subsection{Noise in signals with trends}
+\label{subsec:noise_in_signals_with_trends}
+
+We perform the same analysis as above, but this time the signal has a linear trend added.
+In Figure~\ref{fig:signal_with_trend}, we can see that the noise removal technique we used in the last section does not work as well this time.
+The cleaned up signal does not quite match the original signal.
+
+However, if we remove the trend from the noisy signal, zero out the low-power frequencies, and then add back the trend, we get much better results.
+This is seen in Figure~\ref{fig:signal_with_trend2}.
+
+We learn from this that if a signal has a trend, it is important to know what that trend is ahead of time.
+If the trend can't be removed before the noise reduction, it may be difficult or impossible to recover the original signal.
+This suggests a possible encryption technique: adding a trend to a signal makes it very difficult to decrypt the signal unless the trend is known.
+Thus, the trend acts as a kind of ``key'' for the signal, so that only people who know what the trend is are able to recover the original signal.
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Signal_with_trend.pdf}
+    \caption{Noise removed from a signal with a trend.}
+    \label{fig:signal_with_trend}
+\end{figure*}
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Signal_with_trend2.pdf}
+    \caption{Noise removed from a signal with a trend. This time the trend was removed before the noise was removed, and then added back in later.}
+    \label{fig:signal_with_trend2}
+\end{figure*}
+
+\subsection{Application to financial series}
+\label{subsec:application_to_financial_series}
+
+As another example of Fourier analysis on noisy data, we look at real world stock prices.
+In Figure~\ref{fig:stocks}, we see the series of stocks for each company.
+We also see the continuously compounded returns, the auto-correlation function and the power spectrum in the frequency domain.
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Stocks.pdf}
+    \caption{Analysis of real world stock prices.}
+    \label{fig:stocks}
+\end{figure*}
+
+From the auto-correlations, we can see that these signals are strongly correlated except at certain points where the auto-correlation drops off.
+This indicates that stock prices are not completely random, however they do undergo strong unpredictably random changes.
+The high autocorrelations might lead someone to believe that they can predict where a stock is going, but the sudden drops indicate that these predictions my fail drastically.
+
+From the spectrum, we see that most of the power is concentrated near DC and low-frequency components.
+However, there are still noticeable higher-frequency components.
+Since the spectrum is not flat, this does not look like white noise superimposed on an underlying signal.
+Rather, the spectrum looks like noise with a stronger low-frequency component.
 
 \onecolumn
 
