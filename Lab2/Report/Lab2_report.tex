@@ -114,13 +114,13 @@ At the point of interest, k=m, we run into a problem where $X_{k}=\frac{0}{0}$. 
 X_{k}=\frac{N}{2}
 \end{equation*}.
 
-Looking now at a different function $x(n)=cos(2\pi fn\deta t)$. Using the attached source code, we were able to sample this function, and preform an DFT.
+Looking now at a different function $x(n)=cos(2\pi f n\delta t)$. Using the attached source code, we were able to sample this function, and preform an DFT.
 
 \begin{figure*}[htpb]
     \centering
     \includegraphics[width=0.8\linewidth]{../Plots/AA1.pdf}
     \caption{%
-        DFT of $x(n)=cos(2\pi fn\deta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
+        DFT of $x(n)=cos(2\pi fn\delta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
     }
     \label{fig:AA1}
 \end{figure*}
@@ -131,7 +131,7 @@ The first thing to notice in figure \ref{fig:AA1} is the time series does not lo
     \centering
     \includegraphics[width=0.8\linewidth]{../Plots/AA2.pdf}
     \caption{%
-        DFT of the modified cosine of $x(n)=cos(2\pi (f+0.008) + n\deta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
+        DFT of the modified cosine of $x(n)=cos(2\pi (f+0.008) + n\delta t)$. Top figure showing the sampled time series, the middle showing the DFT, and the bottom displaying the power in dB.
     }
     \label{fig:AA2}
 \end{figure*}
@@ -144,7 +144,7 @@ Gibbs phenomenon is not restricted to Fourier series, but can also be found in D
     \centering
     \includegraphics[width=0.8\linewidth]{../Plots/Window1.pdf}
     \caption{%
-        Looking at the Hanning window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectrums.
+        Looking at the Hanning window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectra.
     }
     \label{fig:Window1}
 \end{figure*}
@@ -153,7 +153,7 @@ Gibbs phenomenon is not restricted to Fourier series, but can also be found in D
     \centering
     \includegraphics[width=0.8\linewidth]{../Plots/Window2.pdf}
     \caption{%
-        Looking at the Blackman window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectrums.
+        Looking at the Blackman window. The top resents the time series of a plain sine wave, a sine wave that is not periodic in the interval, and the effect of the Hanning window on the non-periodic wave. The bottom displays the corresponding power spectra.
     }
     \label{fig:Window2}
 \end{figure*}

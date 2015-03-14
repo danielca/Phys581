@@ -1,4 +1,4 @@
-set terminal pdfciaro
+set terminal pdfcairo
 set output "./Plots/AA1.pdf"
 
 set nokey
@@ -102,7 +102,7 @@ unset out
 
 
 #-----------------Fourth Plot-----------------------
-set output "./Plots/Window2.df"
+set output "./Plots/Window2.pdf"
 set multiplot layout 2,3 title "Effects of Blackman Window"
 
 set title "Sine Wave"
