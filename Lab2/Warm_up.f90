@@ -6,7 +6,7 @@ program Warm_up
     real(dp), parameter :: pi = 3.14159265359
 
     call simple_test()
-    !call recording_fft()
+    call recording_fft()
 
 contains
 

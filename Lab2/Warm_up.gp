@@ -45,16 +45,32 @@ plot "./Data/Warm_up.txt" using 1:5 with lines
 
 unset multiplot
 
-set output "./Plots/My_voice.pdf"
+set terminal pngcairo enhanced size 1120, 480
 
-set size 1, 1
-set origin 0, 0
+set output "./Plots/My_voice.png"
+
+set multiplot
+
+set size 0.5, 1.0
+set origin 0.5, 0.0
 set title "My voice spectrum"
 set xlabel "Frequency (Hz)"
 set ylabel "Signal power (dB)"
 set xrange [-32768:32768]
 unset key
 
-plot "./Data/myself-fft.dat" with lines
+plot "./Data/myself-fft.dat" using 1:2 every 1 with lines
+
+set size 0.5, 1.0
+set origin 0.0, 0.0
+set title "My voice time domain"
+set xlabel "Time (s)"
+set ylabel "Signal"
+set xrange [0:10]
+set yrange [-1.25:1.25]
+unset key
+
+plot "./Data/myself.dat" using 1:2 every 1 with lines
+
 
 reset
