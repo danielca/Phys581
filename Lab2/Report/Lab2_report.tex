@@ -388,6 +388,74 @@ However, there are still noticeable higher-frequency components.
 Since the spectrum is not flat, this does not look like white noise superimposed on an underlying signal.
 Rather, the spectrum looks like noise with a stronger low-frequency component.
 
+\section{Lorenz System}
+\subsection{Fixed Points}
+The Lorenz System, as studied in Phys 481, can be shown to have stable points, if certain conditions are met. Below the radius $r=1$, the only stable points is the trivial solution of (0,0,0). Between $r=r_{B}$ and $r=1$ the stable points are ($\pm \sqrtsign{b(r-1)}$,$\pm \sqrtsign{b(r-1)}$, $r-1$), and is otherwise unstable, where $r_{B}$ is defined by
+\begin{equation*}
+r_{B} = \frac{\sigma (\sigma + b + 3)}{\sigma - b -1}
+\end{equation*}
+These stable points are shown in figure \ref{fig:fixed}. This bifurcation of the stable points first diverge from the trivial solution at $r=1$. Around $r=r_{B}$ we start to reach an unstable system. The mass arrangement of end points shows this chaos. This type of system can model convections. Given certain conditions, the trivial solution represents no mixing of fluids, while the bifurcation shows a smooth mixing point between the two. The unstable state is very quick and unsteady mixing.
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/FixedPoints.pdf}
+    \caption{Bifurcation Diagram for the Lorenz System.}
+    \label{fig:fixed}
+\end{figure*}
+
+\subsection{Fourier Analysis}
+Figures \ref{fig:Phase1} through \ref{fig:Phase26} show the system at different radii. Through these we can see how stable the system is. We see how quickly the solutions converge to the stable points. The Phase plot shows how much "mixing" is done before reaching the stable state. The interesting data is in the DFT. We can see in figure \ref{fig:Phase1} a very strong pulse at 0Hz, and a smooth curve down to the base. When we compare this to figure \ref{fig:Phase145}, we see that the curve down to the base has oscillations. This indicates that the system is more unstable. We see the curve is full of oscilations, and is wider. This indicates the instability in the system. From the DFT we are able to infer how stable the Lorenz System is.
+
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase1.pdf}
+    \caption{Time series, phase space, and DFT of the Lorenz System for R=1}
+    \label{fig:Phase1}
+\end{figure*}
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase3.pdf}
+    \caption{Time series, phase space, and DFT of the Lorenz System for R=3}
+    \label{fig:Phase3}
+\end{figure*}
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase13.pdf}
+    \caption{Time series, phase space, and DFT of the Lorenz System for R=13}
+    \label{fig:Phase13}
+\end{figure*}
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase145.pdf}
+    \caption{Time series, phase space, and DFT of the Lorenz System for R=14.5}
+    \label{fig:Phase145}
+\end{figure*}
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase26.pdf}
+    \caption{Time series, phase space, and DFT of the Lorenz System for R=26}
+    \label{fig:Phase26}
+\end{figure*}
+
+
+Another way to dynamic nature of the Lorenz System is through a spectrogram. As in figure \ref{fig:Spectral} we see the radius along the horizontal axis, the frequency along the vertical axis, and the power in dB. We can see how much the system spirals around the stable points. For lower values of r, the closer to one of the stable points the system stays. We can also see the bifurcations in this figure. We see the trivial solution split into the two stable solutions, and we see these solutions split. As we approach $r_{B}$ we see the system become closer and closer to the chaotic solutions. Once we pass this critical point we see no pattern to the solution, and simply the chaos. 
+
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Spectral.pdf}
+    \caption{Spectrogram showing the DFT of x(t). The Power in dB is displayed in the colour, the frequency along the y-axis and the radius along the x-axis}
+    \label{fig:Spectral}
+\end{figure*}
+
+\subsection{Astrophysical Application}
+The DFT can also be used on pulsar stars. Given a counts per given time period we can star to see if there any periodic tones to the signal pattern. In figure [FIGURE] we see the time series. There is simply to much data with to much variation to see any kind of periodic nature of the signal. Utilizing a FFT, as shown in the lower half of figure \ref{fig:Astro} plotted in dB, we can start to see certain frequencies rise above the rest. These large peaks become very apparent that there is a periodic nature to the pulsar's emissions. We are not able to see all of the frequencies, as we are limited by the sampling rate. To see more we would need to increase the sampling rate.
+
+\begin{figure*}[htb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Astro.pdf}
+    \caption{The time series and the DFT of the pulsar star signal}
+    \label{fig:Astro}
+\end{figure*}
+
 \section{Image analysis}
 \label{sec:image_analysis}
 
@@ -525,6 +593,8 @@ The Reduce Noise and Add Noise functions are likely subtractive and additive fil
 They allow us to pick the noise radius, which allows us to specify the nature of $ N(u,v) $ (whether it is Gaussian, white, etc.).
 The sharpen and blur features likely apply multiplicative filters $ H(u,v) $.
 The radius and standard deviation options let us specify what the impulse response function $ h(x,y) $ looks like.
+
+
 
 \onecolumn
 

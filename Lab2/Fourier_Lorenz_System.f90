@@ -9,7 +9,7 @@ implicit none
 
 
 call FixedPoints()
-!call Astro()
+call Astro()
 
 
 
@@ -20,7 +20,8 @@ contains
 subroutine FixedPoints()
     integer::i,j,num_time
     real(kind=8)::x,y, time_step, r
-    real(kind=8), dimension(:), allocatable::xt, yt
+    real(kind=8), dimension(:), allocatable::xt, yt, freq, magnitude, windowed
+    complex(kind=8), dimension(:), allocatable::fft_dat
     
     num_time=16384
     time_step = 0.01
@@ -32,40 +33,75 @@ subroutine FixedPoints()
     open(unit=50, file = "./Data/LorenzPhase145.txt")
     open(unit=51, file = "./Data/LorenzPhase26.txt")
     open(unit=52, file = "./Data/LorenzSpec.txt")
-    !do i=0,300
-    i=0
+    do i=0,3000
         allocate(xt(num_time), yt(num_time))
         !set the new r
-        r = dble(i)*dble(0.1)
+        r = dble(i)*dble(0.01)
         write(*,*) "Now running radius ", r
         call runLorenzSystem(r, x, num_time, time_step, xt, yt)
         write(46,*) r, x
         
         !Write the phase plots to file for the required radi
-        if ((r.gt.0.99) .and. (r.lt.1.01)) then
+        if ((r.gt.0.999) .and. (r.lt.1.001)) then
+            allocate(freq(num_time), fft_dat(num_time))
+            allocate(windowed(num_time), magnitude(num_time))
             do j=1,size(xt)
-                write(47,*) dble(j)*time_step, xt(j), yt(j)
+                call window_hanning(xt, windowed)
+                call fft(windowed, time_step, freq, fft_dat)
+                call calc_power(fft_dat, magnitude)
+                write(47,*) dble(j)*time_step, xt(j), yt(j), freq(j), magnitude(j)
             end do
-        else if ((r.gt.1.99) .and. (r.lt.2.01)) then
+            deallocate(freq,fft_dat)
+            deallocate(windowed, magnitude)
+        else if ((r.gt.1.999) .and. (r.lt.2.001)) then
+            allocate(freq(num_time), fft_dat(num_time))
+            allocate(windowed(num_time), magnitude(num_time))
             do j=1,size(xt)
-                write(48,*) dble(j)*time_step, xt(j), yt(j)
+                call window_hanning(xt, windowed)
+                call fft(windowed, time_step, freq, fft_dat)
+                call calc_power(fft_dat, magnitude)
+                write(48,*) dble(j)*time_step, xt(j), yt(j), freq(j), magnitude(j)
             end do
-        else if ((r.gt.12.99) .and. (r.lt.13.01)) then
+            deallocate(freq,fft_dat)
+            deallocate(windowed, magnitude)
+        else if ((r.gt.12.999) .and. (r.lt.13.001)) then
+            allocate(freq(num_time), fft_dat(num_time))
+            allocate(windowed(num_time), magnitude(num_time))
             do j=1,size(xt)
-                write(49,*) dble(j)*time_step, xt(j), yt(j)
+                call window_hanning(xt, windowed)
+                call fft(windowed, time_step, freq, fft_dat)
+                call calc_power(fft_dat, magnitude)
+                write(49,*) dble(j)*time_step, xt(j), yt(j), freq(j), magnitude(j)
             end do
-        else if ((r.gt.14.44) .and. (r.lt.14.6)) then
+            deallocate(freq,fft_dat)
+            deallocate(windowed, magnitude)
+        else if ((r.gt.14.499) .and. (r.lt.14.506)) then
+            allocate(freq(num_time), fft_dat(num_time))
+            allocate(windowed(num_time), magnitude(num_time))
             do j=1,size(xt)
-                write(50,*) dble(j)*time_step, xt(j), yt(j)
+                call window_hanning(xt, windowed)
+                call fft(windowed, time_step, freq, fft_dat)
+                call calc_power(fft_dat, magnitude)
+                write(50,*) dble(j)*time_step, xt(j), yt(j), freq(j), magnitude(j)
             end do
-        else if ((r.gt.15.99) .and. (r.lt.16.01)) then
+            deallocate(freq,fft_dat)
+            deallocate(windowed, magnitude)
+        else if ((r.gt.25.999) .and. (r.lt.26.001)) then
+            allocate(freq(num_time), fft_dat(num_time))
+            allocate(windowed(num_time), magnitude(num_time))
             do j=1,size(xt)
-                write(51,*) dble(j)*time_step, xt(j), yt(j)
+                call window_hanning(xt, windowed)
+                call fft(windowed, time_step, freq, fft_dat)
+                call calc_power(fft_dat, magnitude)
+                write(51,*) dble(j)*time_step, xt(j), yt(j), freq(j), magnitude(j)
             end do
+            deallocate(freq,fft_dat)
+            deallocate(windowed, magnitude)
         end if
         call lorenzSpectral(r, xt, time_step, 52)
         deallocate(xt,yt)
-    !end do
+    end do
+    write(52,*) ""
     close(46)
     close(47)
     close(48)
@@ -92,9 +128,9 @@ subroutine lorenzSpectral(r, xt, dt, file_int)
     call calc_power(fft_dat, magnitude)
 
     do i=1,size(freq)
-        if (freq(i).ge.0) then
+        !if (freq(i).ge.0) then
             write(file_int,*) r, freq(i), magnitude(i)
-        end if
+        !end if
     end do
 
     deallocate(fft_dat, freq)
