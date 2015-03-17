@@ -1,4 +1,5 @@
-set terminal pdfciaro
+set terminal pdfcairo enhanced size 6, 6
+
 set output "./Plots/FixedPoints.pdf"
 
 set title "Fixed Points"
@@ -7,7 +8,7 @@ set ylabel "X"
 set nokey
 set xrange [0:30]
 set yrange [-20:20]
-plot "./Data/FixedPoints.txt" using 1:2
+plot "./Data/FixedPoints2.txt" using 1:2, "./Data/FixedPoints.txt" using 1:2 lc 1
 unset out
 
 #------------------------------ Second Plot ------------------------------
@@ -24,7 +25,7 @@ plot "./Data/Astro.txt" using 1:2 with lines
 
 
 set title "DFT of the Pulsar Star"
-set xrange [-2:2]
+set xrange [-4:4]
 set yrange [40:160]
 plot "./Data/Astro.txt" using 3:4 with lines
 unset multiplot
@@ -186,18 +187,20 @@ unset out
 
 #------------------------------ Eigth Plot ------------------------------
 
-set output "./Plots/Spectral.pdf"
-set nokey
-set pm3d map
-set isosamples 100
-set title "Spectral of the Lorenz System"
-set xlabel "Radius"
-set ylabel "Frequency"
-set xrange [0:30]
-set yrange [-20:20]
-set cbrange [-150:80]
-set ytics (-50,-40,-30,-20,-10,0,10,20,30,40,50)
-set palette defined (0 0 0 0, 1 1 1 1 )
-splot "./Data/LorenzSpec.txt" using 1:2:3 with points palette
+#set terminal png enhanced
+#
+#set output "./Plots/Spectral.png"
+#set nokey
+#set pm3d map
+#set isosamples 100
+#set title "Spectral of the Lorenz System"
+#set xlabel "Radius"
+#set ylabel "Frequency"
+#set xrange [0:30]
+#set yrange [-20:20]
+#set cbrange [-150:80]
+#set ytics (-50,-40,-30,-20,-10,0,10,20,30,40,50)
+#set palette defined (0 0 0 0, 1 1 1 1 )
+#splot "./Data/LorenzSpec.txt" using 1:2:3 palette
 
 reset

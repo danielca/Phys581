@@ -1,7 +1,7 @@
 #!/bin/bash
-gfortran ../Modules/Fourier_analysis_module.f90 ../Modules/Differential_equations_module.f90 ODE_system_module.f90 Fourier_Lorenz_System.f90 -o Fourier_Lorenz_System
+gfortran -O3 ../Modules/Fourier_analysis_module.f90 ../Modules/Differential_equations_module.f90 ODE_system_module.f90 Fourier_Lorenz_System.f90 -o Fourier_Lorenz_System
 rm fourier_analysis_module.mod 
 rm differential_equations_module.mod
-rm ODE_system_module.mod
+rm ode_system_module.mod
 ./Fourier_Lorenz_System
 gnuplot Fourier_Lorenz_System.gp

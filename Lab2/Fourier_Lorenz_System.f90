@@ -8,7 +8,7 @@ implicit none
 
 
 
-call FixedPoints()
+!call FixedPoints()
 call Astro()
 
 
@@ -99,9 +99,9 @@ subroutine FixedPoints()
             deallocate(windowed, magnitude)
         end if
         call lorenzSpectral(r, xt, time_step, 52)
+        write(52,*) ""
         deallocate(xt,yt)
     end do
-    write(52,*) ""
     close(46)
     close(47)
     close(48)
@@ -188,7 +188,7 @@ subroutine Astro()
     close(43)
     
     call window_hanning(noCount, windowed_count)
-    call fft(windowed_count, dble(time(3)-time(1)), freq, fft_dat)
+    call fft(windowed_count, dble(time(2)-time(1)), freq, fft_dat)
     call calc_power(fft_dat, magnitude)
     
     open(unit=44, file="./Data/Astro.txt")

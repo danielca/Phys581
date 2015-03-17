@@ -29,8 +29,18 @@ stepnumber=1,}
 \section{Introduction}
 \label{sec:introduction}
 
+In this lab we explore the application of the Fourier transform in numerical methods.
+In particular, we look at the discretized version: the discrete Fourier transform (DFT).
+For most of the analysis we use the fast Fourier transform (FFT), as implemented in Numerical Recipes.
+The FFT is simply an algorithm for calculating DFT as quickly as possible.
+
+The Fourier transform has a huge range of applicability, especially in physics and electrical engineering applications.
+We will see why in this lab, as Fourier analysis proves itself useful again and again in vastly different contexts.
+
 \section{Warm up}
 \label{sec:warm_up}
+
+(The code for this section can be seen in Sections \ref{subsec:fourier_analysis_module}, \ref{subsec:warm_up_main_code}, and \ref{subsec:warm_up_plotting_code})
 
 \subsection{Using Numerical Recipes routines}
 \label{subsec:using_numerical_recipes_routines}
@@ -107,6 +117,8 @@ This was caused by the poor recording equipment of the laptop.
 
 \section{Anti-Aliasing, Spectral Leakage, and the FFT}
 \label{sec:anti_aliasing_spectral_leakage_and_the_fft}
+
+(The code for this section can be seen in Sections \ref{subsec:fourier_analysis_module}, \ref{subsec:aliasing_spectral_leakage_and_the_fft_code}, and \ref{subsec:aliasing_spectral_leakage_and_the_fft_plotting_code})
 
 \subsection{DFTs}
 \label{subsec:dfts}
@@ -259,6 +271,8 @@ Both these windows help when your data set does not have the same boundary point
 \section{Noise and the FFT}
 \label{sec:noise_and_the_fft}
 
+(The code for this section can be seen in Sections \ref{subsec:fourier_analysis_module}, \ref{subsec:noise_and_the_fft_code}, \ref{subsec:random_numbers_module}, \ref{subsec:dr_ouyeds_random_numbers_module}, and \ref{subsec:noise_and_the_fft_plotting_code})
+
 \subsection{Auto-correlation and power spectral density}
 \label{subsec:auto_correlation_and_power_spectral_density}
 
@@ -389,12 +403,25 @@ Since the spectrum is not flat, this does not look like white noise superimposed
 Rather, the spectrum looks like noise with a stronger low-frequency component.
 
 \section{Lorenz System}
+
+(The code for this section can be seen in Sections \ref{subsec:fourier_analysis_module}, \ref{subsec:lorenz_system_code}, \ref{subsec:ode_system_module}, \ref{subsec:differential_equations_module}, \ref{subsec:lorenz_system_plotting_code})
+
 \subsection{Fixed Points}
 The Lorenz System, as studied in Phys 481, can be shown to have stable points, if certain conditions are met. Below the radius $r=1$, the only stable points is the trivial solution of (0,0,0). Between $r=r_{B}$ and $r=1$ the stable points are ($\pm \sqrtsign{b(r-1)}$,$\pm \sqrtsign{b(r-1)}$, $r-1$), and is otherwise unstable, where $r_{B}$ is defined by
 \begin{equation*}
-r_{B} = \frac{\sigma (\sigma + b + 3)}{\sigma - b -1}
+r_{B} = \frac{\sigma (\sigma + b + 3)}{\sigma - b -1} \approx 24.7
 \end{equation*}
-These stable points are shown in figure \ref{fig:fixed}. This bifurcation of the stable points first diverge from the trivial solution at $r=1$. Around $r=r_{B}$ we start to reach an unstable system. The mass arrangement of end points shows this chaos. This type of system can model convections. Given certain conditions, the trivial solution represents no mixing of fluids, while the bifurcation shows a smooth mixing point between the two. The unstable state is very quick and unsteady mixing.
+These stable points are shown in figure \ref{fig:fixed}. 
+To generate this diagram, the system was run with a number of different initial conditions and $ r $ values, and the final $ x $ value was recorded and plotted as a function of $ r $.
+
+We see the bifurcation of the stable points: the stable value is $ x = 0 $ until $ r =1 $ when they begin to diverge. 
+Around $r=r_{B}$ we start to reach an unstable system. 
+The mass arrangement of end points shows this chaos. 
+
+This type of system can model convections. 
+Given certain conditions, the trivial solution represents no mixing of fluids, while the bifurcation shows a smooth mixing point between the two. 
+The unstable state is very quick and unsteady mixing.
+
 \begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/FixedPoints.pdf}
@@ -403,41 +430,56 @@ These stable points are shown in figure \ref{fig:fixed}. This bifurcation of the
 \end{figure*}
 
 \subsection{Fourier Analysis}
-Figures \ref{fig:Phase1} through \ref{fig:Phase26} show the system at different radii. Through these we can see how stable the system is. We see how quickly the solutions converge to the stable points. The Phase plot shows how much "mixing" is done before reaching the stable state. The interesting data is in the DFT. We can see in figure \ref{fig:Phase1} a very strong pulse at 0Hz, and a smooth curve down to the base. When we compare this to figure \ref{fig:Phase145}, we see that the curve down to the base has oscillations. This indicates that the system is more unstable. We see the curve is full of oscilations, and is wider. This indicates the instability in the system. From the DFT we are able to infer how stable the Lorenz System is.
+Figures \ref{fig:Phase1} through \ref{fig:Phase26} show the system at different radii. 
+Through these we can see how stable the system is. 
+We see how quickly the solutions converge to the stable points. 
+The Phase plot shows how much "mixing" is done before reaching the stable state. 
+The interesting data is in the DFT. 
+We can see in figure \ref{fig:Phase1} a very strong pulse at 0Hz, and a smooth curve down to the base. 
+When we compare this to figure \ref{fig:Phase145}, we see that the curve down to the base has oscillations. 
+This indicates that the system is more unstable. 
+We see the curve is full of oscillations, and is wider. 
+This indicates the instability in the system. From the DFT we are able to infer how stable the Lorenz System is.
 
 \begin{figure*}[htb]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase1.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/Phase1.pdf}
     \caption{Time series, phase space, and DFT of the Lorenz System for R=1}
     \label{fig:Phase1}
 \end{figure*}
 \begin{figure*}[htb]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase3.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/Phase3.pdf}
     \caption{Time series, phase space, and DFT of the Lorenz System for R=3}
     \label{fig:Phase3}
 \end{figure*}
 \begin{figure*}[htb]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase13.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/Phase13.pdf}
     \caption{Time series, phase space, and DFT of the Lorenz System for R=13}
     \label{fig:Phase13}
 \end{figure*}
 \begin{figure*}[htb]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase145.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/Phase145.pdf}
     \caption{Time series, phase space, and DFT of the Lorenz System for R=14.5}
     \label{fig:Phase145}
 \end{figure*}
 \begin{figure*}[htb]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/LorenzPhase26.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/Phase26.pdf}
     \caption{Time series, phase space, and DFT of the Lorenz System for R=26}
     \label{fig:Phase26}
 \end{figure*}
 
 
-Another way to dynamic nature of the Lorenz System is through a spectrogram. As in figure \ref{fig:Spectral} we see the radius along the horizontal axis, the frequency along the vertical axis, and the power in dB. We can see how much the system spirals around the stable points. For lower values of r, the closer to one of the stable points the system stays. We can also see the bifurcations in this figure. We see the trivial solution split into the two stable solutions, and we see these solutions split. As we approach $r_{B}$ we see the system become closer and closer to the chaotic solutions. Once we pass this critical point we see no pattern to the solution, and simply the chaos. 
+Another way to dynamic nature of the Lorenz System is through a spectrogram. 
+As in figure \ref{fig:Spectral} we see the radius along the horizontal axis, the frequency along the vertical axis, and the power in dB. 
+We can see how much the system spirals around the stable points. 
+For $ r < 1 $, the spectrum is strongly concentrated at DC, consistent with the fact that the system does not oscillate.
+For $ 1 < r < r_B $, we can see peaks of increasing intensity in higher frequencies, indicating the growing oscillating character of the system with growing $ r $.
+As $ r $ moves past the unstable point $ r_B $, we see the system move away from sharp spectral peaks and towards a smooth spectrum.
+This is consistent with chaotic motion (noise) as opposed to oscillation (where we would see peaks in the spectrum).
 
 \begin{figure*}[htb]
     \centering
@@ -446,8 +488,27 @@ Another way to dynamic nature of the Lorenz System is through a spectrogram. As 
     \label{fig:Spectral}
 \end{figure*}
 
+In general, Fourier analysis can provide information in a much ``cleaner'' fashion than time domain information.
+To understand how this system's behaviour changes with $ r $ in the time domain, we would need to generate a number of time domain plots and compare them.
+Seeing a smooth transition of system behaviour as a function of $ r $ would be very difficult with time domain information: we would need to generate some sort of animation showing the change of trajectories with $ r $.
+
+In the frequency domain however, we can very easily see the behaviour as a function of $ r $ using a spectrograph like the one just discussed.
+This spectrograph allows us to see the gradual changes in the system behaviour without too much effort.
+Also, from the frequency domain, it is simple to see whether the system behaviour is resonant or not, and we can see exactly where those resonances are if they exist.
+In the time domain, it may be difficult to distinguish systems with multiple resonances from noisy systems.
+
 \subsection{Astrophysical Application}
-The DFT can also be used on pulsar stars. Given a counts per given time period we can star to see if there any periodic tones to the signal pattern. In figure [FIGURE] we see the time series. There is simply to much data with to much variation to see any kind of periodic nature of the signal. Utilizing a FFT, as shown in the lower half of figure \ref{fig:Astro} plotted in dB, we can start to see certain frequencies rise above the rest. These large peaks become very apparent that there is a periodic nature to the pulsar's emissions. We are not able to see all of the frequencies, as we are limited by the sampling rate. To see more we would need to increase the sampling rate.
+The DFT can also be used on pulsar stars. 
+Given a counts per given time period we can star to see if there any periodic tones to the signal pattern. 
+In figure~\ref{fig:Astro} we see the time series. 
+There is simply to much data with to much variation to see any kind of periodic nature of the signal. 
+The signal looks pretty much like random noise.
+
+Utilizing an FFT, as shown in the lower half of figure \ref{fig:Astro} plotted in dB, we can see specific frequencies rise above the rest. 
+From these large peaks it is very apparent that there are strong periodic components in the pulsar's emissions, spaced a little less than 1 Hz apart.
+
+We can see the effects of aliasing near the higher frequencies, where it looks like some higher frequency components have ``folded back'' into the lower frequency regime.
+This indicates that we should increase the sampling rate in order to get a more accurate picture of the pulsar spectrum.
 
 \begin{figure*}[htb]
     \centering
@@ -458,6 +519,8 @@ The DFT can also be used on pulsar stars. Given a counts per given time period w
 
 \section{Image analysis}
 \label{sec:image_analysis}
+
+(The code for this section can be seen in Sections \ref{subsec:fourier_analysis_module}, \ref{subsec:image_analysis_code})
 
 \subsection{Simple example}
 \label{subsec:simple_example}
@@ -594,7 +657,12 @@ They allow us to pick the noise radius, which allows us to specify the nature of
 The sharpen and blur features likely apply multiplicative filters $ H(u,v) $.
 The radius and standard deviation options let us specify what the impulse response function $ h(x,y) $ looks like.
 
+\section{Conclusion}
+\label{sec:conclusion}
 
+We have seen again and again how useful the Fourier transform is in a wide range of context.
+In particular, the FFT is an indispensable tool for any engineer or physicist, as it allows for quick transitions between the time and frequency domains.
+Once in the frequency domain, characteristics of a system which may have been muddled in the time domain can be come immediately apparent.
 
 \onecolumn
 
@@ -612,5 +680,82 @@ The radius and standard deviation options let us specify what the impulse respon
 
 \lstinputlisting[breaklines]{../Warm_up.f90}
 \vspace{10pt}
+
+\subsection{Warm up plotting code}
+\label{subsec:warm_up_plotting_code}
+
+\lstinputlisting[breaklines]{../Warm_up.gp}
+\vspace{10pt}
+
+\subsection{Aliasing, spectral leakage and the FFT code}
+\label{subsec:aliasing_spectral_leakage_and_the_fft_code}
+
+\lstinputlisting[breaklines]{../AA.f90}
+\vspace{10pt}
+
+\subsection{Aliasing, spectral leakage and the FFT plotting code}
+\label{subsec:aliasing_spectral_leakage_and_the_fft_plotting_code}
+
+\lstinputlisting[breaklines]{../AA.gp}
+\vspace{10pt}
+
+\subsection{Noise and the FFT code}
+\label{subsec:noise_and_the_fft_code}
+
+\lstinputlisting[breaklines]{../Noise_and_FFT.f90}
+\vspace{10pt}
+
+\subsection{Random numbers module}
+\label{subsec:random_numbers_module}
+
+\lstinputlisting[breaklines]{../../Modules/Random_numbers_module.f90}
+\vspace{10pt}
+
+\subsection{Dr Ouyed's random numbers module}
+\label{subsec:dr_ouyeds_random_numbers_module}
+
+\lstinputlisting[breaklines]{../../Modules/Ouyed_random_number_module.f90}
+\vspace{10pt}
+
+\subsection{Noise and the FFT plotting code}
+\label{subsec:noise_and_the_fft_plotting_code}
+
+\lstinputlisting[breaklines]{../Noise_and_FFT.gp}
+\vspace{10pt}
+
+\subsection{Lorenz system code}
+\label{subsec:lorenz_system_code}
+
+\lstinputlisting[breaklines]{../Fourier_Lorenz_System.f90}
+\vspace{10pt}
+
+\subsection{ODE system module}
+\label{subsec:ode_system_module}
+
+\lstinputlisting[breaklines]{../ODE_system_module.f90}
+\vspace{10pt}
+
+\subsection{Differential equations module}
+\label{subsec:differential_equations_module}
+
+\lstinputlisting[breaklines]{../../Modules/Differential_equations_module.f90}
+\vspace{10pt}
+
+\subsection{Lorenz system plotting code}
+\label{subsec:lorenz_system_plotting_code}
+
+\lstinputlisting[breaklines]{../Fourier_Lorenz_System.gp}
+\vspace{10pt}
+
+\subsection{Image analysis code}
+\label{subsec:image_analysis_code}
+
+\lstinputlisting[breaklines]{../Image_analysis.f90}
+\vspace{10pt}
+
+\subsection{Useful stuff module}
+\label{subsec:useful_stuff_module}
+
+\lstinputlisting[breaklines]{../../Modules/Useful_stuff_module.f90}
 
 \end{document}
