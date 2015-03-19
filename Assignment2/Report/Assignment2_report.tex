@@ -42,7 +42,7 @@ A periodic function $ f(t+T) = f(t) $ can always be decomposed into a linear com
 \end{align}
 where
 \begin{align}
-    \omega_0 &= \frac{2 \pi}{T}
+    \omega_0 &= 2 \pi f_0 =  \frac{2 \pi}{T}
     \\
     c_n &= \frac{1}{T} \int_{T} f(t) e^{-j n \omega_0 t} \d t
 \end{align}
@@ -128,8 +128,8 @@ Applying all these results, Equation~\ref{eq:parseval_1} becomes
 
 Thus, we have demonstrated the formula for average power in terms of $ c_n $ versus $ a_n $ and $ b_n $ as desired.
 
-\subsection{An example}
-\label{subsec:an_example}
+\subsection{An example: square wave}
+\label{subsec:an_example_square_wave}
 
 Consider the periodic function defined by
 \begin{align}
@@ -169,6 +169,464 @@ Then we can write out the Fourier series for $ f(t) $:
     f(t) &= \frac{1}{2} \sum_{n = -\infty}^{\infty} \sinc \left( \frac{n \pi}{2} \right) e^{- j 2 \pi n t / T}
 \end{align}
 
+The function $ f(t) $ and some of its Fourier coefficients $ c_n $ are shown in Figure~\ref{fig:square_wave}.
+We can see a high DC component, which makes sense since $ f(t) $ is strictly positive.
+Then 
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Square_wave.pdf}
+    \caption{The square wave and its Fourier series coefficients.}
+    \label{fig:square_wave}
+\end{figure}
+
+\subsection{Power spectrum}
+\label{subsec:power_spectrum}
+
+For a signal $ v[n] $ with DFT 
+\begin{align}
+    V[k] = \sum_{n = 0}^{N-1} v[n] e^{j 2 \pi n k / N}
+\end{align}
+the power is
+\begin{align}
+    P &= \sum_{k=0}^{N/2} P[k]
+\end{align}
+where (for $ N $ even)
+\begin{align}
+    P[0] &=   N \cdot \big| V[0]   \big|^2
+    \\
+    P[k] &= 2 N \cdot \big| V[k]   \big|^2 \quad \text{for } k = 1, \ldots, \frac{N}{2} - 1
+    \\
+    P[N/2] &= N \cdot \big| V[N/2] \big|^2 
+\end{align}
+
+$ P[0] $ corresponds to the DC (zero frequency) component.
+$ P[N/2] $ corresponds to the highest frequency component, which is at the Nyquist frequency (half the sampling frequency).
+
+The sum over powers only extends to $ N/2 $, even though there are $ N $ different $ k $ values.
+This is because for real signals, the magnitude of the DFT is symmetric ($ |V[k]| = |V[-k]| $).
+Thus, the positive and negative frequencies contribute equally to the power spectrum, so we can ignore all the negative frequencies and just multiply the contributions from the positive frequencies by a factor of two (except for $ k = 0 $ and $ k = N/2 $ which have no corresponding negative $ k $).
+
+As an example, we compute the power in the signal
+\begin{align}
+    s(t) &= 2 \sin(2 \pi 100 t) + \sin(2 \pi 200 t) + \frac{1}{2} \sin(2 \pi 300 t)
+\end{align}
+This is just a Fourier series with fundamental frequency
+\begin{align}
+    f_0 &= 100
+\end{align}
+and coefficients
+\begin{align}
+    b_1 = 2; \quad b_2 = 1; \quad b_3 = \frac{1}{2} 
+\end{align}
+(all other coefficients $ a_n $ and $ b_n $ are zero).
+
+The power in the signal is then
+\begin{align}
+    P_\text{avg} &= \frac{|a_0|^2}{4} + \frac{1}{2} \sum_{n=1}^{\infty} \left( |a_n|^2 + |b_n|^2 \right)
+    \\
+    P_\text{avg} &= \frac{1}{2} \left( 4 + 1 + \frac{1}{4} \right)
+    \\
+    P_\text{avg} &= \frac{21}{8} = 2.625
+\end{align}
+
+Now we will digitize this signal and re-compute the power.
+First, let us find the DFT of $ \sin(2 \pi f t) $ using a sampling frequency of $ f_s = m f $, where $ m $ is an integer.
+
+\subsection{Another example}
+\label{subsec:another_example}
+
+Consider the periodic signal defined as
+\begin{align}
+    f(x) &= x^2
+\end{align}
+on $ 0 < x < 2 $.
+
+The period is $ T = 2 $ so
+\begin{align}
+    \omega_0 &= \frac{2 \pi}{T} = \pi
+\end{align}
+
+Then the Fourier coefficients are, for $ n \neq 0 $,
+\begin{align}
+    c_n &= \frac{1}{2} \int_{0}^{2} x^2 e^{-j \pi n x} \d x
+    \\
+    c_n &= \frac{1}{2} \left[ e^{-j \pi n x} \left( - j \frac{2}{(n\pi)^3} + \frac{2 x}{(n\pi)^2} + j \frac{x^2}{n \pi}\right)  \right]_{x=0}^2
+    \\
+    c_n &= \frac{1}{2} \Bigg[ e^{-j \pi n \cdot 2} \left( - j \frac{2}{(n\pi)^3} + \frac{4}{(n\pi)^2} + j \frac{4}{n \pi}\right) - \nonumber
+    \\
+    & \qquad \quad - e^{- j \pi n \cdot 0} \left( -j\frac{2}{(n\pi)^3} \right) \Bigg]
+    \\
+    c_n &= \frac{2}{n^2 \pi^2} \left( 1 + j n \pi \right)
+\end{align}
+and
+\begin{align}
+    c_0 &= \frac{1}{2} \int_{0}^{2} x^2 \d x
+    \\
+    c_0 &= \frac{1}{2} \left[ \frac{2^3}{3} - \frac{0^3}{3} \right]
+    \\
+    c_0 &= \frac{4}{3}
+\end{align}
+
+The power is then
+\begin{align}
+    P_\text{avg} &= \sum_{n = -\infty}^{\infty} \left| c_n \right|^2
+    \\
+    P_\text{avg} &= |c_0|^2 + 2 \sum_{n = 1}^{\infty} \left| c_n \right|^2
+    \\
+    P_\text{avg} &= \frac{16}{9} + 2 \sum_{n = 1}^{\infty} \left| \frac{2}{n^2 \pi^2} \left( 1 + j n \pi \right) \right|^2
+    \\
+    P_\text{avg} &= \frac{16}{9} + 2 \sum_{n = 1}^{\infty} \frac{4}{n^4 \pi^4} \left( 1 + n^2 \pi^2 \right)
+    \\
+    P_\text{avg} &= \frac{16}{9} + \frac{8}{\pi^4} \sum_{n = 1}^{\infty} \frac{1}{n^4} + \frac{8}{\pi^2} \sum_{n=1}^{\infty} \frac{1}{n^2}
+\end{align}
+So we get
+\begin{align}
+    \sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{8} \left( P_\text{avg} - \frac{16}{9} \right) - \pi^2 \sum_{n=1}^{\infty} \frac{1}{n^2} 
+    \\
+    \sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{8} \left( P_\text{avg} - \frac{16}{9} \right) - \pi^2 \left( \frac{\pi^2}{6} \right)
+    %\\
+    %\sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{2} \left( \frac{P_\text{avg}}{4} - \frac{4}{9} - \frac{1}{3} \right)
+    \\
+    \sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{2} \left( \frac{P_\text{avg}}{4} - \frac{7}{9}\right)
+\end{align}
+
+We can calculate $ P_\text{avg} $ in the time domain:
+\begin{align}
+    P_\text{avg} &= \frac{1}{2} \int_0^2 \left( x^2 \right)^2 \d x
+    \\
+    P_\text{avg} &= \frac{1}{2} \left[ \frac{2^5}{5} - \frac{0^5}{5} \right]
+    \\
+    P_\text{avg} &= \frac{16}{5}
+\end{align}
+
+Thus we have
+\begin{align}
+    \sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{2} \left( \frac{16/5}{4} - \frac{7}{9}\right)
+    %\\
+    %\sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{2} \left( \frac{4}{5} - \frac{7}{9}\right)
+    %\\
+    %\sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{2} \left( \frac{1}{45} \right)
+    \\
+    \Aboxed{\sum_{n=1}^{\infty} \frac{1}{n^4} &= \frac{\pi^4}{90}}
+\end{align}
+
+\subsection{Gibbs phenomenon}
+\label{subsec:gibbs_phenomenon}
+
+The Gibbs phenomenon occurs when we look at the Fourier series of a periodic function with discontinuities (sharp transitions).
+The Fourier series does not accurately represent the function at the discontinuity; it will overshoot the function by some small amount.
+This overshoot is particularly noticeable with a truncated Fourier series, because the overshoot has some width (and thus carries some power).
+As the number of terms in the Fourier series increases, the width of the overshoot decreases, but its height does not.
+
+The result is that a Fourier series does not converge point-wise at a jump discontinuity.
+The Fourier series does converge everywhere else (so it converges in the norm), but it does not converge at the exact location of the discontinuity.
+
+\subsection{Nyquist frequency}
+\label{subsec:nyquist_frequency}
+
+The Nyquist frequency is the maximum frequency component a signal can have if is to be sampled losslessly.
+Suppose we have a signal $ x(t) $ and we sample it with sampling frequency $ f_s $.
+The Nyquist frequency is then defined has half the sampling frequency $ f_N = f_s/2 $.
+The Nyquist frequency is significant because if $ X(f) $ is zero for $ |f| > f_N $, then we can \emph{exactly} reconstruct the original signal $ x(t) $ from the sampled signal.
+So in practise, this tells us that if the maximum frequency component in a signal is $ f_\text{max} $, then we should sample the signal at $ f_s > 2 f_\text{max} $.
+That way, we can accurately reproduce the continuous signal from the sampled signal if desired.
+
+\subsection{Audio sampling}
+\label{subsec:audio_sampling}
+
+The human ear can only hear frequencies up to about 20 kHz.
+So, if we take an audio signal it and filter out all the frequencies above 20 kHz, a person will be unable to tell the difference between the filtered signal and the original signal.
+With the frequency components above 20 kHz zeroed out, we can take advantage of the Nyquist theorem described above.
+That is, if we sample the filtered signal at a rate $ >40 $ kHz, we will be able to reproduce the filtered signal exactly.
+Ideally, this filtered signal will be indistinguishable from the original signal to the human ear.
+
+So, in summary, we would expect audio studios to record at a sample rate higher than 40 kHz.
+Assuming that the original signal has no frequency components higher than 20 kHz (or that we filter those frequencies out), this sampling rate will allow us to reconstruct the signal in a way that is indistinguishable from the original signal to the human ear.
+
+\subsection{DFT versus FFT}
+\label{subsec:dft_versus_fft}
+
+It is important to note that the fast Fourier transform (FFT) is not really a separate type of transform.
+The FFT is just a fast way of calculating the discrete Fourier transform (DFT) of a discrete signal.
+So, when we talk about ``taking the FFT of a signal'' we really mean ``taking the DFT of a signal using a particularly efficient algorithm.''
+
+\subsection{Zero padding}
+\label{subsec:zero_padding}
+
+For a discrete signal $ x[n] $, the DFT is defined as
+\begin{align}
+    X[k] &= \sum_{n = 0}^{N-1} x[n] e^{j 2 \pi n k / N}
+\end{align}
+We can see from this definition that if we increase $ N $ by adding zeros to the beginning or end of the signal $ x[n] $, the DFT will be unchanged for the same value of $ k/N $.
+Increasing $ N $ by extending the signal with zeros is known as zero padding.
+
+The advantage of zero padding is that we increase the resolution in the frequency domain.
+The range of frequencies is still limited by the Nyquist frequency, but the \emph{density} of frequency values will be increased.
+If we continue to zero pad so that $ N = \infty $, we actually end up with a continuous function of frequency (still limited by the Nyquist frequency).
+This is known as the discrete time Fourier transform.
+
+Zero padding is also useful because the FFT algorithm is simplest and fastest when $ N $ is equal to an integer power of 2.
+For many real-world signals, the number of samples is not an integer power of 2.
+By zero padding, we can increase $ N $ to make it a power of 2 without losing any information.
+This allows for a more efficient FFT calculation.
+
+\section{Fourier transforms}
+\label{sec:fourier_transforms}
+
+\subsection{Example 1}
+\label{subsec:example_1}
+
+We look at the function
+\begin{align}
+    f(t) &= A \cos(\omega_0 t) e^{-t^2 / \tau^2}
+\end{align}
+with $ \omega_0 = 10 \pi / \tau $.
+
+It is easier if we split the signal into $ f(t) = A f_1(t) f_2(t) $, where
+\begin{align}
+    f_1(t) &= \cos(\omega_0 t) = \frac{1}{2} \left( e^{j \omega_0 t} + e^{-j \omega_0 t} \right)
+    \\
+    f_2(t) &= e^{-t^2 / \tau^2}
+\end{align}
+
+The Fourier transform of $ f_1 $ is
+\begin{align}
+    F_1(\omega) &= \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\infty} f_1(t) e^{-j \omega t} \d t
+    \\
+    F_1(\omega) &= \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\infty} \frac{1}{2} \left( e^{j \omega_0 t} + e^{-j \omega_0 t} \right) e^{-j \omega t} \d t
+\end{align}
+Using
+\begin{align}
+    \int_{-\infty}^{\infty} e^{jxt} \d t &= 2 \pi \delta(x)
+\end{align}
+with $ x = \omega \pm \omega_0 $, we get
+\begin{align}
+    F_1(\omega) &= \sqrt{\frac{\pi}{2}} \big( \delta(\omega - \omega_0) + \delta(\omega + \omega_0) \big) 
+\end{align}
+
+The Fourier transform of $ f_2 $ is
+\begin{align}
+    F_2(\omega) &= \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\infty} f_2(t) e^{-j \omega t} \d t
+    \\
+    F_2(\omega) &= \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\infty} e^{-t^2/\tau^2} e^{-j \omega t} \d t
+\end{align}
+Using
+\begin{align}
+    \int_{-\infty}^{\infty} e^{-a t^2 + bt} \d t &= \sqrt{\frac{\pi}{A}} e^{b^2/(4a)}
+\end{align}
+with $ a = 1/\tau^2 $ and $ b = -j \omega $, we get
+\begin{align}
+    F_2(\omega) &= \frac{1}{\sqrt{2 \pi}} \sqrt{\pi \tau^2} e^{- \omega^2 \tau^2 / 4}
+    \\
+    F_2(\omega) &= \sqrt{\frac{\tau^2}{2}} e^{- \omega^2 \tau^2 / 4}
+\end{align}
+
+Now, using the convolution theorem, we can find the Fourier transform of $ f(t) $ by
+\begin{align}
+    F(\omega) &= A \sqrt{2 \pi} F_1(\omega) * F_2(\omega)
+    \\
+    F(\omega) &= A \pi \big( \delta(\omega - \omega_0) + \delta(\omega + \omega_0) \big) * F_2(\omega)
+    \\
+    F(\omega) &= A \pi \big( \delta(\omega - \omega_0) * F_2(\omega) + \delta(\omega + \omega_0) * F_2(\omega) \big)
+\end{align}
+Convolution with a delta function is simple:
+\begin{align}
+    \delta(t-a) * f(t) &= \int_{-\infty}^{\infty} \delta(t - \tau - a) f(\tau) \d \tau = f(t - a)
+\end{align}
+So we can write
+\begin{align}
+    F(\omega) &= A \pi \big( F_2(\omega - \omega_0) + F_2(\omega + \omega_0) \big)
+    \\
+    %F(\omega) &= A \pi \big( \sqrt{\pi \tau^2} e^{-\tau^2 (\omega - \omega_0)^2 / 4} + \sqrt{\pi \tau^2} e^{- \tau^2 (\omega + \omega_0)^2/4} \big)
+    %\\
+    \Aboxed{F(\omega) &= A \sqrt{\frac{\pi^2 \tau^2}{2}} \big( e^{-\tau^2 (\omega - \omega_0)^2 / 4} + e^{- \tau^2 (\omega + \omega_0)^2/4} \big)}
+\end{align}
+
+In Figures~\ref{fig:time_domain_example} and \ref{fig:frequency_domain_example}, we see $ f(t) $ and $ F(\omega) $ plotted, along with the corresponding pure-cosine functions.
+Note that the frequency representation of a pure cosine consists of delta functions which are impossible to plot correctly.
+However, we see that the effect of modulation is to spread out the delta functions in the frequency domain.
+Decreasing $ \tau $ increases the spreading while increasing $ \tau $ reduces it.
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../Plots/Time_domain_example.pdf}
+    \caption{A pure cosine and a modulated cosine in the time domain.}
+    \label{fig:time_domain_example}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../Plots/Frequency_domain_example.pdf}
+    \caption{A pure cosine and a modulated cosine in the frequency domain.}
+    \label{fig:frequency_domain_example}
+\end{figure*}
+
+\subsection{Example 2}
+\label{subsec:example_2}
+
+We define
+\begin{align}
+    f(x) &= A U(x) e^{-\alpha x}
+\end{align}
+with $ \alpha > 0 $ and $ U(x) $ is the unit step function defined by
+\begin{align}
+    U(x) &= \begin{cases} 1 & \text{for } x \geq 0 \\ 0 & \text{for } x < 0 \end{cases}
+\end{align}
+
+The Fourier transform of $ f(x) $ is
+\begin{align}
+    F(\omega) &= \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\infty} f(x) e^{-j \omega x} \d x
+    \\
+    F(\omega) &= \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\infty} A U(x) e^{-\alpha x} e^{-j \omega x} \d x
+    \\
+    F(\omega) &= A \frac{1}{\sqrt{2 \pi}} \int_{0}^{\infty} e^{-(\alpha + j \omega) x} \d x
+    \\
+    F(\omega) &= A \frac{1}{\sqrt{2 \pi}} \left[ -\frac{e^{-(\alpha + j \omega) \cdot \infty}}{\alpha + j \omega} + \frac{e^{-(\alpha + j \omega) \cdot 0}}{\alpha + j \omega} \right]
+    \\
+    F(\omega) &= \frac{A}{\sqrt{2 \pi}(\alpha + j \omega)} 
+\end{align}
+
+\subsection{Example 3}
+\label{subsec:example_3}
+
+Define the signal 
+\begin{align}
+    f(t) = e^{-\alpha t} U(t) 
+\end{align}
+where $ \alpha > 0 $ and $ U(t) $ is again the unit step function.
+
+The energy in the time domain is
+\begin{align}
+    E_\text{tot} &= \int_{-\infty}^{\infty} \left| f(t) \right|^2 \d t
+    \\
+    E_\text{tot} &= \int_{-\infty}^{\infty} \left| U(t) e^{-\alpha t} \right|^2 \d t
+    \\
+    E_\text{tot} &= \int_{0}^{\infty} e^{-2 \alpha t} \d t
+    \\
+    E_\text{tot} &= \left[ - \frac{e^{2 \alpha \cdot \infty}}{2 \alpha} + \frac{e^{2 \alpha \cdot 0}}{2 \alpha} \right]
+    \\
+    E_\text{tot} &= \frac{1}{2 \alpha}
+\end{align}
+
+The Fourier transform of a similar function was calculated in Section~\ref{subsec:example_2}.
+Taking $ A = 1 $ and $ x \to t $, we get
+\begin{align}
+    F(\omega) &= \frac{1}{\sqrt{2 \pi}(\alpha + j \omega)}
+\end{align}
+We can calculate the energy from the frequency domain:
+\begin{align}
+    E_\text{tot} &= \int_{-\infty}^{\infty} \left| F(\omega) \right|^2 \d \omega
+    \\
+    E_\text{tot} &= \int_{-\infty}^{\infty} \left| \frac{1}{\sqrt{2 \pi}(\alpha + j \omega)} \right|^2 \d \omega
+    \\
+    E_\text{tot} &= \int_{-\infty}^{\infty} \frac{1}{2 \pi (\alpha^2 + \omega^2)} \d \omega
+    \\
+    E_\text{tot} &= \left. \frac{1}{2 \pi \alpha} \tan^{-1} \left( \frac{\omega}{\alpha} \right) \right|_{-\infty}^{\infty}
+    \\
+    E_\text{tot} &= \frac{1}{2 \pi \alpha} \left( \frac{\pi}{2} + \frac{\pi}{2} \right)
+    \\
+    E_\text{tot} &= \frac{1}{2 \alpha}
+\end{align}
+This agrees with the time-domain result.
+
+The energy within the bandwidth $ W $ is
+\begin{align}
+    E(W) &= \int_{-W}^W \left| F(\omega) \right|^2 \d \omega
+    \\
+    E(W) &= \int_{-W}^W \frac{1}{2 \pi (\alpha^2 + \omega^2)} \d \omega
+    \\
+    E(W) &= \frac{1}{\pi} \int_{0}^W \frac{1}{\alpha^2 + \omega^2} \d \omega
+    \\
+    E(W) &= \left. \frac{1}{\pi \alpha} \tan^{-1} \left( \frac{\omega}{\alpha} \right) \right|_{0}^{W}
+    \\
+    \Aboxed{E(W) &= \frac{1}{\pi \alpha} \tan^{-1} \left( \frac{W}{\alpha} \right)}
+\end{align}
+
+Let $ W_{95} $ be the bandwidth which contains 95\% of the energy.
+Then
+\begin{align}
+    \frac{95}{100} E_\text{tot} &= \frac{1}{\pi \alpha} \tan^{-1} \left( \frac{W_{95}}{\alpha} \right)
+    \\
+    \frac{19}{20} \cdot \frac{1}{2 \alpha} &= \frac{1}{\pi \alpha} \tan^{-1} \left( \frac{W_{95}}{\alpha} \right)
+    \\
+    \frac{19 \pi}{40} &= \tan^{-1} \left( \frac{W_{95}}{\alpha} \right)
+    \\
+    \Longrightarrow \quad W_{95} &= \alpha \tan \left( \frac{19 \pi}{40} \right)
+    \\
+    W_{95} &\approx 12.7 \alpha
+\end{align}
+
+\subsection{A real example}
+\label{subsec:a_real_example}
+
+Suppose the current through a $ R = 1 $ $ \Omega $ resistor is
+\begin{align}
+    i(t) &= 50 e^{-10 t} U(t) \text{ A}
+\end{align}
+
+Using Ohm's law $ v(t) = R i(t) = i(t) $, the energy deposited is
+\begin{align}
+    E_\text{tot} &= \int_{-\infty}^{\infty} v(t) i(t) \d t
+    \\
+    E_\text{tot} &= \int_{-\infty}^{\infty} i^2(t) \d t
+    \\
+    E_\text{tot} &= 250 \int_{-\infty}^{\infty} \left| e^{-10 t} U(t) \right|^2 \d t
+\end{align}
+Using the results in Section~\ref{subsec:example_3} (with $ \alpha = 10 $), we get
+\begin{align}
+    E_\text{tot} &= 250 \frac{1}{2 \cdot 10}
+    \\
+    E_\text{tot} &= 12.5 \text{ J}
+\end{align}
+
+In the frequency domain, we can calculate the power in frequencies $ |\omega| < W $:
+\begin{align}
+    E(W) &= \int_{-W}^{W} V(\omega) I(\omega) \d \omega
+    \\
+    E(W) &= \int_{-W}^{W} \left| I(\omega) \right|^2 \d \omega
+\end{align}
+
+From the results in Section~\ref{subsec:example_2} (with $ \alpha = 10 $ and $ A = 50 $), we know that
+\begin{align}
+    I(\omega) &= \frac{50}{\sqrt{2\pi} ( 10 + j \omega)}
+\end{align}
+so
+\begin{align}
+    E(W) &= \int_{-W}^{W} \left| \frac{50}{\sqrt{2\pi} ( 10 + j \omega)} \right|^2 \d \omega
+    %\\
+    %E_\text{tot} &= 250 \int_{-\infty}^{\infty} \frac{1}{2 \pi} \cdot \frac{1}{100 + \omega^2} \d \omega
+    \\
+    E(W) &= \frac{250}{\pi} \int_{0}^{W} \frac{1}{100 + \omega^2} \d \omega
+    \\
+    E(W) &= \frac{250}{\pi} \frac{1}{10} \tan^{-1} \left( \frac{W}{10} \right)
+    \\
+    E(W) &= \frac{25}{\pi} \tan^{-1} \left( \frac{W}{10} \right) \text{ J}
+\end{align}
+
+With $ W = 10 $~rad/s, we find that the energy for $ |\omega| < 10 $~rad/s is
+\begin{align}
+    E(10) &= \frac{25}{\pi} \cdot \frac{\pi}{4}
+    \\
+    E(10) &= 6.25 \text{ J}
+\end{align}
+So half the total energy is contained in frequencies $ |\omega| < 10 $~rad/s
+
+The bandwidth, $ B $, of the signal is frequency range within which 95\% of the energy is contained.
+We have
+\begin{align}
+    0.95 E_\text{tot} &= \frac{25}{\pi} \tan^{-1} \left( \frac{B}{10} \right)
+    \\
+    \frac{0.95 \cdot 12.5 \cdot \pi}{25} &= \tan^{-1} \left( \frac{B}{10} \right)
+    \\
+    \Longrightarrow \quad B &= 10 \cdot \tan (0.475 \pi)
+    \\
+    B &= 10 \cdot \tan (0.475 \pi)
+    \\
+    B &\approx 127.1 \text{ rad/s}
+\end{align}
 
 \onecolumn
 
