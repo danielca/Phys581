@@ -1,6 +1,6 @@
-set terminal png
+set terminal pdfciaro
 
-set output "./Plots/beats.png" 
+set output "./Plots/beats.pdf" 
 set title "DFT of Heart Beats"
 set yrange [0:40000]
 set nokey
@@ -10,7 +10,7 @@ plot "./Data/beats_fft.txt" using 1:2 with lines
 unset out
 
 #----------------------------------------------------------------------
-set output "./Plots/solarSpots.png" 
+set output "./Plots/solarSpots.pdf" 
 set multiplot layout 2,1 title "Sun spots"
 
 set title "Time serries of the number of sun spots in months"
@@ -30,7 +30,7 @@ unset out
 
 #----------------------------------------------------------------------
 
-set output "./Plots/dow_fft.png" 
+set output "./Plots/dow_fft.pdf" 
 set multiplot layout 3,1 title "Given Dow Jones"
 
 set title "Dow jones stock prices"
@@ -56,7 +56,7 @@ unset out
 
 #----------------------------------------------------------------------
 
-set output "./Plots/co2_power.png"
+set output "./Plots/co2_power.pdf"
 set title "Power Spectrum of Carbon Emmision Cycles"
 set nokey
 set xrange [-0.5:0.5]
@@ -67,7 +67,7 @@ unset out
 
 #----------------------------------------------------------------------
 
-set output "./Plots/co2_time.png"
+set output "./Plots/co2_time.pdf"
 set multiplot layout 2,1
 
 set nokey
