@@ -1,0 +1,6 @@
+#!/bin/bash
+gfortran ../Modules/Fourier_analysis_module.f90 ../Modules/Random_numbers_module.f90  general_applications.f90 -o general_applications
+rm fourier_analysis_module.mod
+rm random_numbers_module.mod
+./general_applications
+gnuplot general_applications.gp

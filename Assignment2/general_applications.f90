@@ -117,7 +117,7 @@ subroutine stocks()
     end do
     close(46)
     close(49)
-    write(*,*) "Test2 "    
+
     !Calculate and save the DFT
     call fft(file_1, dt, freq, fft_dat)
     call calc_power(fft_dat, power)
@@ -127,26 +127,25 @@ subroutine stocks()
     end do
     close(47)  
 
-    deallocate(file_1)
+    
     deallocate(freq)
     deallocate(power)
     deallocate(fft_dat)
 
     !call the auto core functions and write them to file
     allocate(dowAutoCor(size(file_1)))
-    write(*,*) "beofre the auto cor"
     call auto_correlation(file_1, dowAutoCor)
     write(*,*) "         Dow Jones Auto Correlation"
-    write(*,*) "Auto Correlation for k = 1, stock price:", dowAutoCor(1) 
-    write(*,*) "Auto Correlation for k = 2, stock price:", dowAutoCor(2) 
-    write(*,*) "Auto Correlation for k = 5, stock price:", dowAutoCor(5)
-    write(*,*) "Auto Correlation for k = 20, stock price:", dowAutoCor(20)
+    write(*,*) "Auto Correlation for k = 1, stock price:", dowAutoCor(2) 
+    write(*,*) "Auto Correlation for k = 2, stock price:", dowAutoCor(3) 
+    write(*,*) "Auto Correlation for k = 5, stock price:", dowAutoCor(6)
+    write(*,*) "Auto Correlation for k = 20, stock price:", dowAutoCor(21)
     write(*,*) "------------------------------------------------------------------"
     
     !daily DJIA
     file_max = 252
     write(*,*) "          Daily Dow Jones Industrail Average Daily Autocorrelation"
-    open(unit = 52, file="DJA_daily.txt")
+    open(unit = 52, file="DJI_daily.txt")
     call autoCorWrapper(52, file_max)
     close(52)
     write(*,*) "------------------------------------------------------------------------------------"
@@ -155,7 +154,7 @@ subroutine stocks()
     !weekly DJIA
     file_max = 52
     write(*,*) "          Daily Dow Jones Industrail Average Weekly Autocorrelation"
-    open(unit = 51, file="DJA_weekly.txt")
+    open(unit = 51, file="DJI_weekly.txt")
     call autoCorWrapper(51, file_max)
     close(51)
     write(*,*) "------------------------------------------------------------------------------------"
@@ -164,11 +163,12 @@ subroutine stocks()
     !Monthly DJIA
     file_max = 12
     write(*,*) "          Daily Dow Jones Industrail Average Monthly Autocorrelation"
-    open(unit = 50, file="DJA_monthyly.txt")
-    call autoCorWrapper(51, file_max)
+    open(unit = 50, file="DJI_monthly.txt")
+    call autoCorWrapper(50, file_max)
     close(50)
     write(*,*) "------------------------------------------------------------------------------------"
 
+    deallocate(file_1)
 end subroutine
 
 subroutine autoCorWrapper(inputFile, file_size)
@@ -193,12 +193,12 @@ subroutine autoCorWrapper(inputFile, file_size)
     call auto_correlation(file_dat, file_auto_cor)
     call auto_correlation(returns, returns_auto_cor)
 
-    write(*,*) "Auto Correlation for k = 1, stock price:", file_auto_cor(1), " returns:", returns_auto_cor(1) 
-    write(*,*) "Auto Correlation for k = 2, stock price:", file_auto_cor(2), " returns:", returns_auto_cor(2) 
-    write(*,*) "Auto Correlation for k = 5, stock price:", file_auto_cor(5), " returns:", returns_auto_cor(5) 
+    write(*,*) "Auto Correlation for k = 1, stock price:", file_auto_cor(2), " returns:", returns_auto_cor(2) 
+    write(*,*) "Auto Correlation for k = 2, stock price:", file_auto_cor(3), " returns:", returns_auto_cor(3) 
+    write(*,*) "Auto Correlation for k = 5, stock price:", file_auto_cor(6), " returns:", returns_auto_cor(6) 
 
-    if (21 .lt. file_size) then
-        write(*,*) "Auto Correlation for k = 20, stock price:", file_auto_cor(20), " returns:", returns_auto_cor(20)
+    if (22 .lt. file_size) then
+        write(*,*) "Auto Correlation for k = 20, stock price:", file_auto_cor(21), " returns:", returns_auto_cor(21)
     else
         write(*,*) "Not enough values for an auto correlation of k=20"
     end if
