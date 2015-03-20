@@ -4,10 +4,10 @@ use Random_numbers_module
 implicit none
 
 
-!call beats()
-!call solarActvity()
+call beats()
+call solarActvity()
 call stocks()
-!call globalWarming()
+call globalWarming()
 
 
 
