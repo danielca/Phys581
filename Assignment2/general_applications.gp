@@ -1,4 +1,4 @@
-set terminal pdfciro
+set terminal pdfcairo enhanced
 
 set output "./Plots/beats.pdf" 
 set title "DFT of Heart Beats"

@@ -4,4 +4,4 @@ rm fourier_analysis_module.mod
 rm random_numbers_module.mod
 rm ouyed_random_number_module.mod
 ./auto_correlation
-gnuplot auto_correlation
+gnuplot auto_correlation.gp

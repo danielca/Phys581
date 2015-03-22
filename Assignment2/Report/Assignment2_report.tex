@@ -1079,8 +1079,68 @@ The Fourier transform of the autocorrelation is the power spectral density:
 
 We have shown that $ S(\omega) $ is proportional to the signal power, so our definition of $ AC(\tau) $ is consistent with the fact that the power is spread evenly over all frequencies.
 
+\subsection{Autocorrelation application}
+\label{subsec:autocorrelation_application}
+
+We can also apply our knowledge of the auto correlation to examine the noise in a signal. 
+We start with a signal of 
+\begin{align}
+    s(t) = \frac{1}{1-0.9sin(t)}
+\end{align}
+as shown in figure \ref{noiseless}. 
+We can then start to add random noise of the form $n(i) = s(i) + \alpha (r_{i} -1)$, where $\alpha$ is a scalable parameter and $r_{i}$ is a random number between 0 and 1. 
+Figures \ref{fig:a01} to \ref{a10} show the effect of the parameter $\alpha$. 
+With 0.1, we see a small amount of noise, however the original signal is still clearly visible. 
+$\alpha = 1$ starts to obscure the original signal a bit, however the signal is still clear. 
+By the time we reach $\alpha = 10$ the noise becomes obscured. 
+There are hints, however it is difficult to see, and the amplitude of the signal is not clear. 
+We can also compare the DFT of the auto correlation functions. 
+We can compare the auto correlation of these signal. 
+Figure \ref{fig:noiseless} shows the Auto Correlation DFT has a very high DC offset, and a very wide curve out to the base noise. 
+By the time we approach figure \ref{fig:a10} we see a very sharp peak centred at the origin. 
+This allows us to look at the DFT of the auto correlation to check for random noise added to the signal. 
+Once the type of noise is known, other filtering methods can be applied to obtain the original signal.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/signal_noiseless.pdf}
+    \caption{Time Series, DFT, and the Auto Correlation function for the noiseless signal.}
+    \label{fig:noiseless}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/signal_a01.pdf}
+    \caption{Time Series, DFT, and the Auto Correlation function for the a signal with randomly generated noise scaled to $\alpha = 0.1$.}
+    \label{fig:a01}
+\end{figure}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/signal_a1.pdf}
+    \caption{Time Series, DFT, and the Auto Correlation function for the a signal with randomly generated noise scaled to $\alpha = 1$.}
+    \label{fig:a1}
+\end{figure}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/signal_a10.pdf}
+    \caption{Time Series, DFT, and the Auto Correlation function for the a signal with randomly generated noise scaled to $\alpha = 10$.}
+    \label{fig:a10}
+\end{figure}
+
+
+
 \section{ODEs and the Fourier transform}
 \label{sec:odes_and_the_fourier_transform}
+
+We can use the table provided in to perform the transform on the given equations.
+\begin{align}
+m\ddot{x(t)} + D\dot{x(t)} + kx(t) = n(t) \rightarrow \hat{x}(\omega)(m\omega^{2} + iD\omega + k) = \hat{n}(t) \\
+i\hbar \frac{\partial \Psi }{\partial t} + \frac{\hbar^{2}}{2m} \frac{\partial^2 \Psi}{\partial \Psi^2} = 0\rightarrow i\hbar \frac{\partial \hat{\Psi}}{\partial t} - \frac{-\hbar \omega^2}{2m}\hat{\Psi} = 0 \\
+\frac{\partial^2 T}{\partial x^2} + \frac{\partial^2 T}{\partial z^2} = \delta (x) \delta(z+a) \rightarrow -\omega^2 \hat{T} + \frac{\partial^2 \hat{T}}{\partial z^2} = e^{-2\pi i \omega}\delta (z+a)
+\end{align}
+
+\subsection{Heat transfer equation}
+\label{subsec:heat_transfer_equation}
 
 We will now use spectral methods to solve the equation
 \begin{align}
@@ -1216,6 +1276,124 @@ $ \hat{q}_n = 0 $ for all $ n $, and we are left with
 \end{align}
 where $ \hat{T}_0 $ is an arbitrary constant.
 Trivially, we can see that $ T''(x) = -q(x) $ and that $ T(x) $ is periodic.
+
+\section{General Applications}
+\subsection{Heart Beats}
+
+We were able to examine heart beats. 
+This file contained the number of counts sampled at 125Hz, and a total of 4096 samples. 
+Because our number of samples is a power of 2, we don't need to pad this sample set to be able to preform an FFT. 
+Figure \ref{fig:heart_beat} shows the amplitude spectrum of the heart beats. 
+The two most dominant frequencies, excluding the DC component, are 2.2Hz or about 0.45 beats every second. 
+This corresponds to about to a heart rate of 132 beats per minute. 
+The second largest peak is 3.8Hz, giving 0.26 beats every second. 
+This gives a heart rate of 228 beats per minute. 
+These periods are a bit high for that of a human, but could be for another animal
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/beats.pdf}
+    \caption{The DFT of the heart beat signal.}
+    \label{fig:heart_beat}
+\end{figure}
+
+\subsection{Solar Flares}
+We can also examine sun spots, using data provided by NASA. 
+Figure \ref{fig:solar_spots} shows the number of observed spots per month over several years. 
+Just looking visually see approximately 4 cycles in 500 months, or a period of about 10.5. 
+We have a sample set of 3143 months, and to be able to take advantage of a FFT, we will need to pad up to 4096 samples, the nearest power of 2, with 0's. 
+In the bottom portion of figure \ref{fig:solar_spots} we can see the FFT. 
+There is a strong DC component, as well as a smaller side peak. 
+This peak corresponds with a frequency of 7.56E-3, giving a period of 132.2 months or 11.1 years. 
+Given that this is calculated rather than a visual estimation, gives a more accurate figure.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/solarSpots.pdf}
+    \caption{Time series and DFT of solar spot cycles}
+    \label{fig:solar_spots}
+\end{figure}
+
+\subsection{Stock Markets}
+\subsection{Dow Jones}
+We can also use Fourier Analysis on the stock markets. 
+Using the given data for the Dow Jones Index we can use both the Auto Correlation, and DFT to examine it, as seen in figure \ref{fig:dow}. 
+The DFT shows very does not show any strong peaks, however there is information in the auto correlation. 
+For randomized numbers we expect the auto correlation function to hover around 0 for lag values greater than 1. 
+We see that in this case that there may be some periodic nature to this data.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/dow_fft.pdf}
+    \caption{Fourier Analysis of the Dow Jones data.}
+    \label{fig:dow}
+\end{figure}
+
+\subsection{Dow Jones Industrial Average}
+We can also look at the dow jones industrial average over the past year. 
+Data was found from \url{http://research.stlouisfed.org/fred2/series/DJIA/downloaddata}. 
+We can then compute the auto correlation for different lags on daily, weekly, and monthly intervals. 
+Using the fortran code seen in the appendix. 
+We can also look at the returns for these same periods, both are summarized in the table \ref{table:DJA}.
+\begin{tabular}
+\begin{table}{|c|c|c|c|c|}
+    \hline
+    K && 1 && 2 && 5 && 20 \\ \hline
+    Daily Price && 0.975 && 0.955 && 0.877 && 0.608 \\ \hline
+    Daily Returns && -0.089 && 0.104 && 0.005 && -0.061 \\ \hline
+    Weekly Price && 0.880 && 0.794 && 0.584 && -0.169 \\ \hline
+    Weekly returns && -0.174 && 0.066 && 0.048 && 0.023 \\ \hline
+    Monthly Price && 0.610 && 0.625 && -0.438 && N/A \\ \hline
+    Monthly Returns && -0.540 && -0.287 && -0.566 && N/A \\ \hline 
+\end{table}
+\caption{Summary of the Auto Correlation of the Dow Jones Industrial Average and the corresponding returns sampled daily, weekly, and monthly over a period of one year}
+\label{table:DJA}
+\end{tabular}
+
+We can also see the returns as a function of time, shown in figure \ref{fig:returns}. 
+When we look at the stock price, wee see the auto correlation values hover between 0.5 and 1, for all sampling periods. 
+This would indicate that there is something periodic in the stock prices. 
+Once we look at the the returns the stock price gives, we see the auto correlation function hover around 0 for the same sampling periods. 
+This conflicting information can be explained. 
+The stock prices don't have any wild fluctuations. 
+Making the prices easily describable by periodic functions, however the returns have a higher variance, meaning that actual profit that can be gained by these stock prices do kj:g and are more of a random process. 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/returns.pdf}
+    \caption{Returns of the Dow Jones Industrial Average as a function of time, sampled montly, weekly, and daily.}
+    \label{fig:returns}
+\end{figure}
+
+
+\subsection{Global Warming}
+One last place we can apply our knowledge of Fourier Analysis is to global warming, using the carbon data provided. 
+Figure \ref{fig:co2_time} shows the time series in the top panel in months. 
+There is a linear trend to this data. 
+We can use gnuplot to fit a linear line to the data, and then remove the trend for analysis. 
+This gives us a trend of $f(t) = 0.118083t + 308.859$, this trend is shown along side the data, while the bottom panel shows the data with the trend removed. 
+From the power spectrum in figure \ref{fig:cos_power} we see a very strong harmonics. 
+This indicates the periodic nature of the carbon emissions. 
+Looking at the bottom panel we see that the as time goes on, there is an additional small trend, this would be an indication of acceleration. 
+From figure \ref{fig:cos_time} we can see a small acceleration in the carbon dioxide levels
+
+According to the source provided Carbon Dioxide starts to become toxic at around 10000ppm. 
+We can use the the linear trend to get a rough estimate of when we will reach these levels. 
+This gives us an estimate of roughly 60000 years before we reach these levels. 
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/co2_time.pdf}
+    \caption{Time series of $CO_{2}$ with the linear trend, and with the linear trend removed}
+    \label{fig:co2_time}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/co2_power.pdf}
+    \caption{DFT of the $CO_{2}$ Cycles with linear trend removed}
+    \label{fig:co2_power}
+\end{figure}
 
 \section{Conclusion}
 \label{sec:conclusion}
