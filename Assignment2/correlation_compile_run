@@ -1,0 +1,7 @@
+#!/bin/bash
+gfortran ../Modules/Fourier_analysis_module.f90 ../Modules/Random_numbers_module.f90 ../Modules/Ouyed_random_number_module.f90 auto_correlation.f90 -o auto_correlation
+rm fourier_analysis_module.mod
+rm random_numbers_module.mod
+rm ouyed_random_number_module.mod
+./auto_correlation
+gnuplot auto_correlation

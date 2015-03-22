@@ -1,10 +1,10 @@
-set terminal pdfciaro
+set terminal pdfciro
 
 set output "./Plots/beats.pdf" 
 set title "DFT of Heart Beats"
 set yrange [0:40000]
 set nokey
-set xrange [-20:20]
+set xrange [0:5]
 plot "./Data/beats_fft.txt" using 1:2 with lines
 
 unset out
@@ -86,6 +86,32 @@ plot "./Data/co2_time2.txt" using 1:2 with lines
 unset multiplot
 unset out
 
+#--------------------------------------------------------------------
+set output "./Plots/returns.pdf"
+set multiplot layout 3,1 title "Returns from the Dow Jones Industrail Average"
 
+set title "Daily returns"
+set nokey
+set xrange [1:252]
+set yrange [80:110]
+set ytics (80, 95, 110)
+plot "./Data/returns_daily.txt" using 1:2 with lines
+
+set title "Weekly returns"
+set nokey
+set xrange [1:52]
+set yrange [80:110]
+set ytics (80, 95, 110)
+plot "./Data/returns_weekly.txt" using 1:2 with lines
+
+set title "Monthly Returns"
+set nokey
+set xrange [1:12]
+set yrange [80:110]
+set ytics (80, 95, 110)
+plot "./Data/returns_montly.txt" using 1:2 with lines
+
+unset multiplot
+unset out
 
 reset

@@ -146,8 +146,10 @@ subroutine stocks()
     file_max = 252
     write(*,*) "          Daily Dow Jones Industrail Average Daily Autocorrelation"
     open(unit = 52, file="DJI_daily.txt")
-    call autoCorWrapper(52, file_max)
+    open(unit=56, file="./Data/returns_daily.txt")
+    call autoCorWrapper(52, file_max, 56)
     close(52)
+    close(56)
     write(*,*) "------------------------------------------------------------------------------------"
     
 
@@ -155,7 +157,9 @@ subroutine stocks()
     file_max = 52
     write(*,*) "          Daily Dow Jones Industrail Average Weekly Autocorrelation"
     open(unit = 51, file="DJI_weekly.txt")
-    call autoCorWrapper(51, file_max)
+    open(unit=55, file="./Data/returns_weekly.txt")
+    call autoCorWrapper(51, file_max, 55)
+    close(55)
     close(51)
     write(*,*) "------------------------------------------------------------------------------------"
     
@@ -164,15 +168,17 @@ subroutine stocks()
     file_max = 12
     write(*,*) "          Daily Dow Jones Industrail Average Monthly Autocorrelation"
     open(unit = 50, file="DJI_monthly.txt")
-    call autoCorWrapper(50, file_max)
+    open(unit=53, file="./Data/returns_montly.txt")
+    call autoCorWrapper(50, file_max, 53)
     close(50)
+    close(53)
     write(*,*) "------------------------------------------------------------------------------------"
 
     deallocate(file_1)
 end subroutine
 
-subroutine autoCorWrapper(inputFile, file_size)
-    integer,intent(in)::inputfile, file_size
+subroutine autoCorWrapper(inputFile, file_size, file_id)
+    integer,intent(in)::inputfile, file_size, file_id
     character(len=10)::temp_day
     real(kind=8), dimension(:), allocatable::file_dat, returns, file_auto_cor, returns_auto_cor
     integer::i
@@ -186,7 +192,8 @@ subroutine autoCorWrapper(inputFile, file_size)
        
     !calculate returns
     do i=2,file_size
-        returns(i-1) = (log(file_dat(i)) / file_dat(i-1))*100.0
+        returns(i-1) = (file_dat(i) / file_dat(i-1))*100.0
+        write(file_id,*) i-1, returns(i-1)
     end do
 
     !auto correlations
