@@ -104,7 +104,7 @@ end subroutine
 subroutine dft_cmplx(dat, dft_dat)
     complex(dp), dimension(:), intent(in) :: dat
     complex(dp), dimension(:), intent(out) :: dft_dat
-    complex(dp) :: factor
+    complex(dp) :: factor, factork
     integer :: num, n, k
 
     num = size(dat)
@@ -116,7 +116,7 @@ subroutine dft_cmplx(dat, dft_dat)
     end if
 
     dft_dat = 0.0
-    factor = exp(cmplx(0.0d0, -2.0*pi/dble(num)))
+    factor = exp(cmplx(0.0d0, -2.0*pi/dble(num), kind = dp))
     do k = 0, num - 1
         do n = 0, num-1
             dft_dat(k+1) = dft_dat(k+1) + dat(n+1)*(factor**(k*n))
@@ -143,7 +143,7 @@ subroutine calc_idft(dat, idft_dat)
     min_k = -nint(num/2.0 - 0.75)
 
     idft_dat = 0.0
-    factor = exp(cmplx(0.0d0, 2.0*pi/dble(num)))
+    factor = exp(cmplx(0.0d0, 2.0*pi/dble(num), kind = dp))
     do k = 0, num - 1
         do n = 0, num-1
             idft_dat(n+1) = idft_dat(n+1) + dat(k+1)*(factor**(k*n))

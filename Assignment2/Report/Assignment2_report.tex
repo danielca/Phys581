@@ -20,7 +20,7 @@ stepnumber=1,}
 
 \begin{document}
 
-\title{Physics 581, Assignment 2:\\Hooray for Fourier!}
+\title{Physics 581, Assignment 2:\\Fourier analysis and applications}
 \author{Casey Daniel and Chris Deimert}
 \date{\today}
 
@@ -28,6 +28,10 @@ stepnumber=1,}
 
 \section{Introduction}
 \label{sec:introduction}
+
+Fourier analysis has a huge range of applicability, especially in physics and electrical engineering applications.
+In this report we explore some analytical aspects of Fourier analysis, as well as some numerical applications.
+We will see some useful theories and concepts which can make solving problems a lot less painful.
 
 \section{Fourier series and general concepts}
 \label{sec:fourier_series_and_general_concepts}
@@ -232,7 +236,104 @@ The power in the signal is then
 \end{align}
 
 Now we will digitize this signal and re-compute the power.
-First, let us find the DFT of $ \sin(2 \pi f t) $ using a sampling frequency of $ f_s = m f $, where $ m $ is an integer.
+First, let us split the signal up
+\begin{align}
+    s(t) &= 2 s_1(t) + s_2(t) + \frac{1}{2} s_3(t)
+\end{align}
+where
+\begin{align}
+    s_m(t) &= \sin(2 \pi m f_0 t)
+\end{align}
+(In our case, $ f_0 = 100 $ and $ m = 1, 2, 3 $)
+Now, we will sample $ s_m(t) $ at a sampling frequency of $ f_s $.
+This gives the sampled signal
+\begin{align}
+    s_m[n] &= s_m(n/f_s)
+    \\
+    s_m[n] &= \sin\left(\frac{2 \pi m f_0 n}{f_s}\right)
+\end{align}
+
+
+In our case, $ f_s = p f_0 $ where $ p $ is $ 10 $ or $ 20 $, so
+\begin{align}
+    s_m[n] &= \sin\left(\frac{2 \pi m n}{p}\right)
+\end{align}
+
+Now, we want to perform an $ N $-point DFT on $ s_m[n] $.
+\begin{align}
+    S_m[k] &= \sum_{n=0}^{N-1} s_m[n] e^{-j 2 \pi k n / N}
+    \\
+    S_m[k] &= \sum_{n=0}^{N-1} \sin\left(\frac{2 \pi m n}{p}\right) e^{-j 2 \pi k n / N}
+    \\
+    S_m[k] &= \sum_{n=0}^{N-1} \frac{1}{2j} \left[ e^{j 2 \pi m n/p} - e^{-j2 \pi m n / p} \right] e^{-j 2 \pi k n / N}
+    \\
+    S_m[k] &= \frac{1}{2j} \sum_{n=0}^{N-1} \left[ e^{j 2 \pi n (m/p - k/N)} - e^{-j 2 \pi n (m/p + k/N)} \right]
+    \\
+    S_m[k] &= \frac{1}{2j} \sum_{n=0}^{N-1} \left[ e^{j 2 \pi n (Nm/p - k)/N} - e^{-j 2 \pi n (Nm/p + k)/N} \right]
+\end{align}
+
+At this point, we will assume that $ N = 20 q $, where $ q $ is some positive integer.
+This ensures that we sample exactly an integer number of periods of the sine wave.
+As we will see, this assumption simplifies the DFT significantly.
+If we do not make this assumption, we can see from the above that calculating the power is extremely difficult analytically.
+
+Now, since $ N = 20 q $, we will always have $ N m /p $ be an integer, which we can call $ k_0 $.
+Then, we can use the fact that for integer $ k $ and $ k_0 $
+\begin{align}
+    \sum_{n = 0}^{N-1} e^{j 2 \pi n (k'-k)/N} &= N \delta[k-k']
+\end{align}
+to get
+\begin{align}
+    S_m[k] &= \frac{N}{2j} \left( \delta[k - Nm/p] - \delta[k + Nm/p] \right)
+\end{align}
+
+So the total DFT is
+\begin{align}
+    S[k] &= 2 S_1[k] + S_2[k] + \frac{1}{2} S_3[k]
+    \\
+    S[k] &= \frac{N}{j} \left( \delta[k - N/p] - \delta[k + N/p] \right) + &
+    \nonumber \\
+    & \quad + \frac{N}{2j} \left( \delta[k - 2N/p] - \delta[k + 2N/p] \right) + & 
+    \nonumber \\
+    & \quad + \frac{N}{4j} \left( \delta[k - 3N/p] - \delta[k + 3N/p] \right)
+\end{align}
+
+Whether the sample rate is 1 kHz ($ p = 10 $) or 2 kHz ($ p = 20 $), these impulse functions do not overlap.
+Thus the power in the signal is simple to calculate:
+\begin{align}
+    P_\text{avg} &= \frac{1}{N T_s} E_\text{tot}
+    \\
+    P_\text{avg} &= \frac{1}{N T_s} \frac{T_s}{N} \sum_{k = 0}^{N-1} \left|S[k]|\right|^2
+    \\
+    P_\text{avg} &= \frac{1}{N^2} \left[ \left| \frac{N}{j} \right|^2 + \left| \frac{N}{j} \right|^2 + \left| \frac{N}{2j} \right|^2 + \left| \frac{N}{2j} \right|^2 + \left| \frac{N}{4j} \right|^2 + \left| \frac{N}{4j} \right|^2 \right]
+    \\
+    P_\text{avg} &= \left[ 1 + 1 + \frac{1}{4} + \frac{1}{4} + \frac{1}{16} + \frac{1}{16} \right]
+    \\
+    P_\text{avg} &= \frac{21}{8} = 2.625
+\end{align}
+which agrees exactly with the result above.
+Thus, if we pick $ N $ judiciously so that we are sampling over exactly an integer number of periods, the power calculated by the DFT is exactly correct.
+As long the sample rate allows us to pick such an $ N $, the power calculation does not actually rely on the sample rate at all, which is why we were able to do the calculation for both 1 kHz and 2 kHz at the same time.
+If we do not pick such an $ N $, the power calculation is nearly impossible to do by hand, and there will be some error in the result.
+
+We can also calculate the power in the continuous signal in the time domain.
+$ s(t) $ is periodic with period $ T = 1/100 $, so the average power is
+\begin{align}
+    P_\text{avg} &= 100 \int_0^{1/100} \left| s(t) \right|^2 \d t
+\end{align}
+Evaluating this integral in a computer algebra system, we get
+\begin{align}
+    P_\text{avg} &= 2.625
+\end{align}
+as expected.
+
+So, we have calculated the average power of the continuous signal in the time and frequency domains, and we have calculated the power of the digitized signal.
+Through this, we conclude that we get exactly the same results regardless of how we do it.
+The only caveat is that when sampling the signal, we must pick $ N $ judiciously so that the results are correct and easier to calculate.
+
+Because we have so many ways to solve the same problem, we should be careful in general to pick the easiest route to a solution.
+Here, adding the squared magnitudes of the Fourier coefficients was easy, while the other methods were difficult or impossible without the help of a computer.
+Since all methods lead to the same result, we should try to pick the easiest one for a given problem.
 
 \subsection{Another example}
 \label{subsec:another_example}
@@ -516,6 +617,19 @@ Taking $ A = 1 $ and $ x \to t $, we get
 \begin{align}
     F(\omega) &= \frac{1}{\sqrt{2 \pi}(\alpha + j \omega)}
 \end{align}
+
+The spectrum $ \left| F(\omega) \right| $ is plotted (in dB) for different values of $ \alpha $ in Figure~\ref{fig:exponential_decay_spectrum}.
+We can see from the Figure that the spectrum is more sharply peaked for lower values of $ \alpha $.
+This is not surprising; the uncertainty principle from quantum mechanics suggests that sharply peaked functions in the time domain (high $ \alpha $) correspond to broadly peaked functions in the frequency domain.
+We also see that there is less energy in the signal as $ \alpha $ increases.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Exponential_decay_spectrum.pdf}
+    \caption{Power spectrum (in dB) of the exponential decay signal $ f(t) = e^{-\alpha t} U(t) $.}
+    \label{fig:exponential_decay_spectrum}
+\end{figure}
+
 We can calculate the energy from the frequency domain:
 \begin{align}
     E_\text{tot} &= \int_{-\infty}^{\infty} \left| F(\omega) \right|^2 \d \omega
@@ -564,7 +678,7 @@ Then
 
 Suppose the current through a $ R = 1 $ $ \Omega $ resistor is
 \begin{align}
-    i(t) &= 50 e^{-10 t} U(t) \text{ A}
+    i(t) &= 50 e^{-10 t} U(t) \text{ mA}
 \end{align}
 
 Using Ohm's law $ v(t) = R i(t) = i(t) $, the energy deposited is
@@ -579,7 +693,7 @@ Using the results in Section~\ref{subsec:example_3} (with $ \alpha = 10 $), we g
 \begin{align}
     E_\text{tot} &= 250 \frac{1}{2 \cdot 10}
     \\
-    E_\text{tot} &= 12.5 \text{ J}
+    E_\text{tot} &= 12.5 \text{ ${\mu}$J}
 \end{align}
 
 In the frequency domain, we can calculate the power in frequencies $ |\omega| < W $:
@@ -603,14 +717,14 @@ so
     \\
     E(W) &= \frac{250}{\pi} \frac{1}{10} \tan^{-1} \left( \frac{W}{10} \right)
     \\
-    E(W) &= \frac{25}{\pi} \tan^{-1} \left( \frac{W}{10} \right) \text{ J}
+    E(W) &= \frac{25}{\pi} \tan^{-1} \left( \frac{W}{10} \right) \text{ $\mu$J}
 \end{align}
 
-With $ W = 10 $~rad/s, we find that the energy for $ |\omega| < 10 $~rad/s is
+With $ W = 10 $~rad/s, we find that the energy for $ | \omega | < 10 $~rad/s is
 \begin{align}
     E(10) &= \frac{25}{\pi} \cdot \frac{\pi}{4}
     \\
-    E(10) &= 6.25 \text{ J}
+    E(10) &= 6.25 \text{ $\mu$J}
 \end{align}
 So half the total energy is contained in frequencies $ |\omega| < 10 $~rad/s
 
@@ -628,12 +742,522 @@ We have
     B &\approx 127.1 \text{ rad/s}
 \end{align}
 
+In Figure~\ref{fig:circuit_spectrum} we see the spectrum of this exponentially decaying current along with the power thresholds we just calculated.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Circuit_spectrum.pdf}
+    \caption{The power spectrum of the exponentially decaying current. The dark blue lines represent $ |\omega| < 10 $ rad/s. Half the power lies between these lines. 95\% of the power lies between the red lines, so they represent the bandwidth of the signal.}
+    \label{fig:circuit_spectrum}
+\end{figure}
+
+\section{DFT and FFT}
+\label{sec:dft_and_fft}
+
+\subsection{A DTFT example}
+\label{subsec:a_dtft_example}
+
+Suppose we are given the discrete time Fourier transform (DTFT)
+\begin{align}
+    X(\omega) &= \begin{cases} 1 & \text{for } \left| \omega \right| \leq \pi/3 \\ 0 & \text{otherwise} \end{cases}
+\end{align}
+
+The inverse DTFT (the original discrete signal) is given by
+\begin{align}
+    x[n] &= \frac{1}{2\pi} \int_{-\pi}^{\pi} X(\omega) e^{j \omega n} \d \omega
+    \\
+    x[n] &= \frac{1}{2\pi} \int_{-\pi/3}^{\pi/3} e^{j \omega n} \d \omega
+    \\
+    x[n] &= \frac{1}{2\pi} \left[ \frac{1}{n j} \left( e^{j \pi n / 3} - e^{-j \pi n /3} \right) \right]
+    \\
+    x[n] &= \frac{1}{2\pi} \left[ \frac{2}{n} \sin\left( \frac{\pi n}{3}\right) \right]
+    \\
+    \Aboxed{x[n] &= \frac{1}{3} \sinc\left( \frac{\pi n}{3}\right)}
+\end{align}
+
+\subsection{DFT matrices}
+\label{subsec:dft_matrices}
+
+The forward DFT matrix for $ N = 3 $ is
+\begin{align}
+    F &= \mat{ 1 & 1 & 1 \\ 1 & e^{-j 2 \pi / 3} & e^{-j 4 \pi / 3} \\ 1 & e^{-j 4 \pi / 3} & e^{-j 8 \pi / 3}}
+    \\
+    F &= \mat{ 1 & 1 & 1 \\ 1 & -\frac{1}{2} - j \frac{\sqrt{3}}{2} & -\frac{1}{2} + j \frac{\sqrt{3}}{2} \\ 1 & -\frac{1}{2} + j \frac{\sqrt{3}}{2} &-\frac{1}{2} - j \frac{\sqrt{3}}{2} }
+\end{align}
+
+The inverse DFT matrix is just the Hermitian conjugate of the forward Fourier transform matrix (times a scaling factor of $ 1/N $):
+\begin{align}
+    F^{-1} &= \frac{1}{N} F^{\dagger} = \frac{1}{3} \mat{ 1 & 1 & 1 \\ 1 & -\frac{1}{2} + j \frac{\sqrt{3}}{2} & -\frac{1}{2} - j \frac{\sqrt{3}}{2} \\ 1 & -\frac{1}{2} - j \frac{\sqrt{3}}{2} &-\frac{1}{2} + j \frac{\sqrt{3}}{2} }
+\end{align}
+
+We can show that these matrices are indeed inverses:
+\begin{align}
+    \sum_{n = 0}^{N-1} F_{mn} F^{-1}_{nl} &= \sum_{n = 0}^{N-1} \exp \left( - j \frac{2 \pi m n}{N} \right) \frac{1}{N} \exp \left( j \frac{2 \pi n l}{N} \right)
+    \\
+    \sum_{n = 0}^{N-1} F_{mn} F^{-1}_{nl} &= \frac{1}{N} \sum_{n = 0}^{N-1} \exp \left( j \frac{2 \pi n (l - m)}{N} \right)
+\end{align}
+
+If $ l = m $, then this sum is just 
+\begin{align}
+    \sum_{n = 0}^{N-1} F_{mn} F^{-1}_{nl} &= \frac{1}{N} \sum_{n = 0}^{N-1} 1
+    \\
+    \sum_{n = 0}^{N-1} F_{mn} F^{-1}_{nl} &= \frac{1}{N} N
+    \\
+    \sum_{n = 0}^{N-1} F_{mn} F^{-1}_{nl} &= 1
+\end{align}
+
+If $ l \neq m $, we use the geometric series formula to get
+\begin{align}
+    \sum_{n = 0}^{N-1} F_{mn} F^{-1}_{nl} &= \frac{1}{N} \frac{1 - \exp \left( j 2 \pi (l-m) \right)}{1 - \exp \left( j 2 \pi (l-m)/N \right)}
+\end{align}
+The numerator is zero because $ (l-m) $ is an integer. 
+The denominator is not zero because $ |l - m| < N $ and $ l \neq m $ imply that $ (l-m)/N $ is not an integer.
+Thus the sum is zero for $ l \neq m $.
+
+In summary,
+\begin{align}
+    \sum_{n = 0}^{N-1} F_{mn} F^{-1}_{nl} &= \delta_{ml}
+\end{align}
+and we have shown that $ F^{-1} $ is indeed the inverse of $ F $.
+
+\subsection{A DFT example}
+\label{subsec:a_dft_example}
+
+For $ N = 4 $, the DFT matrix is
+\begin{align}
+    F &= \mat{1 & 1 & 1 & 1 \\ 1 & e^{-j 2 \pi / 4} & e^{-j 4 \pi / 4} & e^{- j 6 \pi / 4} \\ 1 & e^{- j 4 \pi / 4} & e^{-j 8 \pi / 4} & e^{-j 12 \pi / 4} \\ 1 & e^{-j 6 \pi / 4} & e^{-j 12 \pi / 4} & e^{-j 18 \pi / 4} }
+    \\
+    F &= \mat{1 & 1 & 1 & 1 \\ 1 & -j & -1 & j \\ 1 & -1 & 1 & -1 \\ 1 & j & -1 & -j }
+\end{align}
+
+We can find the DFT of $ x = \left[1, 0, -1, 0 \right]^T $ using this matrix:
+\begin{align}
+    X &= \mat{1 & 1 & 1 & 1 \\ 1 & -j & -1 & j \\ 1 & -1 & 1 & -1 \\ 1 & j & -1 & -j } \mat{1 \\ 0 \\ -1 \\ 0}
+    \\
+    X &= \mat{ 1 + 0 - 1 + 0 \\ 1 + 0 + 1 + 0 \\ 1 + 0 - 1 + 0 \\ 1 + 0 + 1 + 0 }
+    \\
+    X &= \mat{ 0 \\ 2 \\ 0 \\ 2 }
+\end{align}
+
+\subsection{Aliasing example}
+\label{subsec:aliasing_example}
+
+Consider the signal
+\begin{align}
+    x(t) &= 3 \cos(500 \pi t) + 6 \cos(1000 \pi t) + 8 \cos(2000 \pi t)
+\end{align}
+
+By inspection, we see that this signal has frequency components at 250 Hz, 500 Hz, and 1000 Hz.
+So the bandwidth of the signal is 1000 Hz.
+By the Nyquist sampling theorem, we our sample rate to be twice the bandwidth in order to avoid aliasing.
+So in this case, our sample rate should be at least 2000 Hz.
+
+If the sampling frequency is 1000 Hz, the maximum frequency that can be recovered is 500 Hz.
+Even worse, the 1000 Hz signal will still appear in the DFT, but it will only serve to distort the frequencies within the 500 Hz range.
+
+\subsection{Another DFT example}
+\label{subsec:another_dft_example}
+
+We look at the signal
+\begin{align}
+    f(t) &= 5 + 2 \cos(2 \pi t - \pi/2) + 3 \cos(4 \pi t)
+\end{align}
+By inspection, this signal has frequency components at 0 Hz, 1 Hz, and 2 Hz.
+The signal and its frequency components are plotted in Figure~\ref{fig:dft_example}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/DFT_example.pdf}
+    \caption{The signal $ f(t) = 5 + 2 \cos(2 \pi t - \pi/2) + 3 \cos(4 \pi t)
+$ along with its individual frequency components.}
+    \label{fig:dft_example}
+\end{figure}
+
+Sampling the function at $ t = 0, 1/4, 2/4, 3/4 $, we get
+\begin{align}
+    f[0] &= 5 + 2 \cos(2 \pi \cdot 0 - \pi/2) + 3 \cos(4 \pi \cdot 0) = 8
+    \\
+    f[1] &= 5 + 2 \cos(2 \pi \cdot 1/4 - \pi/2) + 3 \cos(4 \pi \cdot 1/4) = 4
+    \\
+    f[2] &= 5 + 2 \cos(2 \pi \cdot 2/4 - \pi/2) + 3 \cos(4 \pi \cdot 2/4) = 8
+    \\
+    f[3] &= 5 + 2 \cos(2 \pi \cdot 3/4 - \pi/2) + 3 \cos(4 \pi \cdot 3/4) = 0
+\end{align}
+So the time-domain vector is $ f = \left[ 8, 4, 8, 0 \right]^T $.
+We can find the frequency-domain vector $ F $ by multiplying by the 4-point DFT matrix from Section~\ref{subsec:a_dft_example}:
+
+\begin{align}
+    F &= \mat{1 & 1 & 1 & 1 \\ 1 & -j & -1 & j \\ 1 & -1 & 1 & -1 \\ 1 & j & -1 & -j } \mat{8 \\ 4 \\ 8 \\ 0}
+    \\
+    F &= \mat{8 + 4 + 8 \\ 8 - j4 - 8 \\ 8 - 4 + 8 \\ 8 + j4 - 8}
+    \\
+    F &= \mat{ 20 \\ - j4 \\ 12 \\ j4 }
+\end{align}
+
+These values correspond to frequencies 0 Hz, 1 Hz, 2 Hz, and -1 Hz, respectively.
+
+\subsection{DFT and aliasing}
+\label{subsec:dft_and_aliasing}
+
+To explore the effects of the sampling process, we look at the DFT of the signal
+\begin{align}
+    x(t) &= \sin(20 \pi t) + 3 \sin(140 \pi t) + \cos(160 \pi t)
+\end{align}
+under different sampling conditions.
+The code for this section is in Sections~\ref{subsec:fourier_analysis_module}, \ref{subsec:dft_and_aliasing_code}, and \ref{subsec:dft_and_aliasing_plotting_code}.
+
+First, we sample the signal at 200 Hz for three different time durations: 1 s, 10 s, and 100 s.
+The resulting spectra are shown in Figure~\ref{fig:aliasing200}
+In all three cases, we can clearly see the peaks at 10 Hz, 70 Hz, and 80 Hz, which we expect from looking at the continuous function.
+From these plots, we can see that the effect of increasing the sampling duration is to sharpen the peaks.
+For longer sampling times, there are a greater number of samples, which has the effect of increasing the resolution in the frequency domain.
+Thus, as the sampling time is increased, the peaks corresponding to pure sinusoidal functions are sharpened.
+In the continuum limit (i.e., as the number of samples approaches infinity), we expect these peaks to approach Dirac delta functions.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Aliasing200.pdf}
+    \caption{Power spectrum for $ x(t) $ sampled at 200 Hz with different sample lengths.}
+    \label{fig:aliasing200}
+\end{figure}
+
+To demonstrate the important effect of aliasing, we decrease the sample rate to 100 Hz.
+The resulting spectrum is shown in the top panel of Figure~\ref{fig:aliasing100}.
+In the previous case, the sampling rate (200 Hz) was more than twice the highest frequency component of the signal (80 Hz), so there is no aliasing.
+In the case of 100 Hz sampling, there will be aliasing because the sample rate is now less than twice the highest frequency component.
+
+We see that the effect of aliasing is to ``fold'' the higher frequency components into lower frequency components.
+The higher frequency components are shifted down in frequency by half the sampling rate, and then added to the existing spectrum at those frequencies.
+In this case, we see that the 70 Hz peak has been shifted to 20 Hz and the 80 Hz peak has been shifted to 30 Hz.
+The 10 Hz peak is unaffected.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Aliasing100.pdf}
+    \caption{Power spectrum for $ x(t) $ sampled at 100 Hz. For the top panel, the signal was not band-limited before the DFT was performed. In the bottom panel, the signal was band-limited before the DFT was performed.}
+    \label{fig:aliasing100}
+\end{figure}
+
+Aliasing is certainly undesirable: if we look at the top panel of Figure~\ref{fig:aliasing100}, we are led to believe that the signal consists of distinct 10 Hz, 20 Hz, and 30 Hz components when this is not the case.
+At very least, we would like to lose the high-frequency components without having them appear erroneously at lower frequencies.
+
+We can do this by band-limiting the signal \emph{before} sampling it.
+In practise, this could be done with a low pass filter circuit before the analog-to-digital conversion process.
+In our case, we do the following:
+\begin{itemize}
+\item
+    Sample the signal at a high rate: 200 Hz.
+\item
+    Apply an ideal low-pass filter with a 50 Hz cutoff frequency. (Can be done either in the time domain by convolution or frequency domain by multiplication.)
+\item
+    Sample the filtered signal at the desired low rate: 100 Hz.
+\end{itemize}
+The spectrum of the band-limited (filtered) signal is shown in the bottom panel of Figure~\ref{fig:aliasing100}.
+We can see that band-limiting the signal has the desired effect of removing aliasing: only the 10 Hz peaks remain.
+Though we have lost information about the high-frequency components, we have at least avoided distorting the low frequency components.
+
+\section{Correlation, power spectrum, and noisy signals}
+\label{sec:correlation_power_spectrum_and_noisy_signals}
+
+\subsection{Power spectrum}
+\label{subsec:power_spectrum2}
+
+Consider a pure sinusoidal signal
+\begin{align}
+    x(t) &= A \sin(2 \pi f_0 t - \phi)
+\end{align}
+
+Its Fourier transform is
+\begin{align}
+    X(\omega) &= \int_{-\infty}^{\infty} A \sin(2 \pi f_0 t - \phi) e^{-j \omega t} \d \omega
+    \\
+    X(\omega) &= \frac{A}{j2} \int_{-\infty}^{\infty} \left( e^{j 2 \pi f_0 t - j \phi} - e^{-j 2 \pi f_0 t + j \phi} \right) e^{-j \omega t} \d \omega
+    \\
+    X(\omega) &= \frac{A}{j2} \Big[ e^{-j \phi} \delta(\omega - 2 \pi f_0) - e^{j \phi} \delta(\omega + 2 \pi f_0) \Big]
+\end{align}
+So we see that the power is concentrated in the frequency $ \omega = \pm 2 \pi f_0 $, and its magnitude is $ 2 \left| A/2 \right|^2 = |A|^2/2 $.
+
+Using the code in Sections~\ref{subsec:power_spectrum_code} and \ref{subsec:power_spectrum_code}, we plot the spectrum of the sinusoidal signal with $ A = 10 $ $ \mu $V, $ f = 60.0 $ Hz, and $ N = 250 $ in the top panel of Figure~\ref{fig:power_sine_wave}.
+
+$ P $ is split between two peaks in this case (positive and negative frequency), but adding them together we find that
+\begin{align}
+    P &= 1.250\times 10^{-8} \text{ W}
+\end{align}
+which is exactly what we would expect from $ P = N A^2/2 $.
+We also find that the vast majority of the power is concentrated in one bin, as expected.
+
+We next plot the spectrum of the same sinusoid, but with the frequency shifted slightly to $ f = 59.673 $.
+In this case, $ P $ is reduced to $ 8.612 \times 10^{-9} $ W, because the power has been spread out into multiple bins.
+The full-width half-maximum is still smaller than one bin, so there are no bins with $ 0.5 P < P_k < P $.
+However, the total power is $ 1.246\times 10^{-8} $ W, so there is clearly some spreading.
+
+To try to reduce the spreading of the power, we multiply the time-domain signal by window functions.
+This is done for the Hanning and Blackmann-Harris windows, again for $ f = 60.0 $ Hz and $ f = 59.673 $ Hz.
+This is shown in the middle and lower panels of Figure~\ref{fig:power_sine_wave}.
+
+We can clearly see how the windows help to avoid spreading.
+We can see that the $ f = 59.673 $ Hz signal has a much sharper peak, especially with the Hanning window.
+Unfortunately, the peak is widened for the $ f = 60.0 $ Hz signal, though there is still a sharp drop-off.
+Overall, the Hanning window is extremely effective at reducing peak-spreading, and the Blackmann-Harris window is somewhat effective.
+
+\begin{figure*}[htpb]
+    \centering
+    \includegraphics[width=0.6\linewidth]{../Plots/Power_sine_wave.pdf}
+    \caption{The power spectrum of a pure sine wave with different frequencies and different window functions.}
+    \label{fig:power_sine_wave}
+\end{figure*}
+
+To show why the Hann window is effective, it is plotted in both the time and frequency domain in Figure~\ref{fig:hann_window}.
+We see that the Hann window looks similar to a delta function in the frequency domain: the peak at $ f = 0 $ is roughly 100 dB (10 orders of magnitude) higher than the spectrum at nearby frequencies.
+This delta-function character is why the Hann window is effective.
+
+Part of the process of going from the continuous Fourier transform to the discrete Fourier transform is a convolution of the window function with the continuous signal in the frequency domain.
+Thus, the more the window function looks like a delta function in the frequency domain, the less the signal's spectrum is distorted.
+The rectangular window does look somewhat like a delta function in the frequency domain, but the Hann window is closer to a delta function, which is why it performs better as a window function.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Hann_window.pdf}
+    \caption{The Hann window in the time and frequency domains.}
+    \label{fig:hann_window}
+\end{figure}
+
+\subsection{Autocorrelation}
+\label{subsec:autocorrelation}
+
+The correlation between two functions is defined as
+\begin{align}
+    c(\tau) &= \int_{-\infty}^{\infty} y^*(t) x(t + \tau) \d t = \int_{-\infty}^{\infty} y^*(t - \tau) x(t) \d t
+\end{align}
+Defining the Fourier transform $ F(\omega) $ of a function $ f(t) $ as
+\begin{align}
+    F(\omega) &= \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\infty} f(t) e^{-j\omega t} \d t
+\end{align}
+we can find a nice expression for the frequency domain representation of the correlation function:
+\begin{align}
+    C(\omega) &= \frac{1}{\sqrt{2\pi}} \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} y^*(t) x(t + \tau) \d t e^{-j \omega \tau} \d \tau
+    \\
+    C(\omega) &= \frac{1}{\sqrt{2\pi}} \int_{-\infty}^{\infty} y^*(t) \int_{-\infty}^{\infty} x(u) e^{-j \omega (u - t)} \d u \d t
+    \\
+    C(\omega) &= \frac{1}{\sqrt{2\pi}} \int_{-\infty}^{\infty} y^*(t) e^{j \omega t} \d t \int_{-\infty}^{\infty} x(u) e^{-j \omega u} \d u
+    \\
+    C(\omega) &= \frac{1}{\sqrt{2\pi}} \sqrt{2 \pi} Y^*(\omega) \sqrt{2 \pi} X(\omega) 
+    \\
+    \Aboxed{C(\omega) &= \sqrt{2 \pi} Y^*(\omega) X(\omega) }
+\end{align}
+
+Autocorrelation $ AC(\tau) $ is the same as correlation $ c(\tau) $, but with $ y(t) = x(t) $.
+If we let $ S(\omega) $ be the Fourier transform of $ AC(\tau) $, then using the result above with $ Y(\omega) = X(\omega) $ we get
+\begin{align}
+    S(\omega) &= \sqrt{2 \pi} X^*(\omega) X(\omega)
+    \\
+    S(\omega) &= \sqrt{2 \pi} \left| X(\omega) \right|^2
+\end{align}
+So the Fourier transform of the autocorrelation function is proportional to the squared magnitude of the Fourier transform of the signal.
+
+For a discrete signal, the autocorrelation function is
+\begin{align}
+    AC[k] &= E \left( x[n] x[n-k] \right) = \sigma^2 \delta[k]
+\end{align}
+where $ \sigma^2 $ is the variance of $ x[n] $.
+
+The autocorrelation function is difficult to calculate for a continuous-time signal, but taking the discrete case as a hint, we can use
+\begin{align}
+    AC(\tau) &= \sigma^2 \delta(\tau)
+\end{align}
+
+The Fourier transform of the autocorrelation is the power spectral density:
+\begin{align}
+    S(\omega) &= \int_{-\infty}^{\infty} AC(\tau) e^{-j\omega \tau} \d \tau
+    \\
+    S(\omega) &= \int_{-\infty}^{\infty} \sigma^2 \delta(\tau) e^{-j\omega \tau} \d \tau
+    \\
+    S(\omega) &= \sigma^2 e^{-j \omega \cdot 0}
+    \\
+    S(\omega) &= \sigma^2 
+\end{align}
+
+We have shown that $ S(\omega) $ is proportional to the signal power, so our definition of $ AC(\tau) $ is consistent with the fact that the power is spread evenly over all frequencies.
+
+\section{ODEs and the Fourier transform}
+\label{sec:odes_and_the_fourier_transform}
+
+We will now use spectral methods to solve the equation
+\begin{align}
+    \frac{\d^2 T(x)}{\d x^2} &= - q(x)
+\end{align}
+with periodic boundary conditions $ T(0) = T(1) $, $ T'(0) = T'(1) $ and $ q(x) = N(x_0, \sigma) $ where $ N $ is the normal distribution.
+
+The eigenfunctions for this operator with the given boundary conditions are
+\begin{align}
+    \phi_n(x) &= e^{j 2 \pi n x}
+\end{align}
+and it is well-known that these functions are orthonormal with respect to the inner product
+\begin{align}
+    \left\langle f \middle| g \right\rangle &= \int_0^1 f^*(x) g(x) \d x
+\end{align}
+
+Now, to put the equation in the Fourier domain, we project both $ T(x) $ and $ q(x) $ onto this basis.
+In general, a function $ f(x) $ is decomposed into the Fourier basis by
+\begin{align}
+    f(x) &= \sum_{n = -\infty}^{\infty} \hat{f}_n \phi_n(x)
+\end{align}
+where
+\begin{align}
+    \hat{f}_n &= \left\langle \phi_n \middle| f \right\rangle = \int_0^1 f(x) e^{-j 2 \pi n x} \d x
+\end{align}
+
+So we can write the differential equation as
+\begin{align}
+    \frac{\d^2 T(x)}{\d x^2} &= - q(x)
+    \\
+    \frac{\d^2}{\d x^2} \sum_{n = -\infty}^{\infty} \hat{T}_n \phi_n(x) &= -\sum_{n=-\infty}^{\infty} \hat{q}_n \phi_n(x)
+    \\
+    \sum_{n = -\infty}^{\infty} \hat{T}_n \frac{\d^2}{\d x^2} e^{j 2 \pi n x} &= -\sum_{n=-\infty}^{\infty} \hat{q}_n e^{j 2 \pi n x}
+    \\
+    \sum_{n = -\infty}^{\infty} - 4 \pi^2 n^2 \hat{T}_n e^{j 2 \pi n x} &= \sum_{n=-\infty}^{\infty} -\hat{q}_n e^{j 2 \pi n x}
+\end{align}
+Now, since the eigenfunctions are orthogonal, all the coefficients must be equal to each other.
+This gives us the equation in Fourier space:
+\begin{align}
+    - 4 \pi^2 n^2 \hat{T}_n &= - \hat{q}_n \label{eq:fourier_de1}
+    \\
+    \hat{T}_n &= \frac{\hat{q}_n}{4 \pi^2 n^2}
+\end{align}
+However, note that this equation is only valid for $ n \neq 0 $.
+More on this later.
+
+Now, we need to find $ \hat{q}_n $:
+\begin{align}
+    \hat{q}_n &= \int_{0}^{1} q(x) e^{-j 2 \pi n x} \d x
+    \\
+    \hat{q}_n &= \int_{0}^{1} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-(x - x_0)^2/(2 \sigma^2)} e^{-j 2 \pi n x} \d x
+\end{align}
+Assuming $ 2 \sigma^2 $ is small compared with $ (x - x_0)^2 $ for $ x < 0 $ and $ x > 1 $, we can write\footnote{Note that using this approximation for $ \hat{q}_n $ is equivalent to replacing $ q(x) = N(x_0, \sigma) $ with \begin{align}q(x) = \sum_{m=-\infty}^{\infty} N(x_0 + m, \sigma) \nonumber \end{align}}
+\begin{align}
+    \hat{q}_n &\approx \frac{1}{\sqrt{2 \pi \sigma^2}} \int_{-\infty}^{\infty} e^{-(x - x_0)^2/(2 \sigma^2)} e^{-j 2 \pi n x} \d x
+    \\
+    \hat{q}_n &= \frac{\sqrt{2 \sigma^2 \pi}}{\sqrt{2 \pi \sigma^2}} e^{-x_0^2/(2\sigma^2)} e^{(x_0/\sigma^2 - j 2 \pi n  )^2 2 \sigma^2 / 4}
+    \\
+    \hat{q}_n &= e^{-x_0^2/(2\sigma^2)} e^{x_0^2/(2\sigma^2) - 2 \sigma^2 \pi^2 n^2 - j 2 \pi n x_0 }
+    \\
+    \hat{q}_n &= e^{- 2 \sigma^2 \pi^2 n^2} e^{- j 2 \pi n x_0 }
+\end{align}
+
+So finally, we have
+\begin{align}
+    \hat{T}_n &= \frac{e^{-2 \sigma^2 \pi^2 n^2}}{4 \pi^2 n^2}
+\end{align}
+and
+\begin{align}
+    T(x) &= \sum_{n=-\infty}^{\infty} \hat{T}_n e^{j 2 \pi n x} 
+    \\
+    T(x) &= \sum_{n=-\infty}^{\infty} \frac{e^{-2 \sigma^2 \pi^2 n^2} e^{- j 2 \pi n x_0 } }{4 \pi^2 n^2} e^{j 2 \pi n x}
+    \\
+    T(x) &= \sum_{n=-\infty}^{\infty} \frac{e^{-2 \sigma^2 \pi^2 n^2}}{4 \pi^2 n^2} e^{j 2 \pi n (x-x_0)}
+    \\
+    T(x) &= \hat{T}_0 + \sum_{n=1}^{\infty} \frac{e^{-2 \sigma^2 \pi^2 n^2}}{2 \pi^2 n^2} \cos(2 \pi n (x-x_0)) 
+\end{align}
+
+Setting the arbitrary constant $ \hat{T}_0 = 0 $ we arrive at an analytical solution for $ T(x) $:
+\begin{align}
+    \Aboxed{T(x) &= \sum_{n=1}^{\infty} \frac{e^{-2 \sigma^2 \pi^2 n^2}}{2 \pi^2 n^2} \cos(2 \pi n (x-x_0))}
+\end{align}
+
+Unfortunately, we are not quite done, because some $ n = 0 $ sneakiness has been thus far swept under the rug.
+Equation~\ref{eq:fourier_de1} with $ n = 0 $ gives
+\begin{align}
+    - 4 \pi^2 (0)^2 \hat{T}_0 &= - \hat{q}_0
+    \\
+    \Longrightarrow \quad \hat{q}_0 = 0
+\end{align}
+This tells us two things.
+First, it tells us that $ \hat{T}_0 $ is an arbitrary constant, which is not surprising since this is a second-order equation and we have only supplied one boundary condition.
+
+Second, it tells us that if $ \hat{q}_0 $ is non-zero, then there is \emph{no solution} to this equation with the given periodic boundary conditions.
+This is somewhat distressing because $ \hat{q}_0 = 1 $ is decidedly \emph{not} zero in our case.
+As it turns out, we have actually solved this problem for $ q(x) = N(x_0, \sigma) - 1 $ and not for $ q(x) = N(x_0, \sigma) $.
+The problem as originally stated has no solutions.
+\footnote{This is not actually surprising. $ T''(x) = - N(x_0, \sigma) $ implies that $ T'(x) $ will be proportional to the error function plus an integration constant. Because of the nature of the error function, there is no way we can apply the periodic boundary condition $ T'(0) = T'(1) $.Thus this equation has no solution which is periodic at the boundaries. }
+
+The analytical solution found for $ T(x) $ is plotted in Figure~\ref{fig:diff_eq_solution}.
+To ensure that this solution is correct, the second derivative of $ T(x) $ was taken numerically with a finite difference scheme.
+This was then compared with $ -q(x)+1 $.
+As seen in~\ref{fig:diff_eq_deriv} the error is extremely small, and likely due to error from the finite difference scheme.
+This confirms that our solution is correct.
+
+As another check, the equation was solved numerically using a DFT method.
+The DFT of the temperature was then defined as
+\begin{align}
+    T[k] &= \frac{q[k]}{4 \pi^2 f_k^2}
+\end{align}
+and the inverse DFT was taken to find $ T[n] $.
+The results of this are plotted in Figure~\ref{fig:diff_eq_solution} and they agree with the analytical solution.
+Note that the DFT is well-suited as a numerical solution method for this problem because the DFT automatically applies periodic boundary conditions if the sample width $ T_s $ is chosen so that $ T_s N $ is equal to the distance between the boundaries.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Diff_eq_solution.pdf}
+    \caption{Analytical solution $ T(x) $ to the differential equation (smooth curve), along with the numerical DFT solution (points).}
+    \label{fig:diff_eq_solution}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Diff_eq_deriv.pdf}
+    \caption{Error in the second derivative of the analytical solution $ T(x) $ compared with its expected value of $ -q(x) + 1 $.}
+    \label{fig:diff_eq_deriv}
+\end{figure}
+
+In the simplified case where $ q(x) = 0 $, the above analysis becomes trivial.
+$ \hat{q}_n = 0 $ for all $ n $, and we are left with
+\begin{align}
+    T(x) &= \hat{T}_0
+\end{align}
+where $ \hat{T}_0 $ is an arbitrary constant.
+Trivially, we can see that $ T''(x) = -q(x) $ and that $ T(x) $ is periodic.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have seen a number of useful concepts and applications of Fourier analysis.
+Fourier analysis is used in a wide variety of places in physics, math, and engineering.
+Understanding the key concepts and becoming fluent with the theory and its applications is important for anyone in these fields.
+With this report, we have explored a large number of these concepts and methods and seen how widely useful spectral methods are.
+
 \onecolumn
 
 \section{Code}
 \label{sec:code}
 
-%\lstinputlisting[breaklines]{../Traveling.gp}
-%\vspace{10pt}
+\subsection{Fourier analysis module}
+\label{subsec:fourier_analysis_module}
+
+\lstinputlisting[breaklines]{../../Modules/Fourier_analysis_module.f90}
+\vspace{10pt}
+
+\subsection{DFT and aliasing code}
+\label{subsec:dft_and_aliasing_code}
+
+\lstinputlisting[breaklines]{../Aliasing.f90}
+\vspace{10pt}
+
+\subsection{DFT and aliasing plotting code}
+\label{subsec:dft_and_aliasing_plotting_code}
+
+\lstinputlisting[breaklines]{../Aliasing.gp}
+\vspace{10pt}
+
+\subsection{Power spectrum code}
+\label{subsec:power_spectrum_code}
+
+\lstinputlisting[breaklines]{../Correlation.f90}
+\vspace{10pt}
+
+\subsection{Power spectrum plotting code}
+\label{subsec:power_spectrum_plotting_code}
+
+\lstinputlisting[breaklines]{../Correlation.gp}
+\vspace{10pt}
 
 \end{document}
