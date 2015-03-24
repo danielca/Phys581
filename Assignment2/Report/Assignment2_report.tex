@@ -1085,11 +1085,15 @@ We have shown that $ S(\omega) $ is proportional to the signal power, so our def
 We can also apply our knowledge of the auto correlation to examine the noise in a signal. 
 We start with a signal of 
 \begin{align}
-    s(t) = \frac{1}{1-0.9sin(t)}
+    s(t) = \frac{1}{1-0.9\sin(t)}
 \end{align}
-as shown in figure \ref{noiseless}. 
+as shown in Figure \ref{fig:noiseless}. 
+In the figure, we see the time domain expression of $ s(t) $ and the frequency power spectrum in dB.
+In the figure, we can also see the autocorrelation and its spectrum.
+We see that the autocorrelation power has the same shape as the squared spectrum of the signal.
+
 We can then start to add random noise of the form $n(i) = s(i) + \alpha (r_{i} -1)$, where $\alpha$ is a scalable parameter and $r_{i}$ is a random number between 0 and 1. 
-Figures \ref{fig:a01} to \ref{a10} show the effect of the parameter $\alpha$. 
+Figures \ref{fig:a01} to \ref{fig:a10} show the effect of the parameter $\alpha$. 
 With 0.1, we see a small amount of noise, however the original signal is still clearly visible. 
 $\alpha = 1$ starts to obscure the original signal a bit, however the signal is still clear. 
 By the time we reach $\alpha = 10$ the noise becomes obscured. 
@@ -1103,26 +1107,26 @@ Once the type of noise is known, other filtering methods can be applied to obtai
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/signal_noiseless.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/cor_noiseless.pdf}
     \caption{Time Series, DFT, and the Auto Correlation function for the noiseless signal.}
     \label{fig:noiseless}
 \end{figure}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/signal_a01.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/cor_ac01.pdf}
     \caption{Time Series, DFT, and the Auto Correlation function for the a signal with randomly generated noise scaled to $\alpha = 0.1$.}
     \label{fig:a01}
 \end{figure}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/signal_a1.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/cor_a1.pdf}
     \caption{Time Series, DFT, and the Auto Correlation function for the a signal with randomly generated noise scaled to $\alpha = 1$.}
     \label{fig:a1}
 \end{figure}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\linewidth]{../Plots/signal_a10.pdf}
+    \includegraphics[width=0.9\linewidth]{../Plots/cor_a10.pdf}
     \caption{Time Series, DFT, and the Auto Correlation function for the a signal with randomly generated noise scaled to $\alpha = 10$.}
     \label{fig:a10}
 \end{figure}
@@ -1132,12 +1136,45 @@ Once the type of noise is known, other filtering methods can be applied to obtai
 \section{ODEs and the Fourier transform}
 \label{sec:odes_and_the_fourier_transform}
 
-We can use the table provided in to perform the transform on the given equations.
+Using the provided table, we can find the Fourier versions of a number of differential equations.
+
+First equation:
 \begin{align}
-m\ddot{x(t)} + D\dot{x(t)} + kx(t) = n(t) \rightarrow \hat{x}(\omega)(m\omega^{2} + iD\omega + k) = \hat{n}(t) \\
-i\hbar \frac{\partial \Psi }{\partial t} + \frac{\hbar^{2}}{2m} \frac{\partial^2 \Psi}{\partial \Psi^2} = 0\rightarrow i\hbar \frac{\partial \hat{\Psi}}{\partial t} - \frac{-\hbar \omega^2}{2m}\hat{\Psi} = 0 \\
-\frac{\partial^2 T}{\partial x^2} + \frac{\partial^2 T}{\partial z^2} = \delta (x) \delta(z+a) \rightarrow -\omega^2 \hat{T} + \frac{\partial^2 \hat{T}}{\partial z^2} = e^{-2\pi i \omega}\delta (z+a)
+    m \ddot{x}(t) + D \dot{x}(t) + k x(t) &= n(t)
+    \\
+    \left( - \omega^2 m + j \omega D + k \right) \hat{x}(\omega) &= \hat{n}(\omega)
 \end{align}
+
+Second equation:
+\begin{align}
+    i \hbar \frac{\partial \psi(x, t)}{\partial t} + \frac{\hbar^2}{2m} \frac{\partial^2 \psi(x, t)}{\partial x^2} &= 0
+    \\
+    i \hbar \frac{\partial \hat{\psi}(k,t)}{\partial t} - \frac{\hbar^2 k^2}{2m} \hat{\psi}(k, t) &= 0
+    \\
+    i \omega \hbar {\hat{\psi}}(k,\omega) - \frac{\hbar^2 k^2}{2m} {\hat{\psi}}(k, \omega) &= 0
+\end{align}
+where $ k $ is the Fourier transform variable.
+
+Third equation:
+\begin{align}
+    \frac{\partial^2 T(x, z)}{\partial x^2} + \frac{\partial^2 T(x,z)}{\partial z^2} &= \delta(x) \delta(z + a)
+    \\
+    - k_x^2 \hat{T}(k_x, z) + \frac{\partial^2 \hat{T}(k_x, z)}{\partial z^2} &= \delta(z + a)
+    \\
+    - k_x^2 \hat{T}(k_x, k_z) - k_z^2 \hat{T}(k_x, k_z) &= e^{jak_z}
+\end{align}
+
+So we have reduced ordinary differential equations to algebraic equations, and we have reduced partial differential equations to ordinary differential equations.
+
+
+%We can use the table provided in to perform the transform on the given equations.
+%\begin{align}
+%    m\ddot{x(t)} + D\dot{x(t)} + kx(t) &= n(t) \rightarrow \hat{x}(\omega)(m\omega^{2} + iD\omega + k) = \hat{n}(t) 
+%    \\
+%    i\hbar \frac{\partial \Psi }{\partial t} + \frac{\hbar^{2}}{2m} \frac{\partial^2 \Psi}{\partial \Psi^2} = 0\rightarrow i\hbar \frac{\partial \hat{\Psi}}{\partial t} - \frac{-\hbar \omega^2}{2m}\hat{\Psi} = 0 
+%    \\
+%    \frac{\partial^2 T}{\partial x^2} + \frac{\partial^2 T}{\partial z^2} = \delta (x) \delta(z+a) \rightarrow -\omega^2 \hat{T} + \frac{\partial^2 \hat{T}}{\partial z^2} = e^{-2\pi i \omega}\delta (z+a)
+%\end{align}
 
 \subsection{Heat transfer equation}
 \label{subsec:heat_transfer_equation}
@@ -1314,7 +1351,7 @@ Given that this is calculated rather than a visual estimation, gives a more accu
 \end{figure}
 
 \subsection{Stock Markets}
-\subsection{Dow Jones}
+\subsubsection{Dow Jones}
 We can also use Fourier Analysis on the stock markets. 
 Using the given data for the Dow Jones Index we can use both the Auto Correlation, and DFT to examine it, as seen in figure \ref{fig:dow}. 
 The DFT shows very does not show any strong peaks, however there is information in the auto correlation. 
@@ -1328,31 +1365,33 @@ We see that in this case that there may be some periodic nature to this data.
     \label{fig:dow}
 \end{figure}
 
-\subsection{Dow Jones Industrial Average}
+\subsubsection{Dow Jones Industrial Average}
 We can also look at the dow jones industrial average over the past year. 
 Data was found from \url{http://research.stlouisfed.org/fred2/series/DJIA/downloaddata}. 
 We can then compute the auto correlation for different lags on daily, weekly, and monthly intervals. 
 Using the fortran code seen in the appendix. 
 We can also look at the returns for these same periods, both are summarized in the table \ref{table:DJA}.
-\begin{tabular}
-\begin{table}{|c|c|c|c|c|}
-    \hline
-    K && 1 && 2 && 5 && 20 \\ \hline
-    Daily Price && 0.975 && 0.955 && 0.877 && 0.608 \\ \hline
-    Daily Returns && -0.089 && 0.104 && 0.005 && -0.061 \\ \hline
-    Weekly Price && 0.880 && 0.794 && 0.584 && -0.169 \\ \hline
-    Weekly returns && -0.174 && 0.066 && 0.048 && 0.023 \\ \hline
-    Monthly Price && 0.610 && 0.625 && -0.438 && N/A \\ \hline
-    Monthly Returns && -0.540 && -0.287 && -0.566 && N/A \\ \hline 
-\end{table}
+\begin{table}
+\begin{tabular}{ccccc}
+    \toprule
+    K & 1 & 2 & 5 & 20 \\
+    \midrule
+    Daily Price & 0.975 & 0.955 & 0.877 & 0.608 \\
+    Daily Returns & -0.089 & 0.104 & 0.005 & -0.061 \\
+    Weekly Price & 0.880 & 0.794 & 0.584 & -0.169 \\
+    Weekly returns & -0.174 & 0.066 & 0.048 & 0.023 \\
+    Monthly Price & 0.610 & 0.625 & -0.438 & N/A \\
+    Monthly Returns & -0.540 & -0.287 & -0.566 & N/A \\
+    \bottomrule
+\end{tabular}
 \caption{Summary of the Auto Correlation of the Dow Jones Industrial Average and the corresponding returns sampled daily, weekly, and monthly over a period of one year}
 \label{table:DJA}
-\end{tabular}
+\end{table}
 
 We can also see the returns as a function of time, shown in figure \ref{fig:returns}. 
 When we look at the stock price, wee see the auto correlation values hover between 0.5 and 1, for all sampling periods. 
 This would indicate that there is something periodic in the stock prices. 
-Once we look at the the returns the stock price gives, we see the auto correlation function hover around 0 for the same sampling periods. 
+Once we look at the returns the stock price gives, we see the auto correlation function hover around 0 for the same sampling periods. 
 This conflicting information can be explained. 
 The stock prices don't have any wild fluctuations. 
 Making the prices easily describable by periodic functions, however the returns have a higher variance, meaning that actual profit that can be gained by these stock prices do kj:g and are more of a random process. 
@@ -1371,10 +1410,10 @@ Figure \ref{fig:co2_time} shows the time series in the top panel in months.
 There is a linear trend to this data. 
 We can use gnuplot to fit a linear line to the data, and then remove the trend for analysis. 
 This gives us a trend of $f(t) = 0.118083t + 308.859$, this trend is shown along side the data, while the bottom panel shows the data with the trend removed. 
-From the power spectrum in figure \ref{fig:cos_power} we see a very strong harmonics. 
+From the power spectrum in figure \ref{fig:co2_power} we see a very strong harmonics. 
 This indicates the periodic nature of the carbon emissions. 
 Looking at the bottom panel we see that the as time goes on, there is an additional small trend, this would be an indication of acceleration. 
-From figure \ref{fig:cos_time} we can see a small acceleration in the carbon dioxide levels
+From figure \ref{fig:co2_time} we can see a small acceleration in the carbon dioxide levels
 
 According to the source provided Carbon Dioxide starts to become toxic at around 10000ppm. 
 We can use the the linear trend to get a rough estimate of when we will reach these levels. 
@@ -1437,5 +1476,42 @@ With this report, we have explored a large number of these concepts and methods 
 
 \lstinputlisting[breaklines]{../Correlation.gp}
 \vspace{10pt}
+
+\subsection{Autocorrelation application code}
+\label{subsec:autocorrelation_application_code}
+
+\lstinputlisting[breaklines]{../auto_correlation.f90}
+\vspace{10pt}
+
+\subsection{Autocorrelation application plotting code}
+\label{subsec:autocorrelation_application_plotting_code}
+
+\lstinputlisting[breaklines]{../auto_correlation.gp}
+\vspace{10pt}
+
+\subsection{Differential equations code}
+\label{subsec:differential_equations_code}
+
+\lstinputlisting[breaklines]{../Diff_eq.f90}
+\vspace{10pt}
+
+\subsection{Differential equations plotting code}
+\label{subsec:differential_equations_plotting_code}
+
+\lstinputlisting[breaklines]{../Diff_eq.gp}
+\vspace{10pt}
+
+\subsection{General applications code}
+\label{subsec:general_applications_code}
+
+\lstinputlisting[breaklines]{../general_applications.f90}
+\vspace{10pt}
+
+\subsection{General applications plotting code}
+\label{subsec:general_applications_plotting_code}
+
+\lstinputlisting[breaklines]{../general_applications.gp}
+\vspace{10pt}
+
 
 \end{document}

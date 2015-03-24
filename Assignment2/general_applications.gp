@@ -5,6 +5,8 @@ set title "DFT of Heart Beats"
 set yrange [0:40000]
 set nokey
 set xrange [0:5]
+unset xlabel
+unset ylabel
 plot "./Data/beats_fft.txt" using 1:2 with lines
 
 unset out
@@ -29,6 +31,8 @@ unset multiplot
 unset out
 
 #----------------------------------------------------------------------
+
+set terminal pdfcairo enhanced size 5, 8
 
 set output "./Plots/dow_fft.pdf" 
 set multiplot layout 3,1 title "Given Dow Jones"
@@ -56,6 +60,8 @@ unset out
 
 #----------------------------------------------------------------------
 
+set terminal pdfcairo enhanced size 5, 3
+
 set output "./Plots/co2_power.pdf"
 set title "Power Spectrum of Carbon Emmision Cycles"
 set nokey
@@ -66,6 +72,8 @@ plot "./Data/co2_power.txt" using 1:2 with lines
 unset out
 
 #----------------------------------------------------------------------
+
+set terminal pdfcairo enhanced size 5, 5
 
 set output "./Plots/co2_time.pdf"
 set multiplot layout 2,1
@@ -87,6 +95,8 @@ unset multiplot
 unset out
 
 #--------------------------------------------------------------------
+set terminal pdfcairo enhanced size 5, 8
+
 set output "./Plots/returns.pdf"
 set multiplot layout 3,1 title "Returns from the Dow Jones Industrail Average"
 

@@ -85,7 +85,7 @@ subroutine processSignal(file1,sample_max, signal)
     call calc_power(ac_fft, ac_power)
     
     do i=1,size(freq)
-        write(file1,*) i, signal(i), freq(i), power(i), ac_power(i)
+        write(file1,*) i, signal(i), freq(i), power(i), ac_power(i)/2.0, ac(i)
     end do
 
     deallocate(ac)
