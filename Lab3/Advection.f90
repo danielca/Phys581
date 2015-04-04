@@ -6,8 +6,8 @@ program Advection
 
     integer, parameter :: dp = kind(1.0d0)
 
-    real(dp), parameter :: x_min = -2.0d0
-    real(dp), parameter :: x_max =  2.0d0
+    real(dp), parameter :: x_min = -4.0d0
+    real(dp), parameter :: x_max =  4.0d0
     real(dp), parameter :: t_min =  0.0d0
     real(dp), parameter :: t_max =  2.0d0
 
@@ -32,12 +32,14 @@ program Advection
 
     write(43, *) "set terminal pdfcairo enhanced"
     write(43, *) ""
+    write(43, *) "set output ""./Plots/Advection.pdf"""
+    write(43, *) ""
     write(43, *) ""
 
     ind_num = 0
-    do scheme = 1, 4
-        do init_type = 1, 4
-            do trial = 1, 7
+    do init_type = 1, 4
+        do trial = 1, 7
+            do scheme = 1, 4
                 call solve_advection(spd(trial), dx(trial), dt(trial), &
                                      scheme, init_type, trial, 42, 43, ind_num)
                 ind_num = ind_num + 1
@@ -182,7 +184,8 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
     real(dp), intent(in) :: spd, dx, dt
     integer, intent(in) :: scheme, init_type, trial, fid, fid2, index_num
 
-    character(len=1024) :: scheme_str, fmt_str, title_str
+    character(len=1024) :: scheme_str, fmt_str, title_str, cbrange
+    real(dp) :: min_vel, max_vel
     integer :: n, j
 
     if (scheme == 1) then
@@ -195,12 +198,17 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
         scheme_str = "Crank-Nicolson"
     end if
 
-    fmt_str = "(a, a, a, i1, a, i1, a)"
-    !write(fid2, fmt_str)   " set output ""./Plots/Advection_", trim(scheme_str), &
-    !                            "_IC_", init_type, & 
-    !                            "_Trial_", trial, ".pdf"""
-    fmt_str = "(a, i0.3, a)"
-    write(fid2, fmt_str) " set output ""./Plots/Advection/Advection_", index_num, ".pdf"""
+    if (init_type == 1) then
+        min_vel = -1.2
+        max_vel = 1.2
+    else if ((init_type == 2) .or. (init_type == 4)) then
+        min_vel = -0.2
+        max_vel = 1.2
+    else if (init_type == 3) then
+        min_vel = -0.2
+        max_vel = maxval(vel(:, 1))
+    end if
+
     write(fid2, *) ""
     fmt_str = "(a, a, a, i1, a, i1, a)"
     write(fid2, fmt_str)   " set title ""Advection: ", trim(scheme_str), &
@@ -209,6 +217,8 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
     write(fid2, *) "set xlabel ""x"""
     write(fid2, *) "set ylabel ""t"""
     write(fid2, *) "set pm3d map"
+    write(fid2, *) "set palette gray"
+    write(fid2, *) "set cbrange [", min_vel, ":", max_vel, "]"
     write(fid2, *) "unset key"
     write(fid2, *) "unset grid"
     write(fid2, *) ""
@@ -216,15 +226,18 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
     write(fid2, fmt_str) " splot ""./Data/Advection.txt"" index ", index_num, " using 1:2:3 palette"
     write(fid2, *) ""
 
-    do n = 1, num_t
-        do j = 1, num_x
-            write(fid, *) x(j), t(n), vel(j, n)
-        end do
+    do j = 1, num_x
+        if ((x(j) > -2.0) .and. (x(j) < 2.0)) then
+            do n = 1, num_t
+                write(fid, *) x(j), t(n), vel(j, n)
+            end do
         write(fid, *) ""
+        end if
     end do
 
     write(fid, *) ""
     write(fid, *) ""
+
 
 end subroutine
 
