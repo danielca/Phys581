@@ -6,13 +6,15 @@ program Advection
 
     integer, parameter :: dp = kind(1.0d0)
 
-    real(dp), parameter :: x_min = -4.0d0
-    real(dp), parameter :: x_max =  4.0d0
+    real(dp), parameter :: x_min = -2.0d0
+    real(dp), parameter :: x_max =  2.0d0
     real(dp), parameter :: t_min =  0.0d0
     real(dp), parameter :: t_max =  2.0d0
 
     real(dp), dimension(:), allocatable :: x, t
     real(dp), dimension(:, :), allocatable :: vel
+
+    real(dp) :: energy_init, energy_fin, del_energy_rel
 
     ! Coefficients
     real(dp), dimension(:), allocatable :: a, b, c, d
@@ -30,11 +32,7 @@ program Advection
     open( unit = 42, file = "./Data/Advection.txt", action = "write" )
     open( unit = 43, file = "./Advection.gp", action = "write" )
 
-    write(43, *) "set terminal pdfcairo enhanced"
-    write(43, *) ""
-    write(43, *) "set output ""./Plots/Advection.pdf"""
-    write(43, *) ""
-    write(43, *) ""
+    call gnuplot_header(43)
 
     ind_num = 0
     do init_type = 1, 4
@@ -47,14 +45,46 @@ program Advection
         end do
     end do
 
-    write(43, *) "reset"
-    write(43, *) ""
+    call gnuplot_footer(43)
 
     close(42)
     close(43)
 
 
 contains
+
+
+subroutine gnuplot_header(fid2)
+    integer, intent(in) :: fid2
+
+    write(fid2, *) "set terminal pdfcairo enhanced size 5, 5"
+    write(fid2, *) ""
+    write(fid2, *) "set output ""./Plots/Advection.pdf"""
+    write(fid2, *) ""
+    write(fid2, *) "set size 1, 0.9"
+    write(fid2, *) "set origin 0, 0.1"
+    write(fid2, *) ""
+    write(fid2, *) "set xlabel ""x"""
+    write(fid2, *) "set ylabel ""t"""
+    write(fid2, *) "set pm3d map"
+    write(fid2, *) "set palette gray"
+    write(fid2, *) "set xrange [-2:2]"
+    write(fid2, *) "set yrange [0:2]"
+    write(fid2, *) "unset key"
+    write(fid2, *) "unset grid"
+    write(fid2, *) ""
+    write(fid2, *) ""
+
+end subroutine
+
+
+subroutine gnuplot_footer(fid2)
+    integer, intent(in) :: fid2
+
+    write(fid2, *) "reset"
+    write(fid2, *) ""
+
+end subroutine
 
 
 subroutine solve_advection(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num)
@@ -67,6 +97,7 @@ subroutine solve_advection(spd, dx, dt, scheme, init_type, trial, fid, fid2, ind
     call calc_coefs(scheme, spd*dt/(2.0*dx))
     call set_init_conds(init_type)
     call main_loop()
+    call calc_energy()
     call write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num)
     call clean_up()
 
@@ -180,6 +211,23 @@ subroutine main_loop()
 end subroutine
 
 
+subroutine calc_energy()
+    integer :: j
+
+    energy_init = 0.0
+    energy_fin  = 0.0
+    do j = 1, num_x
+        if ((x(j) > -2.0) .and. (x(j) < 2.0)) then
+            energy_init = energy_init + vel(j, 1)**2
+            energy_fin  = energy_fin  + vel(j, num_t)**2
+        end if
+    end do
+
+    del_energy_rel = (energy_fin - energy_init)/(energy_init)
+
+end subroutine
+
+
 subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num)
     real(dp), intent(in) :: spd, dx, dt
     integer, intent(in) :: scheme, init_type, trial, fid, fid2, index_num
@@ -214,16 +262,14 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
     write(fid2, fmt_str)   " set title ""Advection: ", trim(scheme_str), &
                                 ", Initial Condition ", init_type, & 
                                 ", Trial ", trial, """"
-    write(fid2, *) "set xlabel ""x"""
-    write(fid2, *) "set ylabel ""t"""
-    write(fid2, *) "set pm3d map"
-    write(fid2, *) "set palette gray"
     write(fid2, *) "set cbrange [", min_vel, ":", max_vel, "]"
-    write(fid2, *) "unset key"
-    write(fid2, *) "unset grid"
+    fmt_str = "(a, e15.3, a)"
+    write(fid2, fmt_str) " set label ""dE_{rel} = ", del_energy_rel, """ at -2.2, -0.5"
     write(fid2, *) ""
     fmt_str = "(a, i3, a)"
     write(fid2, fmt_str) " splot ""./Data/Advection.txt"" index ", index_num, " using 1:2:3 palette"
+    write(fid2, *) ""
+    write(fid2, *) "unset label"
     write(fid2, *) ""
 
     do j = 1, num_x
