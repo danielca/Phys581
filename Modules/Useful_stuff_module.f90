@@ -8,7 +8,13 @@ module Useful_stuff_module
     public :: normed_histogram
     public :: new_file_unit
 
+    interface assert_eq
+        module procedure assert_eq_int2, assert_eq_int3, assert_eq_int4
+    end interface
+
+
 contains
+
 
 real(8) function calculate_chi2(obs_freq)
     real(8), dimension(:,:), intent(in) :: obs_freq
@@ -134,6 +140,7 @@ subroutine histogram(data_array, bin_centres, hist_data)
 
 end subroutine
 
+
 subroutine normed_histogram(data_array, bin_centres, hist_data)
     ! Same as histogram, but normalizes the results so that the total area is unity
     ! (Generates an estimate of the probability distribution function)
@@ -176,5 +183,31 @@ integer function new_file_unit(unit) result(n)
     write(*,*) "new_unit ERROR: available unit not found."
 
 end function
+
+
+subroutine assert_eq_int2(n1, n2, string)
+    character(len=*), intent(in) :: string
+    integer, intent(in) :: n1, n2
+    if (n1 .ne. n2) then
+        write(*,*) 'ERROR: assert failed with tag: ', string
+    end if
+end subroutine
+
+
+subroutine assert_eq_int3(n1, n2, n3, string)
+    character(len=*), intent(in) :: string
+    integer, intent(in) :: n1, n2, n3
+    call assert_eq_int2(n1, n2, string)
+    call assert_eq_int2(n2, n3, string)
+end subroutine
+
+
+subroutine assert_eq_int4(n1, n2, n3, n4, string)
+    character(len=*), intent(in) :: string
+    integer, intent(in) :: n1, n2, n3, n4
+    call assert_eq_int3(n1, n2, n3, string)
+    call assert_eq_int2(n3, n4, string)
+end subroutine
+
 
 end module
