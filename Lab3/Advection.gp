@@ -8,7 +8,7 @@
  set xlabel "x"
  set ylabel "t"
  set pm3d map
- set palette gray
+ set palette defined (0 0 0 0, 1 1 1 1)
  set xrange [-2:2]
  set yrange [0:2]
  unset key

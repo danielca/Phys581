@@ -69,8 +69,6 @@ subroutine main_loop()
     c1 = 1.0 - 2.0*beta*dt/(dx**2)
     c2 = beta*dt/(dx**2)
 
-    !(u_j^{n+1} - u_j^n)/dt = beta*(u_{j+1}^n - 2 u_j^n + u_{j-1}^n)/dx^2
-
     do n = 1, num_t-1
         do j = 2, num_x-1
             vel(j, n+1) = c1*vel(j, n) + c2*(vel(j+1, n) + vel(j-1, n))
