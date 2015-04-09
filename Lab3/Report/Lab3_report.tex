@@ -26,17 +26,399 @@ stepnumber=1,}
 
 \maketitle
 
+\section{Warm up}
+\label{sec:warm_up}
 
+\subsection{The direct method}
+\label{subsec:the_direct_method}
+
+The direct method for solving a PDE involves applying a finite difference and then directly solving the resulting matrix equation.
+The key question is, can we always turn a finite difference equation into a matrix equation?
+
+Suppose we have a problem of the form
+\begin{align}
+    \mathcal{L} u(x, y) &= \rho(x, y)
+\end{align}
+where $ \mathcal{L} $ is a linear operator.
+For example, if we took $ \mathcal{L} = \partial_x^2 + \partial_y^2 $ we would have Poisson's equation.
+
+When we discretize this equation, we get an equation of the form
+\begin{align}
+    \mathcal{L}_d u[n,m] &= \rho[n, m] \label{eq:general_difference_eq}
+\end{align}
+with
+\begin{align}
+    n &= 1, 2, \ldots, N
+    \\
+    m &= 1, 2, \ldots, M
+\end{align}
+
+For example, for the Poisson equation operator with grid spacing $ h $, the discretized version would be
+\begin{align}
+    \mathcal{L}_d &= \frac{\nabla_x \Delta_x + \nabla_y \Delta_y}{h^2}
+\end{align}
+where $ \nabla $ and $ \Delta $ are the backward and forward difference operators defined in Chapter 12 of the textbook.
+
+Now, $ u[n,m] $ and $ \rho[n,m] $ can be seen as $ N\times M $ matrices, which are elements of an $ N \cdot M $-dimensional vector space.
+It is also not hard to see that if $ \mathcal{L} $ is a linear operator, then its discretized version $ \mathcal{L}_d $ is a linear operator on this vector space.
+
+From linear algebra, we know that we can write any element of an $ N \cdot M $ vector space as an $ N\cdot M $ element column vector.
+So we can write $ u[n,m] $ and $ \rho[n,m] $ as column vectors $ \vect{u} $ and $ \vect{\rho} $.
+We also know that we can write any linear operator on an $ N \cdot M $ dimensional vector space as an $ \left( N \cdot M \right) \times \left( N \cdot M \right) $ matrix.
+So we can write $ \mathcal{L}_d $ as a matrix $ \vect{L} $.
+Thus, we can write equation~\eqref{eq:general_difference_eq} as a matrix equation!
+\begin{align}
+    \vect{L} \cdot \vect{u} &= \vect{d}
+\end{align}
+
+The direct method then involves solving this matrix equation directly, and there are a number of well-known ways to do this.
+In particular, $ \vect{L} $ will usually be a sparse matrix with some sort of banded structure, so we can take advantage of fast algorithms designed for this type of matrix.
+
+The only piece of this which we have not discussed is how to define the maps
+\begin{align}
+    u[n,m] &\to \vect{u}
+    \\
+    \rho[n,m] &\to \vect{\rho}
+    \\
+    \mathcal{L}_d &\to \vect{L}
+\end{align}
+We know that this can be done from linear algebra theory, and it is not hard in practise.
+Basically, we are just re-indexing the matrix $ u[n,m] $ so that it only has one index.
+For example:
+\begin{align}
+    \mat{0 & 1 & 2 \\ 3 & 4 & 5 } &\to \mat{0 \\ 1 \\ 2 \\ 3 \\ 4 \\ 5 }
+\end{align}
+
+In summary, for linear differencing schemes, we can take advantage of the linearity to write the entire equation as a matrix equation.
+We can then directly solve this matrix equation to get our entire solution in one shot.
+The first challenge is translating the difference equation into a matrix equation, though we know that we can do it from linear algebra.
+The second challenge is solving the matrix equation, though we can take advantage of properties of the $ \vect{L} $ matrix such as sparseness.
+
+\subsection{Iterative solution method}
+\label{subsec:iterative_solution_method}
+
+From the section above, we know that for linear differential equations, we can write a linear difference equation of the form
+\begin{align}
+    \vect{L} \cdot \vect{u} &= \vect{\rho}
+\end{align}
+
+Now, let us split $ \vect{L} $ into two parts:
+\begin{align}
+    \vect{L} &= \vect{L}_1 - \vect{L}_2
+\end{align}
+so that
+\begin{align}
+    \vect{L}_1 \cdot \vect{u} &= \vect{L}_2 \cdot \vect{u} + \vect{\rho}
+\end{align}
+
+The iterative solution method starts with a guess solution $ \vect{u}^{(0)} $ and iteratively generates a set of solutions $ u^{(r)} $ using
+\begin{align}
+    \vect{L}_1 \cdot \vect{u}^{(r)} = \vect{L}_2 \cdot \vect{u}^{(r-1)} + \vect{\rho}
+\end{align}
+In the limit $ r \to \infty $, we expect to approach a steady-state solution where $ \vect{u}^{(r-1)} \approx \vect{u}^{r} $.
+So taking $ r \to \infty $ we get
+\begin{align}
+    \vect{L}_1 \cdot \vect{u}^{(\infty)} &= \vect{L}_2 \cdot \vect{u}^{(\infty)} + \vect{\rho}
+\end{align}
+and we can see that $ \vect{u}^{(\infty)} $ corresponds to the solution we are looking for.
+
+This method can be advantageous over the direct method if we pick $ \vect{L}_1 $ and $ \vect{L}_2 $ judiciously.
+In particular, we want $ \vect{L}_1 $ to be easily-invertible so that the iteration equation can be solved quickly without computationally-expensive linear system algorithms.
+
+The downside is that we now must solve a large number of linear equations.
+If this method is to be useful, it needs to converge reasonably fast.
+If the convergence is slow, it may not be the best method for the problem at hand.
+
+\subsection{Jacobi and Gauss-Seidel iteration methods}
+\label{subsec:jacobi_and_gauss_seidel_iteration_methods}
+
+The Jacobi and Gauss-Seidel iteration methods again solve equations of the form
+\begin{align}
+    \mathcal{L} u(x, y) &= \rho(x, y)
+\end{align}
+
+The idea here is to add a time dependence:
+\begin{align}
+    \frac{\partial u(x, y, t)}{\partial t} + \mathcal{L} u(x, y, t) &= \rho(x, y)
+\end{align}
+If we solve this time-dependent equation for some initial condition (a ``guess'' solution) we can find the solution to the time-independent equation by taking the limit $ t \to \infty $.
+This method is known as a relaxation method because the time-dependent solution ``relaxes'' to the time-independent solution.
+
+The Jacobi and Gauss-Seidel methods essentially discretize this time-dependent equation to solve it numerically.
+The only difference between the two methods lies in how the discretization is done.
+
+The Jacobi method uses a forward difference for the time derivative and central differences for the spatial derivatives. If we use a spatial grid size of $ h $ and a time step of $ k = h^2/4 $ (which is right at the stability condition) then we obtain the following update equation:
+\begin{align}
+    u^{n+1}_{j, l} &= \frac{1}{4} \left( u^{n}_{j+1, l} + u^{n}_{j-1, l} + u^{n}_{j, l+1} + u^{n}_{j, l-1} \right) - \frac{h^2}{4} \rho_{j,l}
+\end{align}
+So we obtain $ u^{n+1}_{j, l} $ by averaging the four adjacent points at the last time step and then adding the source term.
+To obtain the time-independent solution $ u_{j, l} $, we simply apply this update equation until the difference between successive terms is below some threshold.
+
+The Gauss-Seidel method is quite similar, but it uses values from the $ n+1 $ time step as soon as they are available.
+The update equation is:
+\begin{align}
+    u^{n+1}_{j, l} &= \frac{1}{4} \left( u^{n}_{j+1, l} + u^{n+1}_{j-1, l} + u^{n}_{j, l+1} + u^{n+1}_{j, l-1} \right) - \frac{h^2}{4} \rho_{j,l}
+\end{align}
+This method will converge to a solution slightly faster than the Jacobi method, though they are both quite slow.
+
+Though it's not clear from this presentation, both of these methods are examples of the matrix iteration method described in Section~\ref{subsec:iterative_solution_method}.
+This presentation is useful, though, because it gives a nice physical analogy: solving a time-independent equation by using the time-dependent equation in the limit $ t \to \infty $.
+
+\subsection{The Laplace equation}
+\label{subsec:the_laplace_equation}
+
+As an example of the above methods, we solve the Laplace equation
+\begin{align}
+    u_{xx} + u_{yy} &= 0
+\end{align}
+in the region $ x, y \in [0, 1] $ with boundary conditions
+\begin{align}
+    u(x,0) &= 100 \sin \left( 2 \pi x \right)
+    \\
+    u(x,1) &= -100 \sin \left( 2 \pi x \right)
+    \\
+    u(0, y) &= 0
+    \\
+    u(1, y) &= 0
+\end{align}
+We can think of this as solving for the voltage in a waveguide, for example.
+
+Using the code in Section~\ref{subsec:laplace_equation_code}, this equation was solved using the Jacobi and Gauss-Seidel relaxation methods.
+A $ 64 \times 64 $ grid was used with a convergence criteria of $ \left| u^{n+1} - u^{n} \right|_\text{max} < 10^{-8} $.
+The results are shown in Figure~\ref{fig:laplace}.
+The solution looks as we expect: the boundary conditions are met, and the function makes a smooth transition in between, almost like a sheet of rubber stretched over a bumpy, square frame.
+
+The two solutions are indistinguishable from each other, which is to be expected since we used the same convergence criteria for both.
+To reach this level of convergence, the Jacobi method took 3329 iterations and the Gauss-Seidel method took 3638 iterations.
+So the Gauss-Seidel took slightly longer to reach the same level of convergence.
+Note that this is quite a large number of iterations considering that the spatial resolution is only 64 points on each axis.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Laplace.pdf}
+    \caption{Solutions to the Laplace equation as determined by the Jacobi and Gauss-Seidel relaxation methods.}
+    \label{fig:laplace}
+\end{figure*}
+
+\subsection{Examples of PDE's}
+\label{subsec:examples_of_pdes}
+
+Here are some examples of partial differential equations which are important in a number of applications:
+\begin{itemize}
+\item
+    Poisson's equation (2\textsuperscript{nd} order):
+    \begin{align}
+        \nabla^2 u &= \rho
+    \end{align}
+    where
+    \begin{align}
+        \nabla^2 &= \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2} + \frac{\partial^2}{\partial z^2}
+    \end{align}
+    
+\item
+    Laplace's equation (2\textsuperscript{nd} order):
+    \begin{align}
+        \nabla^2 u &= 0
+    \end{align}
+\item
+    Wave equation (2\textsuperscript{nd} order):
+    \begin{align}
+        v^2 \nabla^2 u &= \frac{\partial^2 u}{\partial t^2}
+    \end{align}
+\item
+    Heat equation in one dimension (2\textsuperscript{nd} order):
+    \begin{align}
+        \alpha \frac{\partial^2 u}{\partial x^2} &= \frac{\partial u}{\partial t}
+    \end{align}
+\item
+    Complex Ginzburg-Landau equation (2\textsuperscript{nd} order):
+    \begin{align}
+        \frac{\partial u}{\partial t} &= (1 + i \alpha) \nabla^2 u + u - (1 + i \beta) |u|^2 u 
+    \end{align}
+\item
+    Korteweg-de Vries equation (3\textsuperscript{rd} order):
+    \begin{align}
+        \frac{\partial u}{\partial t} + \frac{\partial^3 u}{\partial x^3} - 6 u \frac{\partial u}{\partial x} &= 0
+    \end{align}
+\end{itemize}
+
+\subsection{Classification of PDE's}
+\label{subsec:classification_of_pde_s}
+
+Consider a PDE of the form
+\begin{align}
+    a u_{xx} + b u_{xy} + c u_{yy} + d u_{x} + e u_{y} + fu &= 0.
+\end{align}
+We define the discriminant as
+\begin{align}
+    \Delta &= b^2 - 4 a c.
+\end{align}
+We can then classify the equation as
+\begin{itemize}
+\item
+    Elliptic if $ \Delta < 0 $
+\item
+    Parabolic if $ \Delta = 0 $
+\item
+    Hyperbolic if $ \Delta > 0 $
+\end{itemize}
+
+For
+\begin{align}
+    u_{tt} - 2 u_{xx} &= 0
+\end{align}
+we have $ \Delta = - 4 (1) (-2) > 0 $, so this equation is hyperbolic.
+
+For 
+\begin{align}
+    u_{xx} + u_{yy} &= 0
+\end{align}
+we have $ \Delta = -4 (1) (1) < 0 $, so this equation is elliptic.
+
+For
+\begin{align}
+    u_t - u_{xx} &= 0
+\end{align}
+we have $ \Delta = 0 $ so this equation is parabolic.
+
+\subsection{Finite difference schemes}
+\label{subsec:finite_difference_schemes}
+
+If we take a function $ u(x,t) $ and discretize it using
+\begin{align}
+    u^{n}_{j} &= u(x_0 + j \Delta x, t_0 + n \Delta t)
+\end{align}
+then we can approximate differential equations in $ u(x,t) $ by difference equations in $ u^n_j $.
+Table~\ref{tab:finite_difference} shows various finite difference approximations for the spatial and temporal derivatives of $ u(x,t) $.
+The order of the approximation describes how quickly the approximation converges as the difference approaches zero.
+For example, a second-order finite-difference approximation to a spatial derivative will have an error on the order of $ (\Delta x)^2 $ while a first order approximation will have an error on the order of $ \Delta x $.
+
+\begin{table}
+    \begin{tabular}{cccc}
+        \toprule
+        Derivative & FD approximation & Type & Order
+        \\
+        \midrule
+        $ \dfrac{\partial u}{\partial x} $ & $ \dfrac{u^{n}_{j+1} - u^{n}_{j}}{\Delta x} $ & Forward & 1\textsuperscript{st} 
+        \\[2.2ex]
+        $ \dfrac{\partial u}{\partial x} $ & $ \dfrac{u^{n}_{j} - u^{n}_{j-1}}{\Delta x} $ & Backward & 1\textsuperscript{st}
+        \\[2.2ex]
+        $ \dfrac{\partial u}{\partial x} $ & $ \dfrac{u^{n}_{j+1} - u^{n}_{j-1}}{2 \Delta x} $ & Central & 2\textsuperscript{nd}
+        \\[2.2ex]
+        $ \dfrac{\partial^2 u}{\partial x^2} $ & $ \dfrac{u^{n}_{j+1} - 2 u^{n}_{j} + u^{n}_{j-1}}{(\Delta x)^2} $ & Symmetric & 2\textsuperscript{nd}
+        \\[2.2ex]
+        $ \dfrac{\partial u}{\partial t} $ & $ \dfrac{u^{n+1}_{j} - u^{n}_{j}}{\Delta t} $ & Forward & 1\textsuperscript{st}
+        \\[2.2ex]
+        $ \dfrac{\partial u}{\partial t} $ & $ \dfrac{u^{n}_{j} - u^{n-1}_{j}}{\Delta t} $ & Backward & 1\textsuperscript{st}
+        \\[2.2ex]
+        $ \dfrac{\partial u}{\partial t} $ & $ \dfrac{u^{n+1}_{j} - u^{n-1}_{j}}{2\Delta t} $ & Central & 2\textsuperscript{nd}
+        \\[2.2ex]
+        $ \dfrac{\partial^2 u}{\partial t^2} $ & $ \dfrac{u^{n+1}_{j} - 2 u^{n}_{j} + u^{n-1}_{j}}{(\Delta t)^2} $ & Symmetric & 2\textsuperscript{nd}
+        \\[2.2ex]
+        \bottomrule
+    \end{tabular}
+    \caption{Table of finite difference approximations to the derivatives of $ u(x,t) $.}
+    \label{tab:finite_difference}
+\end{table}
+
+As an example, we will estimate the derivative of $ u(x) = x^2 $ using finite differences.
+Analytically, we know that $ u'(x) = 2x $, and so $ u'(3) = 6 $.
+
+Applying a forward difference we get
+\begin{align}
+    u'(3) &\approx \frac{u(3 + \Delta x) - u(3)}{\Delta x}
+    \\
+    u'(3) &\approx \frac{(3 + \Delta x)^2 - (3)^2}{\Delta x}
+    \\
+    u'(3) &\approx \frac{9 + 6 \Delta x + (\Delta x)^2 - 9}{\Delta x}
+    \\
+    u'(3) &\approx 6 + \Delta x
+\end{align}
+
+So we can see that with $ \Delta x = 0.1 $ we will have
+\begin{align}
+    u'(3) &\approx 6.1
+\end{align}
+and with $ \Delta x = 0.05 $ we will have
+\begin{align}
+    u'(3) &\approx 6.05
+\end{align}
+So we can see that this approaches the correct value as $ \Delta x \to 0 $.
+
+Applying a central difference we get
+\begin{align}
+    u'(3) &\approx \frac{u(3 + \Delta x) - u(3 - \Delta x)}{2 \Delta x}
+    \\
+    u'(3) &\approx \frac{(3 + \Delta x)^2 - (3 - \Delta x)^2}{2 \Delta x}
+    %\\
+    %u'(3) &\approx \frac{9 + 6 \Delta x + (\Delta x)^2 - (9 - 6 \Delta x + (\Delta x)^2 )}{2 \Delta x}
+    \\
+    u'(3) &\approx \frac{9 + 6 \Delta x + (\Delta x)^2 - 9 + 6 \Delta x - (\Delta x)^2 }{2 \Delta x}
+    \\
+    u'(3) &\approx 6
+\end{align}
+
+So the second order approximation is actually exactly correct.
+Whether we use $ \Delta x = 0.1 $ or $ \Delta x = 0.05 $, we will get the exact answer which is $ u'(3) = 6 $.
+So we can see that the central difference approximation is more accurate than the forward difference approximation.
+
+In this case we got better than second-order accurate (we got perfectly accurate), but in general the central difference approximation will be at worst second-order accurate.
+This is better than the forward difference approximation which is at worst first-order accurate.
+
+\subsection{Advection equation schemes}
+\label{subsec:advection_equation_schemes}
+
+There are a number of finite difference schemes which can be used to solve the advection equation
+\begin{align}
+    u_t &= c u_x
+\end{align}
+with $ c > 0 $.
+They are most conveniently formulated in terms of the Courant number
+\begin{align}
+    r &= \frac{c \Delta t}{\Delta x}
+\end{align}
+
+A number of explicit and implicit schemes are shown in Table~\ref{tab:advection_schemes}.
+
+% ====================================================================================
+% ADD SOME MORE STUFF HERE!
+% ====================================================================================
+
+\begin{table*}[ht]
+    \centering
+    \begin{tabular}{cccc}
+        \toprule
+        Name & Expression for $ u^{n+1}_j $ & Order & CFL 
+        \\
+        \midrule
+        Forward Euler & $ u^n_j - \frac{1}{2} r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < 1 $ 
+        \\[1.5ex]
+        Upwind & $ u^n_j - r \left(u^{n}_{j} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < 1 $ 
+        \\[1.5ex]
+        Leap-Frog & $ u^{n-1}_j - r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 2\textsuperscript{nd} & $ r < 1 $ 
+        \\[1.5ex]
+    Lax-Wendroff & $ u^n_j - \frac{1}{2} r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) + \frac{1}{2} r^2 \left(u^{n}_{j+1} - 2 u^n_j + u^{n}_{j-1}\right) $ & 2\textsuperscript{nd} & $ r < 1 $ 
+        \\[1.5ex]
+        \midrule
+        Backward Euler & $ u^n_j - \frac{1}{2} r \left(u^{n+1}_{j+1} - u^{n+1}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < \infty $ 
+        \\[1.5ex]
+        Crank-Nicolson & $ u^n_j - \frac{1}{4} r \left( u^{n+1}_{j+1} - u^{n+1}_{j-1} + u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < \infty $ 
+        \\[1.5ex]
+        \bottomrule
+    \end{tabular}
+    \caption{Finite difference schemes for the advection equation.}
+    \label{tab:advection_schemes}
+\end{table*}
 
 \onecolumn
 
 \section{Code}
 \label{sec:code}
 
-%\subsection{General applications plotting code}
-%\label{subsec:general_applications_plotting_code}
-%
-%\lstinputlisting[breaklines]{../general_applications.gp}
-%\vspace{10pt}
+\subsection{Laplace equation code}
+\label{subsec:laplace_equation_code}
+
+\lstinputlisting[breaklines]{../Laplace.f90}
+\vspace{10pt}
 
 \end{document}

@@ -16,8 +16,9 @@ VPATH = .:$(MOD_DIR)
 
 ADVECTION = Linear_systems_module.o Advection.o
 DIFFUSION = Useful_stuff_module.o Diffusion.o
+LAPLACE = Useful_stuff_module.o Laplace.o
 
-ALL = Advection Diffusion
+ALL = Advection.exe Diffusion.exe Laplace.exe
 
 %.o: %.f90
 	$(CC) $(CFLAGS) -c $<
@@ -28,6 +29,9 @@ Advection.exe: $(ADVECTION)
 	$(CC) $(CFLAGS) -o $@ $^
 
 Diffusion.exe: $(DIFFUSION)
+	$(CC) $(CFLAGS) -o $@ $^
+
+Laplace.exe: $(LAPLACE)
 	$(CC) $(CFLAGS) -o $@ $^
 
 .PHONY:

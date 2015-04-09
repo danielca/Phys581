@@ -57,9 +57,14 @@ contains
 subroutine gnuplot_header(fid2)
     integer, intent(in) :: fid2
 
-    write(fid2, *) "set terminal pdfcairo enhanced size 5, 5"
+    write(fid2, *) "set terminal pdfcairo enhanced size 5, 3"
+    write(fid2, *) ""
+    write(fid2, *) "set loadpath ""../Gnuplot_stuff"""
+    write(fid2, *) "load ""parula.pal"""
+    write(fid2, *) "load ""my_config.cfg"""
     write(fid2, *) ""
     write(fid2, *) "set output ""./Plots/Advection.pdf"""
+    write(fid2, *) ""
     write(fid2, *) ""
     write(fid2, *) "set size 1, 0.9"
     write(fid2, *) "set origin 0, 0.1"
@@ -67,8 +72,6 @@ subroutine gnuplot_header(fid2)
     write(fid2, *) "set xlabel ""x"""
     write(fid2, *) "set ylabel ""t"""
     write(fid2, *) "set pm3d map"
-    !write(fid2, *) "set palette gray"
-    write(fid2, *) "set palette defined (0 0 0 0, 1 1 1 1)"
     write(fid2, *) "set xrange [-2:2]"
     write(fid2, *) "set yrange [0:2]"
     write(fid2, *) "unset key"
@@ -264,11 +267,13 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
                                 ", Initial Condition ", init_type, & 
                                 ", Trial ", trial, """"
     write(fid2, *) "set cbrange [", min_vel, ":", max_vel, "]"
-    fmt_str = "(a, e15.3, a)"
-    write(fid2, fmt_str) " set label ""dE_{rel} = ", del_energy_rel, """ at -2.2, -0.5"
+    fmt_str = "(a, g12.3, a)"
+    write(fid2, fmt_str) " set label ""ΔE_{rel} = ", del_energy_rel, &
+                         """ at -2.2, -0.5 textcolor rgb ""#404040"""
     write(fid2, *) ""
     fmt_str = "(a, i3, a)"
-    write(fid2, fmt_str) " splot ""./Data/Advection.txt"" index ", index_num, " using 1:2:3 palette"
+    write(fid2, fmt_str) " splot ""./Data/Advection.txt"" index ", index_num, &
+                         " using 1:2:3 palette"
     write(fid2, *) ""
     write(fid2, *) "unset label"
     write(fid2, *) ""
