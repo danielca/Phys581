@@ -3,6 +3,7 @@
 \usepackage{mymacros}
 \usepackage{parskip}
 \usepackage{hyperref}
+\usepackage{pdfpages}
 \usepackage{listings}
 \usepackage{booktabs}
 \usepackage{mathtools}
@@ -379,10 +380,9 @@ They are most conveniently formulated in terms of the Courant number
 \end{align}
 
 A number of explicit and implicit schemes are shown in Table~\ref{tab:advection_schemes}.
-
-% ====================================================================================
-% ADD SOME MORE STUFF HERE!
-% ====================================================================================
+Note that the Forward Euler scheme requires $ r = 0 $ for stability, which means the scheme is unconditionally unstable.
+We see that the implicit schemes are unconditionally stable: the Courant number can be as big as desired without making the scheme unstable.
+This does not mean that large Courant numbers are the best choice for accuracy, of course, just that the solution will not blow up.
 
 \begin{table*}[ht]
     \centering
@@ -391,18 +391,18 @@ A number of explicit and implicit schemes are shown in Table~\ref{tab:advection_
         Name & Expression for $ u^{n+1}_j $ & Order & CFL 
         \\
         \midrule
-        Forward Euler & $ u^n_j - \frac{1}{2} r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < 1 $ 
+        Forward Euler & $ u^n_j + \frac{1}{2} r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ r = 0 $ 
         \\[1.5ex]
-        Upwind & $ u^n_j - r \left(u^{n}_{j} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < 1 $ 
+        Upwind & $ u^n_j + r \left(u^{n}_{j} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ |r| < 1 $ 
         \\[1.5ex]
-        Leap-Frog & $ u^{n-1}_j - r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 2\textsuperscript{nd} & $ r < 1 $ 
+        Leap-Frog & $ u^{n-1}_j + r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 2\textsuperscript{nd} & $ |r| < 1 $ 
         \\[1.5ex]
-    Lax-Wendroff & $ u^n_j - \frac{1}{2} r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) + \frac{1}{2} r^2 \left(u^{n}_{j+1} - 2 u^n_j + u^{n}_{j-1}\right) $ & 2\textsuperscript{nd} & $ r < 1 $ 
+    Lax-Wendroff & $ u^n_j + \frac{1}{2} r \left(u^{n}_{j+1} - u^{n}_{j-1}\right) + \frac{1}{2} r^2 \left(u^{n}_{j+1} - 2 u^n_j + u^{n}_{j-1}\right) $ & 2\textsuperscript{nd} & $ |r| < 1 $ 
         \\[1.5ex]
         \midrule
-        Backward Euler & $ u^n_j - \frac{1}{2} r \left(u^{n+1}_{j+1} - u^{n+1}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < \infty $ 
+        Backward Euler & $ u^n_j + \frac{1}{2} r \left(u^{n+1}_{j+1} - u^{n+1}_{j-1}\right) $ & 1\textsuperscript{st} & $ |r| < \infty $ 
         \\[1.5ex]
-        Crank-Nicolson & $ u^n_j - \frac{1}{4} r \left( u^{n+1}_{j+1} - u^{n+1}_{j-1} + u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 1\textsuperscript{st} & $ r < \infty $ 
+        Crank-Nicolson & $ u^n_j + \frac{1}{4} r \left( u^{n+1}_{j+1} - u^{n+1}_{j-1} + u^{n}_{j+1} - u^{n}_{j-1}\right) $ & 2\textsuperscript{nd} & $ |r| < \infty $ 
         \\[1.5ex]
         \bottomrule
     \end{tabular}
@@ -410,7 +410,331 @@ A number of explicit and implicit schemes are shown in Table~\ref{tab:advection_
     \label{tab:advection_schemes}
 \end{table*}
 
+\subsection{Implicit versus explicit schemes}
+\label{subsec:implicit_versus_explicit_schemes}
+
+Finite difference methods are usually specified by a set of update equations, which give relationships between the value of the function at different grid points.
+We use these update equations along with initial/boundary conditions to solve for all the desired values.
+
+In an explicit finite difference scheme, each of these update equations only involves \emph{one} unknown value (and any number of known values).
+This is useful because it means that we can simply loop through the update equations and solve for the unknown value.
+For example, in the forward Euler scheme for the advection equation, our update equations are
+\begin{align}
+    u^{n+1}_{j} = u^n_j + \frac{1}{2} r \left(u^{n}_{j+1} - u^{n}_{j-1}\right)
+\end{align}
+If we loop through $ n $ and $ j $ in the correct order, we will always know $ u^n_j $, $ u^n_{j+1} $, and $ u^{n}_{j-1} $; and the only unknown will be $ u^{n+1}_{j} $.
+Thus, programming this scheme will be easy, and the updates will be quite fast computationally.
+
+In an implicit scheme, we have more than one unknown per update equation.
+This requires us to solve a number of simultaneous equations, which can be challenging and time-consuming depending on the system.
+Methods like Crank-Nicolson may only require the solution of a tridiagonal matrix, which is not that hard to do quickly.
+However, if non-linear update equations arise, solving the system of equations could be extremely challenging.
+
+In general, implicit schemes tend to have nicer properties in terms of stability and convergence when compared to explicit schemes.
+However, the fact that they are slow and difficult to implement hurts their utility in practise.
+
+\subsection{Von Neumann stability analysis}
+\label{subsec:von_neumann_stability_analysis}
+
+Von Neumann stability analysis is used to determine whether a given finite difference scheme is stable.
+An unstable scheme will ``blow up'' in the sense that small perturbations are amplified and grow without bound, giving a useless solution.
+The idea of Von Neumann stability analysis is to plug in a complex exponential and watch how the scheme changes its amplitude.
+For stability, we want to ensure that at each time step, the amplitude of the mode does not increase.
+
+Complex exponentials represent a complete basis set for all possible solutions, so the amplitude of these complex exponentials is related to the total energy in the system.
+If none of the amplitudes are growing, then the total energy cannot be growing, and the system is guaranteed to be stable.
+If all of the amplitudes grow without bound, then the energy will grow without bound for any initial conditions and the system is guaranteed to be unstable.
+In intermediate cases, the system may be unstable, but only for certain initial conditions.
+
+Typically, we would do Von Neumann analysis and pick our scheme so that it is guaranteed to be stable.
+For many cases (especially linear systems), Von Neumann stability analysis is straight-forward, and stability is guaranteed by a simple condition.
+For more complicated cases like non-linear equations, stability analysis may be more complicated.
+
+\subsection{Stability of Crank-Nicolson}
+\label{subsec:stability_of_crank_nicolson}
+
+As seen in Table~\ref{tab:advection_schemes}, the Crank-Nicolson update equation for the advection equation is
+\begin{align}
+    u^{n+1}_j - u^{n}_j - \frac{1}{4} r \left( u^{n+1}_{j+1} - u^{n+1}_{j-1} + u^{n}_{j+1} - u^{n}_{j-1}\right) = 0
+\end{align}
+
+We will use the ansatz $ \tilde{u}^n_j = z^n e^{i j \omega} $.
+Note the shift properties of this ansatz:
+\begin{align}
+    \tilde{u}^{n}_{j+k} &= e^{i k \omega} \tilde{u}^{n}_{j} \label{eq:space_shift_property}
+    \\
+    \tilde{u}^{n+k}_{j} &= z^{k} \tilde{u}^{n}_{j} \label{eq:time_shift_property}
+\end{align}
+
+Using this, we get
+\begin{align}
+    \left[ z - 1 - \frac{1}{4} r \left( z e^{+i\omega} - z e^{-j\omega} + e^{+i\omega} - e^{-i\omega} \right) \right] \tilde{u}^{n}_{j} = 0
+\end{align}
+\begin{align}
+    \left[ z - 1 - \frac{i}{2} r \left( z \sin(\omega) + \sin(\omega) \right) \right] \tilde{u}^{n}_{j} = 0
+    \\
+    \Big[ z \big( 2 - i r \sin(\omega) \big) - i r \sin(\omega) - 2 \Big] \tilde{u}^{n}_{j} = 0
+\end{align}
+
+Solving for the amplification factor $ z $ we get
+\begin{align}
+    z &= \frac{2 + i r \sin(\omega)}{2 - i r \sin(\omega)}
+    \\
+    |z|^2 &= \frac{4 + r^2 \sin^2(\omega)}{4 + r^2 \sin^2(\omega)} = 1
+\end{align}
+
+So the Crank-Nicolson scheme is unconditionally stable for the advection equation.
+
+\section{FDs in the Numerical Recipes}
+\label{sec:fds_in_the_numerical_recipes}
+
+We apply various schemes to flux conservative PDEs of the type
+\begin{align}
+    \frac{\partial u(x,t)}{\partial t} + \frac{\partial f(u)}{\partial x} &= 0
+\end{align}
+
+\section{Popular cases}
+\label{sec:popular_cases}
+
+\subsection{The advection equation}
+\label{subsec:the_advection_equation}
+
+Here we use a number of finite difference schemes to solve the advection equation
+\begin{align}
+    \frac{\partial u}{\partial t} &= c \frac{\partial u}{\partial x}
+\end{align}
+
+The exact analytical solution can be determined using the method of characteristics, which is essentially a change of variables.
+If we define $ \xi = x - ct $ and $ \eta = x + ct $, then
+\begin{align}
+    \frac{\partial u}{\partial t} &= \frac{\partial u}{\partial \xi} \frac{\partial \xi}{\partial t} + \frac{\partial u}{\partial \eta} \frac{\partial \eta}{\partial t}
+    \\
+    \frac{\partial u}{\partial t} &= - c \frac{\partial u}{\partial \xi} + c \frac{\partial u}{\partial \eta}
+\end{align}
+and
+\begin{align}
+    \frac{\partial u}{\partial x} &= \frac{\partial u}{\partial \xi} \frac{\partial \xi}{\partial x} + \frac{\partial u}{\partial \eta} \frac{\partial \eta}{\partial x}
+    \\
+    \frac{\partial u}{\partial x} &= \frac{\partial u}{\partial \xi} + \frac{\partial u}{\partial \eta}
+\end{align}
+
+Plugging these into the advection equation we get
+\begin{align}
+    -c \frac{\partial u}{\partial \xi} + c \frac{\partial u}{\partial \eta} &= c \frac{\partial u }{\partial \xi} + c \frac{\partial u}{\partial \eta}
+\end{align}
+and simplifying, this becomes
+\begin{align}
+    \frac{\partial u}{\partial \xi} &= 0
+\end{align}
+
+This tells us that $ u $ is \emph{not} a function of $ \xi $, and thus the solution is of the form
+\begin{align}
+    u(x,t) &= u(\eta) = u(x + ct)
+\end{align}
+
+In particular, if the initial condition is given by
+\begin{align}
+    u(x,0) &= u_0(x)
+\end{align}
+then the solution for any time is just
+\begin{align}
+    u(x,t) &= u_0(x + ct)
+\end{align}
+and we see that the shape of $ u_0 $ is maintained, it is simply shifted along the $ x $ axis with velocity $ c $.
+
+As an example, suppose $ u_0 $ is some sort of pulse.
+If $ c > 0 $, then the pulse will move to the left with time.
+If $ c < 0 $, then the pulse will move to the right with time.
+
+We will now solve the advection equation in a super-duper number of different ways.
+We will use four different initial conditions:
+\begin{align}
+    u_1(x,0) &= \sin(2x)
+    \\
+    u_2(x,0) &= \begin{cases} 0 & \text{if } x < 0 \\ 1 & \text{if } x \geq 0 \end{cases}
+    \\
+    u_3(x,0) &= \begin{cases} 0 & \text{if } x < 0 \\ \dfrac{1}{\Delta x} & \text{if } x = 0 \\ 0 & \text{if } x > 0 \end{cases}
+    \\
+    u_4(x,0) &= \exp\left( -4 x^2 \right)
+\end{align}
+For each initial condition, we will apply 7 different sets of numerical parameters, seen in Table~\ref{tab:advection_parameters}.
+For each of these sets of parameters, we use 4 of the finite difference schemes from Table~\ref{tab:advection_schemes}: Forward Euler, Lax-Wendroff, Backward Euler, and Crank-Nicolson.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{ccccc}
+        \toprule
+        Trial & $ c $ & $ \Delta x $ & $ \Delta t $ & $ r $
+        \\
+        \midrule
+        1 & 0.5 & 0.04 & 0.02 & 0.25
+        \\
+        2 & 0.5 & 0.02 & 0.02 & 0.5
+        \\
+        3 & 0.5 & 0.0137 & 0.02 & 0.728
+        \\
+        4 & 0.5 & 0.0101 & 0.02 & 0.99
+        \\
+        5 & 0.5 & 0.0099 & 0.02 & 1.11
+        \\
+        6 & 0.5 & 0.02 & 0.01 & 0.25
+        \\
+        7 & 0.5 & 0.02 & 0.04 & 1
+        \\
+        \bottomrule
+    \end{tabular}
+    \caption{FD parameters for the advection equation.}
+    \label{tab:advection_parameters}
+\end{table}
+
+The code in Section~\ref{subsec:advection_equation_code} performs all these solutions.
+The resulting solutions are plotted on the pages just before the Code section (Section~\ref{sec:code}).
+To go through all these plots in detail would be tedious, but we can see some general results.
+
+In terms of stability, we see the following.
+\begin{itemize}
+\item
+    The Forward Euler almost always leads to unstable or wildly-inaccurate solutions.
+    This is why the Forward Euler method should never be used for advection problems.
+\item
+    The Lax-Wendroff method is stable for all the tested values of $ r $, except for in trial 5 where $ r $ is slightly greater than 1.
+    In that case, we begin to see instability (though it is not as severe as the Forward Euler).
+    Note that Lax-Wendroff is even stable for the ``edge'' cases where $ r = 0.99 $ and $ r = 1 $.
+\item
+    The other two schemes are implicit schemes, and we see that they are always stable.
+\end{itemize}
+
+In terms of parameters, we see the following.
+\begin{itemize}
+\item
+    Increasing the grid density improves the solution.
+    For example, in trial 6 the grid is twice as dense as in trial 1 (and the Courant number is the same).
+    We can see that the solutions for trial 6 are more accurate than the solutions for trial 1.
+    Particularly look at initial conditions 2 and 3, where the sharp transitions make the accuracy more noticeable.
+\item
+    Values of $ r $ which are close to 1 (but not over!) appear to give the best results.
+    For example, compare the Lax-Wendroff solution for the third initial condition between trials 6 and 7.
+    We see that the trial 7 solution is much better, even through the grid is actually sparser compared with trial 6.
+    This is simply because the Courant number was chosen well.
+\end{itemize}
+
+In terms of schemes, we see the following.
+\begin{itemize}
+\item
+    All methods except for forward Euler perform quite well for initial conditions 1 and 4, where there are no sharp transitions.
+\item
+    The backward Euler method tends to ``smear out'' the sharp transitions seen in initial conditions 2 and 3.
+    However, it does not introduce and oscillatory behaviour near the transitions.
+    This is characterisitc of a first-order scheme.
+\item
+    The Crank-Nicolson and Lax-Wendroff methods both acheive much sharper transitions for initial conditions 2 and 3.
+    However, they acheive this by introducing oscillations near the edges of the transition.
+    This is characteristic of a second-order scheme.
+\end{itemize}
+
+In summary:
+\begin{itemize}
+\item
+    Forward Euler should \emph{never} be used for advection problems.
+\item
+    Lax-Wendroff is comparable to Crank-Nicolson in terms of accuracy, and it has the advantage of being an easy-to-implement explicit scheme.
+    Its downsides are that it introduces oscillations near sharp transitions and it has the potential for instability if the CFL condition is not met.
+\item
+    Backward Euler does not introduce any oscillations near sharp transitions, which may be an important feature when modelling fluid dynamics.
+    It is also unconditionally stable, though its results are not as accurate as Lax-Wendroff or Crank-Nicolson.
+\item
+    Crank-Nicolson is quite accurate and unconditionally stable.
+    Its downsides are that it is an implicit scheme (difficult to implement) and it introduces oscillations near sharp transitions.
+\end{itemize}
+
+\subsection{The diffusion equation}
+\label{subsec:the_diffusion_equation}
+
+In this section we solve the sourceless diffusion equation
+\begin{align}
+    \frac{\partial u}{\partial t} - \beta \frac{\partial^2 u}{\partial x^2} &= 0
+\end{align}
+on the interval $ x \in [0,1] $ with initial condition
+\begin{align}
+    u(x,0) &= \sin(\pi x)
+\end{align}
+and boundary conditions
+\begin{align}
+    u(0, t) &= u(1, t) = 0
+\end{align}
+
+It is easy to verify by direct substitution that the analytical solution is
+\begin{align}
+    u(x, t) &= e^{-\beta \pi^2 t} \sin(\pi x)
+\end{align}
+
+We will solve this by finite differences, using a first order forward difference for the temporal derivative and a second order symmetric difference for the spatial derivative.
+We get
+\begin{align}
+    \frac{u^{n+1}_j - u^n_j}{\Delta t} - \beta \frac{u^{n}_{j+1} - 2 u^n_j + u^{n}_{j-1}}{(\Delta x)^2} &= 0
+\end{align}
+which gives
+\begin{align}
+    u^{n+1}_j &= u^n_j + r \left( u^{n}_{j+1} - 2 u^n_j + u^{n}_{j-1} \right)
+\end{align}
+where
+\begin{align}
+    r &= \frac{\beta \Delta t}{(\Delta x)^2}
+\end{align}
+
+To analyze the stability of this scheme, we will use the ansatz $ \tilde{u}^n_j = z^n e^{i j \omega} $, and we will again use the space and time shift properties~\eqref{eq:space_shift_property} and~\eqref{eq:time_shift_property}.
+Using this properties and plugging this ansatz into the finite difference scheme, we arrive at
+\begin{align}
+    z \tilde{u}^n_j &= \tilde{u}^n_j + r \left( e^{+i \omega} \tilde{u}^n_j - 2 \tilde{u}^n_j + e^{-i\omega} \tilde{u}^n_j \right)
+    \\
+    z \tilde{u}^n_j &= \left( r e^{+i\omega} + r e^{-i\omega} + 1 - 2 r \right) \tilde{u}^n_j
+\end{align}
+So the amplification factor is
+\begin{align}
+    z &= r e^{+i\omega} + r e^{-i\omega} + 1 - 2 r
+    \\
+    z &= 2 r \cos(\omega) + 1 - 2 r
+\end{align}
+Since $ \cos(\omega) $ ranges between $ -1 $ and $ 1 $, the amplification factor will be between $ 1 - 4r $ and $ 1 $.
+
+So, for stability, we need
+\begin{align}
+    -1 < 4r &- 1 < 1
+    \\
+    0 < &4r < 2
+    \\
+    0 < &r < \frac{1}{2}
+\end{align}
+
+Thus if $ \beta > 0 $ (which it must be, since otherwise our analytical equation is unstable), our stability condition is
+\begin{align}
+    \frac{\beta \Delta t}{(\Delta x)^2} &< \frac{1}{2}
+\end{align}
+Or, since $ \Delta x $ is usually determined by the spatial variation in the diffusion coefficient and the initial conditions, our stability condition can be written as
+\begin{align}
+    \Delta t &< \Delta t_\text{max} = \Delta\frac{(\Delta x)^2}{2 \beta}
+\end{align}
+
+The FD solution to this diffusion problem was found for $ \Delta t = 0.9 \Delta t_\text{max} $, 300 time steps, 51 grid points, and $ \beta = 1 $.
+The results are shown in Figure~\ref{fig:diffusion}.
+We can see that the numerical solution is effectively indistinguishable from the analytical solution.
+So we have found an effective finite-difference method for solving the diffusion equation.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Diffusion.pdf}
+    \caption{Numerical and analytical solutions to the diffusion equation.}
+    \label{fig:diffusion}
+\end{figure*}
+
+% ============================================================================================
+% REMEMBER TO PLOT THE INITIAL AND FINAL CONDITIONS!!!
+% ============================================================================================
+
+
 \onecolumn
+
+\includepdf[pages={-}]{../Plots/Advection.pdf}
 
 \section{Code}
 \label{sec:code}
@@ -420,5 +744,12 @@ A number of explicit and implicit schemes are shown in Table~\ref{tab:advection_
 
 \lstinputlisting[breaklines]{../Laplace.f90}
 \vspace{10pt}
+
+\subsection{Advection equation code}
+\label{subsec:advection_equation_code}
+
+\lstinputlisting[breaklines]{../Advection.f90}
+\vspace{10pt}
+
 
 \end{document}

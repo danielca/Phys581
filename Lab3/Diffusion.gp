@@ -1,4 +1,4 @@
-set terminal pdfcairo enhanced
+set terminal pdfcairo enhanced size 8, 4
 
 set style line 1 linewidth 6
 
@@ -8,7 +8,8 @@ load 'my_config.cfg'
 
 set output "./Plots/Diffusion.pdf"
 
-set title "Diffusion equation solution"
+set multiplot layout 1, 2
+
 set xlabel "x"
 set ylabel "t"
 set xrange [0:1]
@@ -18,8 +19,11 @@ set pm3d map
 unset key
 unset grid
 
+set title "Diffusion equation finite-difference solution"
 splot "./Data/Diffusion.txt" using 1:2:3 palette title "stuff"
 
-#plot 0.05*sin(x), 0.05*sin(2*x), 0.05*sin(3*x), 0.05*sin(4*x)
+set title "Diffusion equation analytical solution"
+splot "./Data/Diffusion.txt" using 1:2:4 palette title "stuff"
 
 reset
+

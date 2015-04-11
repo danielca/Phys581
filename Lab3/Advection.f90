@@ -26,6 +26,7 @@ program Advection
     real(dp), dimension(7) :: spd, dx, dt
 
     spd = (/ 5.00d-1, 5.00d-1, 5.00d-1, 5.00d-1, 5.00d-1, 5.00d-1, 5.00d-1 /)
+    spd = -spd
     dx  = (/ 4.00d-2, 2.00d-2, 1.37d-2, 1.01d-2, 9.90d-3, 2.00d-2, 2.00d-2 /)
     dt  = (/ 2.00d-2, 2.00d-2, 2.00d-2, 2.00d-2, 2.00d-2, 1.00d-2, 4.00d-2 /)
 
@@ -57,7 +58,7 @@ contains
 subroutine gnuplot_header(fid2)
     integer, intent(in) :: fid2
 
-    write(fid2, *) "set terminal pdfcairo enhanced size 5, 3"
+    write(fid2, *) "set terminal pdfcairo enhanced size 8.5, 11"
     write(fid2, *) ""
     write(fid2, *) "set loadpath ""../Gnuplot_stuff"""
     write(fid2, *) "load ""parula.pal"""
@@ -65,9 +66,6 @@ subroutine gnuplot_header(fid2)
     write(fid2, *) ""
     write(fid2, *) "set output ""./Plots/Advection.pdf"""
     write(fid2, *) ""
-    write(fid2, *) ""
-    write(fid2, *) "set size 1, 0.9"
-    write(fid2, *) "set origin 0, 0.1"
     write(fid2, *) ""
     write(fid2, *) "set xlabel ""x"""
     write(fid2, *) "set ylabel ""t"""
@@ -101,7 +99,7 @@ subroutine solve_advection(spd, dx, dt, scheme, init_type, trial, fid, fid2, ind
     call calc_coefs(scheme, spd*dt/(2.0*dx))
     call set_init_conds(init_type)
     call main_loop()
-    call calc_energy()
+    !call calc_energy(scheme, init_type, trial)
     call write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num)
     call clean_up()
 
@@ -215,7 +213,8 @@ subroutine main_loop()
 end subroutine
 
 
-subroutine calc_energy()
+subroutine calc_energy(scheme, init_type, trial)
+    integer, intent(in) :: scheme, init_type, trial
     integer :: j
 
     energy_init = 0.0
@@ -228,6 +227,17 @@ subroutine calc_energy()
     end do
 
     del_energy_rel = (energy_fin - energy_init)/(energy_init)
+
+    if (abs(del_energy_rel) > 10.0) then
+        write(*,*) ""
+        write(*,*) "Possible instability!"
+        write(*,*) "Scheme      = ", scheme
+        write(*,*) "Init. cond. = ", init_type
+        write(*,*) "Trial       = ", trial
+        write(*,*) ""
+        write(*,*) "Rel. ΔE     = ", del_energy_rel
+        write(*,*) ""
+    end if
 
 end subroutine
 
@@ -261,6 +271,8 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
         max_vel = maxval(vel(:, 1))
     end if
 
+    if (mod(index_num, 8) == 0) write(fid2, *) "set multiplot layout 4, 2"
+
     write(fid2, *) ""
     fmt_str = "(a, a, a, i1, a, i1, a)"
     write(fid2, fmt_str)   " set title ""Advection: ", trim(scheme_str), &
@@ -268,8 +280,8 @@ subroutine write_out(spd, dx, dt, scheme, init_type, trial, fid, fid2, index_num
                                 ", Trial ", trial, """"
     write(fid2, *) "set cbrange [", min_vel, ":", max_vel, "]"
     fmt_str = "(a, g12.3, a)"
-    write(fid2, fmt_str) " set label ""ΔE_{rel} = ", del_energy_rel, &
-                         """ at -2.2, -0.5 textcolor rgb ""#404040"""
+    !write(fid2, fmt_str) " set label ""ΔE_{rel} = ", del_energy_rel, &
+    !                     """ at -2.2, -0.5 textcolor rgb ""#404040"""
     write(fid2, *) ""
     fmt_str = "(a, i3, a)"
     write(fid2, fmt_str) " splot ""./Data/Advection.txt"" index ", index_num, &
