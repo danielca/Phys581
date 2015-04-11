@@ -19,13 +19,17 @@ LAPLACE = Useful_stuff_module.o Laplace.o
 ADVECTION = Linear_systems_module.o Advection.o
 DIFFUSION = Useful_stuff_module.o Diffusion.o
 AD_COMBINED = Useful_stuff_module.o AD_combined.o
+SHOCKTUBE = nrtype.o nrutil.o nr.o rtsec.o rtsafe.o Shocktube.o
 
-ALL = Advection.exe Diffusion.exe Laplace.exe
+ALL = Advection.exe Diffusion.exe Laplace.exe Shocktube.exe AD_combined.exe
 
 %.o: %.f90
 	$(CC) $(CFLAGS) -c $<
 
 all: $(ALL)
+
+Shocktube.exe: $(SHOCKTUBE)
+	$(CC) $(CFLAGS) -o $@ $^
 
 Advection.exe: $(ADVECTION)
 	$(CC) $(CFLAGS) -o $@ $^
