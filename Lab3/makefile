@@ -1,9 +1,10 @@
 CC = gfortran
 CFLAGS = -fcheck=all -O3
 
-MOD_DIR = ../Modules/
+MOD_DIR = ../Modules/ 
+NR_DIR = ../Numerical_recipes/
 
-VPATH = .:$(MOD_DIR)
+VPATH = .:$(MOD_DIR) $(NR_DIR)
 
 #Add <taget_name> to variables with its dependencies 
 #as the string to be dereferenced.
@@ -17,13 +18,16 @@ VPATH = .:$(MOD_DIR)
 ADVECTION = Linear_systems_module.o Advection.o
 DIFFUSION = Useful_stuff_module.o Diffusion.o
 LAPLACE = Useful_stuff_module.o Laplace.o
-
-ALL = Advection.exe Diffusion.exe Laplace.exe
+SHOCKTUBE = nrtype.o nrutil.o nr.o rtsec.o rtsafe.o Shocktube.o
+ALL = Advection.exe Diffusion.exe Laplace.exe Shocktube.exe
 
 %.o: %.f90
 	$(CC) $(CFLAGS) -c $<
 
 all: $(ALL)
+
+Shocktube.exe: $(SHOCKTUBE)
+	$(CC) $(CFLAGS) -o $@ $^
 
 Advection.exe: $(ADVECTION)
 	$(CC) $(CFLAGS) -o $@ $^
