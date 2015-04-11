@@ -2,8 +2,9 @@ CC = gfortran
 CFLAGS = -fcheck=all -O3
 
 MOD_DIR = ../Modules/
+NR_DIR = ../Numerical_recipes/
 
-VPATH = .:$(MOD_DIR)
+VPATH = .:$(MOD_DIR):$(NR_DIR)
 
 #Add <taget_name> to variables with its dependencies 
 #as the string to be dereferenced.
@@ -14,9 +15,10 @@ VPATH = .:$(MOD_DIR)
 #
 #Then add <target_name> to ALL variable
 
+LAPLACE = Useful_stuff_module.o Laplace.o
 ADVECTION = Linear_systems_module.o Advection.o
 DIFFUSION = Useful_stuff_module.o Diffusion.o
-LAPLACE = Useful_stuff_module.o Laplace.o
+AD_COMBINED = Useful_stuff_module.o AD_combined.o
 
 ALL = Advection.exe Diffusion.exe Laplace.exe
 
@@ -32,6 +34,9 @@ Diffusion.exe: $(DIFFUSION)
 	$(CC) $(CFLAGS) -o $@ $^
 
 Laplace.exe: $(LAPLACE)
+	$(CC) $(CFLAGS) -o $@ $^
+
+AD_combined.exe: $(AD_COMBINED)
 	$(CC) $(CFLAGS) -o $@ $^
 
 .PHONY:

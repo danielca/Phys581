@@ -98,6 +98,13 @@ subroutine write_stuff()
         write(fid, *) ""
     end do
 
+    write(fid, *) ""
+    write(fid, *) ""
+
+    do j = 1, num_x
+        write(fid, *) x(j), vel(j, 1), vel_theor(j, 1), vel(j, num_t), vel_theor(j, num_t)
+    end do
+
     close(fid)
 
 end subroutine

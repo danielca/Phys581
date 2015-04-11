@@ -717,19 +717,151 @@ Or, since $ \Delta x $ is usually determined by the spatial variation in the dif
 
 The FD solution to this diffusion problem was found for $ \Delta t = 0.9 \Delta t_\text{max} $, 300 time steps, 51 grid points, and $ \beta = 1 $.
 The results are shown in Figure~\ref{fig:diffusion}.
-We can see that the numerical solution is effectively indistinguishable from the analytical solution.
+Not surprisingly, we see that the solution gets more ``diffuse'' as time progresses.
+We can also see that the numerical solution is effectively indistinguishable from the analytical solution.
 So we have found an effective finite-difference method for solving the diffusion equation.
 
 \begin{figure*}[ht]
     \centering
     \includegraphics[width=0.9\linewidth]{../Plots/Diffusion.pdf}
-    \caption{Numerical and analytical solutions to the diffusion equation.}
+    \caption{Numerical and analytical solutions to the diffusion equation: full solution.}
     \label{fig:diffusion}
 \end{figure*}
 
-% ============================================================================================
-% REMEMBER TO PLOT THE INITIAL AND FINAL CONDITIONS!!!
-% ============================================================================================
+In Figure~\ref{fig:diffusion2}, we see the initial and final conditions for both the analytical and finite-difference solutions.
+We see again that the numerical solution is in excellent agreement with the analytical solution.
+We see the expected behaviour of the diffusion equation: the sine pulse simply decreases in amplitude exponentially over time.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Diffusion2.pdf}
+    \caption{Numerical and analytical solutions to the diffusion equation: initial and final states.}
+    \label{fig:diffusion2}
+\end{figure*}
+
+\subsection{The advection-diffusion equation}
+\label{subsec:the_advection_diffusion_equation}
+
+In this section, we solve the combined advection-diffusion equation
+\begin{align}
+    \frac{\partial u}{\partial t} + c \frac{\partial u}{\partial x} &= \beta \frac{\partial^2 u}{\partial x^2}
+\end{align}
+
+We discretize this equation by replacing $ \partial/\partial t $ with a forward difference, $ \partial/\partial x $ with a backward difference, and $ \partial^2/\partial x^2 $ with a symmetric difference:
+\begin{align}
+    \frac{u^{n+1}_j - u^n_j}{\Delta t} + c \frac{u^n_j - u^n_{j-1}}{\Delta x} &= \beta \frac{u^n_{j+1} - 2 u^n_j + u^n_{j-1}}{(\Delta x)^2}
+\end{align}
+This gives
+\begin{align}
+    u^{n+1}_j &= u^n_j - r \left(u^n_j - u^n_{j-1}\right) + s \left(u^n_{j+1} - 2 u^n_j + u^n_{j-1} \right)
+    \\
+    u^{n+1}_j &= s u^n_{j+1} + (1 - r - 2s) u^n_j + (r + s) u^n_{j-1}
+\end{align}
+where
+\begin{align}
+    r &= \frac{c \Delta t}{\Delta x} \quad \text{and} \quad s = \frac{\beta \Delta t}{(\Delta x)^2}
+\end{align}
+
+To analyze the stability of this scheme, we will again use the ansatz $ \tilde{u}^n_j = z^n e^{i j \omega} $, and we will again use the space and time shift properties~\eqref{eq:space_shift_property} and~\eqref{eq:time_shift_property}.
+Using this properties and plugging this ansatz into the finite difference scheme, we arrive at
+\begin{align}
+    z \tilde{u}^n_j &= \left[ s e^{+i\omega} + (1 - r - 2s) + (r+s) e^{-i\omega} \right] \tilde{u}^n_j
+\end{align}
+So the amplification factor is
+\begin{align}
+    z &= s e^{+i\omega} + (1 - r - 2s) + (r+s) e^{-i\omega}
+    \\
+    z &= 2 s \cos(\omega) + (1 - r - 2s) + r \big[ \cos(\omega) - i \sin(\omega) \big]
+    \\
+    z &= 1 + (r + 2 s) \big[\cos(\omega) - 1 \big] - i r \sin(\omega)
+    \\
+    |z|^2 &= \Big( 1 + (r + 2 s) \big[\cos(\omega) - 1 \big] \Big)^2 + r^2 \sin^2(\omega)
+\end{align}
+To simplify the expression, let $ \alpha = r + 2s $ and $ c_\omega = \cos(\omega) $.
+Then
+\begin{align}
+    |z|^2 &= \Big( 1 + \alpha (c_\omega-1) \Big)^2 + r^2 \left( 1 - c_\omega^2 \right)
+\end{align}
+Since $ r^2 \leq \alpha^2 $ by definition of $ \alpha $ and $ 1 - c_\omega^2 > 0 $, we have
+\begin{align}
+    |z|^2 &\leq \Big( 1 + \alpha (c_\omega-1) \Big)^2 + \alpha^2 \left( 1 - c_\omega^2 \right)
+    %\\
+    %|z|^2 &\leq 1 + 2 \alpha (c - 1) + \alpha^2 (c-1)^2 + \alpha^2 (1 + c)(1 - c)
+    %\\
+    %|z|^2 &\leq 1 + 2 \alpha (c - 1) + \alpha^2 (1-c) (1 - c + 1 + c)
+    %\\
+    %|z|^2 &\leq 1 + 2 (c - 1) \left( \alpha - \alpha^2 \right)
+\end{align}
+after simplifying, this becomes
+\begin{align}
+    |z|^2 &\leq 1 + 2 (1 - c_\omega) \left( \alpha^2 - \alpha \right)
+\end{align}
+Now, since $ -1 \leq c_\omega \leq 1 $, we have $ 0 \leq 1 - c_\omega \leq 2 $, which means
+\begin{align}
+    |z|^2 &\leq 1 + 4 \left( \alpha^2 - \alpha \right)
+\end{align}
+So to have $ |z|^2 \leq 1 $ we clearly must have
+\begin{align}
+    \alpha^2 - \alpha &\leq 0
+\end{align}
+which means that
+\begin{align}
+    \alpha &\leq 1
+    \\
+    r + 2 s &\leq 1
+    \\
+    \frac{c \Delta t}{\Delta x} + 2 \frac{\beta \Delta t}{(\Delta x)^2} &\leq 1
+    \\
+    \Delta t \left( \frac{c \Delta x + 2 \beta}{(\Delta x)^2} \right) &\leq 1
+\end{align}
+
+So finally we have our stability criterion:
+\begin{align}
+    \Delta t &\leq \Delta t_\text{max} = \frac{(\Delta x)^2}{c \Delta x + 2 \beta}
+\end{align}
+
+We now solve this FD equation for $ c = 0.5 $, $ \beta = 0.1 $, $ 101 $ grid points, $ \Delta t = 0.9 \Delta t_\text{max} $.
+We solve the equation on the domain $ 0 \text{ m} \leq x \leq 60 \text{ m} $ and $ 0 \text{ s} \leq t \leq 57 \text{ s} $ with initial conditions
+\begin{align}
+    u(x, 0) &= \exp \left( \frac{(x - 12 \text{ m})^2}{18 \text{ m}^2} \right)
+\end{align}
+Note that under this set of parameters, it takes 88 time steps to move from $ t = 0 $ s to $ t = 57 $ s.
+
+The results are plotted in Figure~\ref{fig:ad_combined}.
+We see the expected behaviour.
+The pulse moves $ 28.15 $ m to the right over 57 s.
+This is in agreement with the advection equation, which predicts that the pulse should move to the right at $ 0.5 $ m/s.
+We also see the pulse spread out over time: its standard deviation changes from 3 m to 5.38 m, which demonstrates the diffusion part of the advection-diffusion equation.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/AD_combined.pdf}
+    \caption{Solution to the combined advection-diffusion equation.}
+    \label{fig:ad_combined}
+\end{figure*}
+
+\subsection{Conservative and non-conservative forms}
+\label{subsec:conservative_and_non_conservative_forms}
+
+The inviscid 1D Burger's equation is
+\begin{align}
+    \frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} &= 0
+\end{align}
+This is similar to the advection equation seen earlier, except that the velocity is replaced by $ u $.
+This makes it a non-linear equation.
+We will not simply see a shift of the initial wave in space; there can be a transfer of energy between Fourier modes due to the non-linearity.
+
+We can rewrite this equation in conservative form
+\begin{align}
+    \frac{\partial u}{\partial t} + \frac{1}{2} \frac{\partial u^2}{\partial x} &= 0
+    \\
+    \frac{\partial u}{\partial t} + \frac{\partial f(u)}{\partial x} &= 0
+\end{align}
+where
+\begin{align}
+    f(u) &= \frac{1}{2} u^2
+\end{align}
+
 
 
 \onecolumn
