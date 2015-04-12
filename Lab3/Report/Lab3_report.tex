@@ -861,7 +861,67 @@ where
 \begin{align}
     f(u) &= \frac{1}{2} u^2
 \end{align}
+This is known as the conservative form of the equation.
 
+
+We will discretize this equation in both its conservative an non-conservative forms.
+
+The upwind scheme for the non-conservative form is
+\begin{align}
+u^{n+1}_j &= u^n_j - \frac{\Delta t}{\Delta x} u^n_j \begin{cases} u^n_j - u^n_{j-1} & \text{if } u^n_j > 0 \\ u^n_{j+1} - u^n_j & \text{if } u^n_j < 0 \end{cases}
+\end{align}
+
+The upwind scheme for the conservative form is
+\begin{align}
+    u^{n+1}_j &= u^n_j - \frac{\Delta t}{\Delta x} \begin{cases} f^n_j - f^n_{j-1} & \text{if } u^n_j > 0 \\ f^n_{j+1} - f^n_j & \text{if } u^n_j < 0 \end{cases}
+    \\
+    f^n_j &= \frac{1}{2} \left( u^n_j \right)^2
+\end{align}
+
+The Lax-Wendroff scheme for the non-conservative form is
+\begin{align}
+    u^{n+1}_j &= u^n_j + \frac{1}{2} \frac{\Delta t}{\Delta x} u^n_j \left(u^{n}_{j+1} - u^{n}_{j-1}\right) + \nonumber
+    \\
+    & \quad + \frac{1}{2} \left( \frac{\Delta t}{\Delta x} u^n_j \right)^2 \left(u^{n}_{j+1} - 2 u^n_j + u^{n}_{j-1}\right) 
+\end{align}
+
+The Lax-Wendroff scheme for the conservative form is
+\begin{align}
+    u^{n+1/2}_{j+1/2} &= \frac{1}{2} \left( u^n_{j+1} + u^n_{j} \right) - \frac{\Delta t}{2 \Delta x} \left( f^n_{j+1} - f^n_{j} \right)
+    \\
+    f^{n+1/2}_{j+1/2} &= \frac{1}{2} \left( u^{n+1/2}_{j+1/2} \right)^2
+    \\
+    u^{n+1}_j &= u^n_j - \frac{\Delta t}{\Delta x} \left( f^{n+1/2}_{j+1/2} - f^{n+1/2}_{j-1/2} \right)
+    \\
+    f^{n+1}_j &= \frac{1}{2} \left( u^n_j \right)^2
+\end{align}
+
+For stability of these schemes, we need
+\begin{align}
+    \frac{\Delta t}{\Delta x} \left| u^n_j \right| &\leq 1
+\end{align}
+Alternatively, the condition on the time-step is
+\begin{align}
+    \Delta t &\leq \Delta t_\text{max} = \frac{\Delta x}{\left| u^n_j \right|}
+\end{align}
+This suggests that we should adaptively pick a time step using
+\begin{align}
+    \Delta t &\leq \Delta t_\text{max} = \frac{\Delta x}{\left| u^n_j \right|_\text{max}} \leq \frac{\Delta x}{\left| u^n_j \right|}
+\end{align}
+
+Using these four schemes, we solve the Burger's equation on $ x \in [-1, 1] $ for initial condition
+\begin{align}
+    u(x, 0) &= - \sin( \pi x)
+\end{align}
+and boundary conditions
+\begin{align}
+    u(-1, t) &= u(1, t) = 0
+\end{align}
+
+
+% ================================================================================
+% REMEMBER TO CHANGE THE INITIAL CONDITIONS ABOVE!
+% ================================================================================
 
 
 \onecolumn
