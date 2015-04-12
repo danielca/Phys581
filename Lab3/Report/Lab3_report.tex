@@ -911,17 +911,32 @@ This suggests that we should adaptively pick a time step using
 
 Using these four schemes, we solve the Burger's equation on $ x \in [-1, 1] $ for initial condition
 \begin{align}
-    u(x, 0) &= - \sin( \pi x)
+    u(x, 0) &= \frac{2}{3} \exp \left( - 12 x^2 \right)
 \end{align}
 and boundary conditions
 \begin{align}
-    u(-1, t) &= u(1, t) = 0
+    u(1, t) &= u(1, 0)
+    \\
+    u(-1, t) &= u(-1, 0)
 \end{align}
 
+The solutions from all four schemes are plotted in Figure~\ref{fig:burgers_inviscid}.
+In all of the plots, we can see the formation of a shock front over time.
+We see that the conservative equations do a better job of modelling the shock front.
+Conservation is a fundamental physical property, and these equations preserve that, so it is not surprising that they do a better job of modelling the physics.
 
-% ================================================================================
-% REMEMBER TO CHANGE THE INITIAL CONDITIONS ABOVE!
-% ================================================================================
+We also see that the upwind scheme is better than the Lax-Wendroff for fluid dynamics.
+The Lax-Wendroff is second-order accurate, so it should be more accurate mathematically.
+However, the Lax-Wendroff introduces oscillations which are not present in the actual physical system.
+In fluid dynamics, these oscillations could lead a researcher to incorrect conclusions, so it is better to go with the upwind.
+The upwind is less accurate mathematically, but preserves the rough ``shape'' of the solution better.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Burgers_inviscid.pdf}
+    \caption{Solutions to the inviscid Burger's equation with different numerical schemes.}
+    \label{fig:burgers_inviscid}
+\end{figure*}
 
 
 \onecolumn

@@ -1,5 +1,4 @@
-set terminal pdfcairo enhanced size 8, 12
-#set terminal pngcairo enhanced size 1200, 1800
+set terminal pdfcairo enhanced size 8, 10
 
 set style line 1 linewidth 6
 
@@ -20,7 +19,7 @@ set pm3d map
 unset key
 unset grid
 
-set title "Burger's full solution"
+set title "Burger's full solution (upwind non-conservative)"
 splot "./Data/Burgers_inviscid.txt" index 1 using 1:2:3 palette
 
 set xlabel "x (m)"
@@ -33,7 +32,7 @@ unset pm3d
 
 set pointsize 0.6
 
-set title "Burger's initial and final"
+set title "Burger's initial and final (upwind non-conservative)"
 plot \
     "./Data/Burgers_inviscid.txt" index 0 using 1:3 lt 11 with lines title "Initial", \
     "./Data/Burgers_inviscid.txt" index 2 using 1:3 lt 12 with lines title "Final"
@@ -47,7 +46,7 @@ set pm3d map
 unset key
 unset grid
 
-set title "Burger's full solution"
+set title "Burger's full solution (upwind conservative)"
 splot "./Data/Burgers_inviscid.txt" index 4 using 1:2:3 palette
 
 set xlabel "x (m)"
@@ -60,7 +59,7 @@ unset pm3d
 
 set pointsize 0.6
 
-set title "Burger's initial and final"
+set title "Burger's initial and final (upwind conservative)"
 plot \
     "./Data/Burgers_inviscid.txt" index 3 using 1:3 lt 11 with lines title "Initial", \
     "./Data/Burgers_inviscid.txt" index 5 using 1:3 lt 12 with lines title "Final"
@@ -74,7 +73,7 @@ set pm3d map
 unset key
 unset grid
 
-set title "Burger's full solution"
+set title "Burger's full solution (Lax-Wendroff non-conservative)"
 splot "./Data/Burgers_inviscid.txt" index 7 using 1:2:3 palette
 
 set xlabel "x (m)"
@@ -87,7 +86,7 @@ unset pm3d
 
 set pointsize 0.6
 
-set title "Burger's initial and final"
+set title "Burger's initial and final (Lax-Wendroff non-conservative)"
 plot \
     "./Data/Burgers_inviscid.txt" index 6 using 1:3 lt 11 with lines title "Initial", \
     "./Data/Burgers_inviscid.txt" index 8 using 1:3 lt 12 with lines title "Final"
@@ -101,7 +100,7 @@ set pm3d map
 unset key
 unset grid
 
-set title "Burger's full solution"
+set title "Burger's full solution (Lax-Wendroff conservative)"
 splot "./Data/Burgers_inviscid.txt" index 10 using 1:2:3 palette
 
 set xlabel "x (m)"
@@ -114,7 +113,7 @@ unset pm3d
 
 set pointsize 0.6
 
-set title "Burger's initial and final"
+set title "Burger's initial and final (Lax-Wendroff conservative)"
 plot \
     "./Data/Burgers_inviscid.txt" index 9 using 1:3 lt 11 with lines title "Initial", \
     "./Data/Burgers_inviscid.txt" index 11 using 1:3 lt 12 with lines title "Final"
