@@ -11,11 +11,14 @@ program Burgers_inviscid
     real(dp), parameter :: x_max = +1.0d0
 
     real(dp), parameter :: t_min = 0.0d0
-    real(dp), parameter :: t_max = 1.0d0
+    real(dp), parameter :: t_max = 2.1d0
 
-    integer, parameter :: max_num_t = 100000
+    integer, parameter :: max_num_t = 1000000
 
     real(dp), parameter :: visc = 1.0d-2/pi
+    !real(dp), parameter :: visc = 0.0
+
+    real(dp), dimension(4) :: time_out = (/ 0.01d0, 0.5d0, 1.0d0, 2.0d0 /)
 
 
     real(dp), dimension(:), allocatable :: x
@@ -51,7 +54,7 @@ end subroutine
 subroutine initialize()
     integer :: n, j
 
-    num_x = 200
+    num_x = 500
 
     allocate(x(num_x))
     allocate(vel_last(num_x))
@@ -82,21 +85,28 @@ end subroutine
 
 subroutine main_loop(scheme, fid)
     integer, intent(in) :: scheme, fid
-    integer :: n
+    integer :: n, i, num_time_out
 
-    call write_stuff(fid)
-    write(fid,*) ""
+    num_time_out = size(time_out)
+
+    !call write_stuff(fid)
+    !write(fid,*) ""
+    write(fid,"(a, f5.2, a)") """t = ", 0.0d0, " s"""
     call write_stuff(fid)
     do n = 1, max_num_t
         call step_forward(scheme)
-        call write_stuff(fid)
+        do i = 1, num_time_out
+            if ((t_next > time_out(i)) .and. (t_last .le. time_out(i))) then
+                write(fid,"(a, f5.2, a)") """t = ", time_out(i), " s"""
+                call write_stuff(fid)
+            end if
+        end do
         if (t_next > t_max) then
             exit
         end if
     end do
-    write(fid,*) ""
-    call write_stuff(fid)
-    write(fid,*) ""
+    !call write_stuff(fid)
+    !write(fid,*) ""
     write(*,*) "Simulation done at n = ", n
 
 end subroutine
@@ -175,6 +185,7 @@ subroutine write_stuff(fid)
     do j = 1, num_x
         write(fid, *) x(j), t_next, vel_next(j)
     end do
+    write(fid, *) ""
     write(fid, *) ""
 
 end subroutine

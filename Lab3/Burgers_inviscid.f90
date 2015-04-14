@@ -66,6 +66,7 @@ subroutine initialize()
     ! Set initial conditions
     do j = 1, num_x
         vel_last(j) = 0.6*exp(-12.0*x(j)*x(j))
+        !vel_last(j) = -sin(pi*x(j))
         vel_next(j) = vel_last(j)
         flux_last(j) = 0.5*vel_last(j)**2
         flux_next(j) = flux_last(j)
@@ -106,7 +107,7 @@ subroutine step_forward(scheme)
     flux_last = flux_next
     t_last = t_next
 
-    dt = 0.7*dx/maxval(vel_last)
+    dt = 0.5*dx/maxval(vel_last)
     t_next = t_last + dt
 
     if (scheme == 1) then
@@ -190,6 +191,12 @@ subroutine lax_wend_cons()
     do j = 2, num_x-1
         flux_next(j) = 0.5*vel_next(j)**2
     end do
+
+    !do j = 2, num_x-1
+    !    vel_next(j) = vel_last(j+1) - (0.25*dt/dx)*(vel_last(j+1)**2 - vel_last(j-1)**2) 
+    !    vel_next(j) = vel_next(j) + (0.125*dt*dt/(dx*dx))*( (vel_last(j) + vel_last(j+1))*(vel_last(j+1)**2 - vel_last(j)**2) &
+    !                - (vel_last(j) + vel_last(j-1))*(vel_last(j)**2 - vel_last(j-1)**2))
+    !end do
 
     vel_next(1) = vel_last(1)
     vel_next(num_x) = vel_last(num_x)

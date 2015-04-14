@@ -11,7 +11,7 @@ program Test
 
     num_x = size(x)
 
-    alpha = 1000.0
+    alpha = -1000.0
     max_num = 100
 
     do i = 1, num_x
