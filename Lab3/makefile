@@ -22,8 +22,11 @@ AD_COMBINED = Useful_stuff_module.o AD_combined.o
 BURGERS_INVISCID = Useful_stuff_module.o Burgers_inviscid.o
 BURGERS_GENERAL = Useful_stuff_module.o Burgers_general.o
 SHOCKTUBE = nrtype.o nrutil.o nr.o rtsec.o rtsafe.o Shocktube.o
+SHOCKTEST = nrtype.o nrutil.o nr.o rtsec.o rtsafe.o Shocktest.o
+QUANTUM = nrtype.o nrutil.o nr.o ludcmp.o lubksb.o Quantum.o
+ECONOPHYS = EconoPhys.o
 
-ALL = Advection.exe Diffusion.exe Laplace.exe Shocktube.exe AD_combined.exe Burgers_inviscid.exe Burgers_general.exe
+ALL = Advection.exe Diffusion.exe Laplace.exe Shocktube.exe AD_combined.exe Burgers_inviscid.exe Burgers_general.exe Shocktest.exe Quantum.exe EconoPhys.exe
 
 %.o: %.f90
 	$(CC) $(CFLAGS) -c $<
@@ -31,6 +34,15 @@ ALL = Advection.exe Diffusion.exe Laplace.exe Shocktube.exe AD_combined.exe Burg
 all: $(ALL)
 
 Shocktube.exe: $(SHOCKTUBE)
+	$(CC) $(CFLAGS) -o $@ $^
+
+EconoPhys.exe: $(ECONOPHYS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+Quantum.exe: $(QUANTUM)
+	$(CC) $(CFLAGS) -o $@ $^
+
+Shocktest.exe: $(SHOCKTEST)
 	$(CC) $(CFLAGS) -o $@ $^
 
 Advection.exe: $(ADVECTION)
