@@ -25,13 +25,17 @@ SHOCKTUBE = nrtype.o nrutil.o nr.o rtsec.o rtsafe.o Shocktube.o
 SHOCKTEST = nrtype.o nrutil.o nr.o rtsec.o rtsafe.o Shocktest.o
 QUANTUM = nrtype.o nrutil.o nr.o ludcmp.o lubksb.o Quantum.o
 ECONOPHYS = EconoPhys.o
+NOBODY_LIKES_CFD = Useful_stuff_module.o Nobody_likes_CFD.o
 
-ALL = Advection.exe Diffusion.exe Laplace.exe Shocktube.exe AD_combined.exe Burgers_inviscid.exe Burgers_general.exe Shocktest.exe Quantum.exe EconoPhys.exe
+ALL = Advection.exe Diffusion.exe Laplace.exe Shocktube.exe AD_combined.exe Burgers_inviscid.exe Burgers_general.exe Shocktest.exe Quantum.exe EconoPhys.exe Nobody_likes_CFD.exe
 
 %.o: %.f90
 	$(CC) $(CFLAGS) -c $<
 
 all: $(ALL)
+
+Nobody_likes_CFD.exe: $(NOBODY_LIKES_CFD)
+	$(CC) $(CFLAGS) -o $@ $^
 
 Shocktube.exe: $(SHOCKTUBE)
 	$(CC) $(CFLAGS) -o $@ $^
