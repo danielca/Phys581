@@ -37,13 +37,12 @@ program Burgers_inviscid
     real(dp) :: dx, dt
 
     open( unit = 42, file = "./Data/Nobody_likes_CFD.txt", action = "write" )
-
     call solve_CFD(1, 42)
-    !call solve_burgers(2, 42)
-    !call solve_burgers(3, 42)
-
     close(42)
 
+    open(unit=43, file="./Data/Nobody_likes_flux.txt", action= "write")
+    call solve_CFD(2,43)
+    close(43)
 
 contains
 
@@ -120,8 +119,8 @@ subroutine step_forward(scheme)
 
     if (scheme == 1) then
         call euler()
-    !else if (scheme == 2) then
-    !    call godonov()
+    else if (scheme == 2) then
+        call FLV()
     !else if (scheme == 3) then
     !    call van_leer()
     end if
@@ -155,10 +154,12 @@ end subroutine
 
 
 subroutine euler()
-    real(dp), dimension(num_x) :: u1h, u2h, u3h
+    real(dp), dimension(num_x) :: u1h, u2h, u3h, M, a
     integer :: j
-
+    
+    
     do j = 1, num_x-1
+        
         u1h(j) = 0.5*(u1(j,1) + u1(j+1,1))
         u2h(j) = 0.5*(u2(j,1) + u2(j+1,1))
         u3h(j) = 0.5*(u3(j,1) + u3(j+1,1))
@@ -196,6 +197,54 @@ subroutine euler()
 
 end subroutine
 
+real(dp) function calc_speed(u1_in, u2_in, u3_in)
+    real(dp), intent(in) :: u1_in, u2_in, u3_in
+    real(dp)::M
+    calc_speed = sqrt(gam*abs(calc_pre(u1_in, u2_in, u3_in)/u1_in))
+
+end function
+
+subroutine FVL()
+    real(dp), dimension(num_x) :: u1h, u2h, u3h
+    integer :: j
+    real(dp)::M,a,s
+
+    do j = 1, num_x-1
+        u1h(j) = 0.5*(u1(j,1) + u1(j+1,1))
+        u2h(j) = 0.5*(u2(j,1) + u2(j+1,1))
+        u3h(j) = 0.5*(u3(j,1) + u3(j+1,1))
+
+        s = u2(j,1)/(u1(j,1))
+        a = (calc_speed(u1(j,1), u2(j,1), u3(j,1)))
+        M = s/a
+        
+        if (M.lt.0) then
+            f1(j, 1) = calc_f1(u1h(j), u2h(j), u3h(j))
+            f2(j, 1) = calc_f2(u1h(j), u2h(j), u3h(j))
+            f3(j, 1) = calc_f3(u1h(j), u2h(j), u3h(j))
+        else if ((m.gt.0) .and. (m.lt.1)) then 
+            f1(j, 1) = 0.25*(u2(j,1)*a*(M+1)**2) -&
+                       0.25*(u2(j,1)*(M-1)**2)
+            f2(j, 1) = 0.25*(u2(j,1)*a*(M+1)**2)*((gam-1.)*s+2*a)/gam - &
+                       0.25*(u2(j,1)*a*(M-1)**2)*((gam-1.)*s-2*a)/gam 
+            f3(j, 1) = 0.25*(u2(j,1)*a*(M+1)**2) * ((((gam-1.)*s+ 2*a)**2)/(2*(gam-1.)*(gam+1))) - &
+                       0.25*(u2(j,1)*(M-1)**2) * ((((gam-1.)*s- 2*a)**2)/(2*(gam-1.)*(gam+1)))
+        else
+            f1(j, 1) = calc_f1(u1h(j), u2h(j), u3h(j))
+            f2(j, 1) = calc_f2(u1h(j), u2h(j), u3h(j))
+            f3(j, 1) = calc_f3(u1h(j), u2h(j), u3h(j)) 
+        end if
+    end do
+
+    do j = 2, num_x-1
+        
+            u1(j,2) = u1(j,1) - (dt/dx)*(f1(j,1) - f1(j-1,1))
+            u2(j,2) = u2(j,1) - (dt/dx)*(f2(j,1) - f2(j-1,1))
+            u3(j,2) = u3(j,1) - (dt/dx)*(f3(j,1) - f3(j-1,1))
+        
+    end do
+
+end subroutine
 
 subroutine write_stuff(fid)
     integer, intent(in) :: fid
