@@ -817,7 +817,7 @@ which means that
 
 So finally we have our stability criterion:
 \begin{align}
-    \Delta t &\leq \Delta t_\text{max} = \frac{(\Delta x)^2}{c \Delta x + 2 \beta}
+    \Delta t &\leq \Delta t_\text{max} = \frac{(\Delta x)^2}{c \Delta x + 2 \beta} \label{eq:lax_wendroff_stability}
 \end{align}
 
 We now solve this FD equation for $ c = 0.5 $, $ \beta = 0.1 $, $ 101 $ grid points, $ \Delta t = 0.9 \Delta t_\text{max} $.
@@ -893,7 +893,7 @@ The Lax-Wendroff scheme for the conservative form is
     \\
     u^{n+1}_j &= u^n_j - \frac{\Delta t}{\Delta x} \left( f^{n+1/2}_{j+1/2} - f^{n+1/2}_{j-1/2} \right)
     \\
-    f^{n+1}_j &= \frac{1}{2} \left( u^n_j \right)^2
+    f^{n+1}_j &= \frac{1}{2} \left( u^{n+1}_j \right)^2
 \end{align}
 
 For stability of these schemes, we need
@@ -938,6 +938,82 @@ The upwind is less accurate mathematically, but preserves the rough ``shape'' of
     \label{fig:burgers_inviscid}
 \end{figure*}
 
+\section{General applications}
+\label{sec:general_applications}
+
+\subsection{Fluid mechanics}
+\label{subsec:fluid_mechanics}
+
+Here we solve the general Burger's equation
+\begin{align}
+    \frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} - \nu \frac{\partial^2 u}{\partial x^2} &= 0
+\end{align}
+This is similar to the Burger's equation above, but we have added a viscous diffusion term.
+
+Writing the Burger's equation in conservative form, we get
+\begin{align}
+    \frac{\partial u}{\partial t} + \frac{\partial f(u)}{\partial x} &= 0
+\end{align}
+with
+\begin{align}
+    f(u, \nu) &= \frac{1}{2} u^2 - \nu \frac{\partial u}{\partial x}
+\end{align}
+
+For an advection-diffusion equation such as this, the Lax-Wendroff method is \emph{second} order.
+Using Equation~\ref{eq:lax_wendroff_stability} and replacing the velocity $ c $ with the maximum velocity in the system, we get the stability criterion:
+\begin{align}
+    \Delta t &\leq \Delta t_\text{max} = \frac{(\Delta x)^2}{|u_j^n|_\text{max} \Delta x + 2 \beta}
+\end{align}
+
+The non-conservative Lax-Wendroff scheme for the non-conservative form of the general Burger's equation is
+\begin{align}
+    u^{n+1}_j &= \frac{1}{2} \left( u^n_j \frac{\Delta t}{\Delta x} + \left( u^n_j \frac{\Delta t}{\Delta x} \right)^2 + 2 \nu \frac{\Delta t}{(\Delta x)^2} \right) u^n_{j-1} + \nonumber
+    \\ 
+    & \quad + \left( 1 -  \left( u^n_j \frac{\Delta t}{\Delta x} \right)^2  - 2 \nu \frac{\Delta t}{(\Delta x)^2} \right) u^n_j + \nonumber
+    \\ 
+    & \quad + \frac{1}{2} \left( -u^n_j \frac{\Delta t}{\Delta x} + \left( u^n_j \frac{\Delta t}{\Delta x} \right)^2 + 2 \nu \frac{\Delta t}{(\Delta x)^2} \right) u^n_{j+1}
+\end{align}
+
+The Lax-Wendroff scheme for the conservative form is
+\begin{align}
+    u^{n+1/2}_{j+1/2} &= \frac{1}{2} \left( u^n_{j+1} + u^n_{j} \right) - \frac{\Delta t}{2 \Delta x} \left( f^n_{j+1} - f^n_{j} \right)
+    \\
+    f^{n+1/2}_{j+1/2} &= \frac{1}{2} \left( u^{n+1/2}_{j+1/2} \right)^2 - \nu \frac{u^n_{j+1} - u^n_{j-1}}{\Delta x}
+    \\
+    u^{n+1}_j &= u^n_j - \frac{\Delta t}{\Delta x} \left( f^{n+1/2}_{j+1/2} - f^{n+1/2}_{j-1/2} \right)
+    \\
+    f^{n+1}_j &= \frac{1}{2} \left( u^{n+1}_j \right)^2 - \nu \frac{u^{n+1}_{j+1} - u^{n+1}_{j-1}}{\Delta x}
+\end{align}
+
+The Burger's equation was solved using the code in Section~\ref{subsec:burgers_general_equation_code}.
+The results are shown in Figure~\ref{fig:burgers_general}.
+In both cases we see clearly the formation of two shock fronts as time progresses.
+The cases are almost indistinguishable from one another because the Lax-Wendroff method is originally derived using the flux-conservative approach.
+In the end, the non-conservative Lax-Wendroff ends up being very similar to the conservative.
+
+Compared to the inviscid Burger's equation, we see a great deal of improvement.
+For the Burger's equation with viscosity, we see that there are no spurious oscillations; they have been damped out by the diffusion term.
+This actually gives us better stability because spurious oscillations have the potential to ``blow up'' with a non-linear equation like the Burger's.
+With the spurious oscillations damped out, we have a solution which is more stable and more accurate to reality.
+In some sense, the viscosity term makes the equation easier to solve.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../Plots/Burgers_general.pdf}
+    \caption{Solutions to the general Burger's equation using the Lax Wendroff method.}
+    \label{fig:burgers_general}
+\end{figure}
+
+
+\subsection{Quantum mechanics}
+\label{subsec:quantum_mechanics}
+
+In this section we solve a form of the time-independent Schrodinger equation
+\begin{align}
+    \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} - \alpha u &= 0
+\end{align}
+
+
 
 \onecolumn
 
@@ -956,6 +1032,48 @@ The upwind is less accurate mathematically, but preserves the rough ``shape'' of
 \label{subsec:advection_equation_code}
 
 \lstinputlisting[breaklines]{../Advection.f90}
+\vspace{10pt}
+
+\subsection{Diffusion equation code}
+\label{subsec:diffusion_equation_code}
+
+\lstinputlisting[breaklines]{../Diffusion.f90}
+\vspace{10pt}
+
+\subsection{Advection-diffusion equation code}
+\label{subsec:advection_diffusion_equation_code}
+
+\lstinputlisting[breaklines]{../AD_combined.f90}
+\vspace{10pt}
+
+\subsection{Burgers inviscid equation code}
+\label{subsec:burgers_inviscid_equation_code}
+
+\lstinputlisting[breaklines]{../Burgers_inviscid.f90}
+\vspace{10pt}
+
+\subsection{Burgers general equation code}
+\label{subsec:burgers_general_equation_code}
+
+\lstinputlisting[breaklines]{../Burgers_general.f90}
+\vspace{10pt}
+
+\subsection{Quantum mechanics code}
+\label{subsec:quantum_mechanics_code}
+
+\lstinputlisting[breaklines]{../Quantum.f90}
+\vspace{10pt}
+
+\subsection{Econo-physics code}
+\label{subsec:econo_physics_code}
+
+\lstinputlisting[breaklines]{../EconoPhys.f90}
+\vspace{10pt}
+
+\subsection{Riemann problem analytical code}
+\label{subsec:riemann_problem_analytical_code}
+
+\lstinputlisting[breaklines]{../Shocktest.f90}
 \vspace{10pt}
 
 

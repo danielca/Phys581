@@ -142,6 +142,9 @@ subroutine lax_wend_non_cons()
         const2 = 1 - c*c - 2*s
         const3 = s + 0.5*c*c - 0.5*c
         vel_next(j) = const1*vel_last(j-1) + const2*vel_last(j) + const3*vel_last(j+1)
+        !vel_next(j) = vel_last(j) - 0.5*(vel_last(j)*dt/dx)*(vel_last(j+1) - vel_last(j-1))
+        !vel_next(j) = vel_next(j) + (0.5*vel_last(j)*vel_last(j)*dt*dt/(dx*dx) + dt*visc/(dx*dx))*&
+        !                                (vel_last(j+1) - 2.0*vel_last(j) + vel_last(j-1))
     end do
 
     vel_next(1) = vel_last(1)
