@@ -15,7 +15,7 @@ program Burgers_inviscid
 
     integer, parameter :: num_x = 500
 
-    integer, parameter :: max_num_t = 100000
+    integer, parameter :: max_num_t = 10000
 
     real(dp), parameter :: rho_l = 1.0d5
     real(dp), parameter :: rho_r = 1.25d4
@@ -37,12 +37,10 @@ program Burgers_inviscid
     real(dp) :: dx, dt
 
     open( unit = 42, file = "./Data/Nobody_likes_CFD.txt", action = "write" )
-    call solve_CFD(1, 42)
+    call solve_CFD(1,42)
+    call solve_CFD(2,42)
+    call solve_CFD(3,42)
     close(42)
-
-    open(unit=43, file="./Data/Nobody_likes_flux.txt", action= "write")
-    call solve_CFD(2,43)
-    close(43)
 
 contains
 
@@ -61,6 +59,9 @@ subroutine initialize()
     integer :: n, j
 
     call linspace(x, x_min, x_max)
+
+    t_last = 0.0
+    t_next = 0.0
 
     dx = x(2) - x(1)
 
@@ -88,7 +89,7 @@ subroutine main_loop(scheme, fid)
     integer, intent(in) :: scheme, fid
     integer :: n
 
-    call write_stuff(fid)
+    !call write_stuff(fid)
     do n = 1, max_num_t
         call step_forward(scheme)
         if (t_next > t_max) then
@@ -120,9 +121,9 @@ subroutine step_forward(scheme)
     if (scheme == 1) then
         call euler()
     else if (scheme == 2) then
-        call FLV()
-    !else if (scheme == 3) then
-    !    call van_leer()
+        call lax_wendroff()
+    else if (scheme == 3) then
+        call FVL()
     end if
 
 end subroutine
@@ -153,7 +154,7 @@ subroutine apply_cfl()
 end subroutine
 
 
-subroutine euler()
+subroutine lax_wendroff()
     real(dp), dimension(num_x) :: u1h, u2h, u3h, M, a
     integer :: j
     
@@ -163,10 +164,6 @@ subroutine euler()
         u1h(j) = 0.5*(u1(j,1) + u1(j+1,1))
         u2h(j) = 0.5*(u2(j,1) + u2(j+1,1))
         u3h(j) = 0.5*(u3(j,1) + u3(j+1,1))
-
-        !f1(j, 1) = calc_f1(u1h(j), u2h(j), u3h(j))
-        !f2(j, 1) = calc_f2(u1h(j), u2h(j), u3h(j))
-        !f3(j, 1) = calc_f3(u1h(j), u2h(j), u3h(j))
 
         f1(j, 1) = calc_f1(u1(j, 1), u2(j, 1), u3(j, 1))
         f2(j, 1) = calc_f2(u1(j, 1), u2(j, 1), u3(j, 1))
@@ -186,9 +183,6 @@ subroutine euler()
     end do
 
     do j = 2, num_x-1
-        !u1(j,2) = u1(j,1) - (dt/dx)*(f1(j,1) - f1(j-1,1))
-        !u2(j,2) = u2(j,1) - (dt/dx)*(f2(j,1) - f2(j-1,1))
-        !u3(j,2) = u3(j,1) - (dt/dx)*(f3(j,1) - f3(j-1,1))
 
         u1(j, 2) = u1(j, 1) - (dt/dx)*(f1(j,2) - f1(j-1,2))
         u2(j, 2) = u2(j, 1) - (dt/dx)*(f2(j,2) - f2(j-1,2))
@@ -196,6 +190,33 @@ subroutine euler()
     end do
 
 end subroutine
+
+
+subroutine euler()
+    real(dp), dimension(num_x) :: u1h, u2h, u3h, M, a
+    integer :: j
+    
+    
+    do j = 1, num_x-1
+        
+        u1h(j) = 0.5*(u1(j,1) + u1(j+1,1))
+        u2h(j) = 0.5*(u2(j,1) + u2(j+1,1))
+        u3h(j) = 0.5*(u3(j,1) + u3(j+1,1))
+
+        f1(j, 1) = calc_f1(u1h(j), u2h(j), u3h(j))
+        f2(j, 1) = calc_f2(u1h(j), u2h(j), u3h(j))
+        f3(j, 1) = calc_f3(u1h(j), u2h(j), u3h(j))
+
+    end do
+
+    do j = 2, num_x-1
+        u1(j,2) = u1(j,1) - (dt/dx)*(f1(j,1) - f1(j-1,1))
+        u2(j,2) = u2(j,1) - (dt/dx)*(f2(j,1) - f2(j-1,1))
+        u3(j,2) = u3(j,1) - (dt/dx)*(f3(j,1) - f3(j-1,1))
+    end do
+
+end subroutine
+
 
 real(dp) function calc_speed(u1_in, u2_in, u3_in)
     real(dp), intent(in) :: u1_in, u2_in, u3_in
@@ -205,42 +226,50 @@ real(dp) function calc_speed(u1_in, u2_in, u3_in)
 end function
 
 subroutine FVL()
-    real(dp), dimension(num_x) :: u1h, u2h, u3h
+    real(dp), dimension(num_x) :: u1h, u2h, u3h, s, a, M
     integer :: j
-    real(dp)::M,a,s
 
     do j = 1, num_x-1
-        u1h(j) = 0.5*(u1(j,1) + u1(j+1,1))
-        u2h(j) = 0.5*(u2(j,1) + u2(j+1,1))
-        u3h(j) = 0.5*(u3(j,1) + u3(j+1,1))
+        s(j) = u2(j,1)/(u1(j,1))
+        a(j) = (calc_speed(u1(j,1), u2(j,1), u3(j,1)))
+        M(j) = s(j)/a(j)
+    end do
 
-        s = u2(j,1)/(u1(j,1))
-        a = (calc_speed(u1(j,1), u2(j,1), u3(j,1)))
-        M = s/a
-        
-        if (M.lt.0) then
-            f1(j, 1) = calc_f1(u1h(j), u2h(j), u3h(j))
-            f2(j, 1) = calc_f2(u1h(j), u2h(j), u3h(j))
-            f3(j, 1) = calc_f3(u1h(j), u2h(j), u3h(j))
-        else if ((m.gt.0) .and. (m.lt.1)) then 
-            f1(j, 1) = 0.25*(u2(j,1)*a*(M+1)**2) -&
-                       0.25*(u2(j,1)*(M-1)**2)
-            f2(j, 1) = 0.25*(u2(j,1)*a*(M+1)**2)*((gam-1.)*s+2*a)/gam - &
-                       0.25*(u2(j,1)*a*(M-1)**2)*((gam-1.)*s-2*a)/gam 
-            f3(j, 1) = 0.25*(u2(j,1)*a*(M+1)**2) * ((((gam-1.)*s+ 2*a)**2)/(2*(gam-1.)*(gam+1))) - &
-                       0.25*(u2(j,1)*(M-1)**2) * ((((gam-1.)*s- 2*a)**2)/(2*(gam-1.)*(gam+1)))
+    do j = 1, num_x-1
+        !u1h(j) = 0.5*(u1(j,1) + u1(j+1,1))
+        !u2h(j) = 0.5*(u2(j,1) + u2(j+1,1))
+        !u3h(j) = 0.5*(u3(j,1) + u3(j+1,1))
+
+        ! fi(:,1) is f plus and fi(:,2) is f minus!
+        if (M(j).le.-1) then
+            f1(j, 2) = calc_f1(u1h(j), u2h(j), u3h(j))
+            f2(j, 2) = calc_f2(u1h(j), u2h(j), u3h(j))
+            f3(j, 2) = calc_f3(u1h(j), u2h(j), u3h(j))
+            f1(j, 1) = 0.0
+            f2(j, 1) = 0.0
+            f3(j, 1) = 0.0
+        else if ((M(j).ge.-1) .and. (M(j).lt.1)) then 
+            f1(j, 1) =  0.25*(u1(j,1)*a(j)*(M(j)+1)**2)
+            f1(j, 2) = -0.25*(u1(j,1)*a(j)*(M(j)-1)**2)
+            f2(j, 1) =  0.25*(u1(j,1)*a(j)*(M(j)+1)**2)*((gam-1.)*s(j)+2*a(j))/gam
+            f2(j, 2) = -0.25*(u1(j,1)*a(j)*(M(j)-1)**2)*((gam-1.)*s(j)-2*a(j))/gam
+            f3(j, 1) =  0.25*(u1(j,1)*a(j)*(M(j)+1)**2)*((((gam-1.)*s(j)+ 2*a(j))**2)/(2*(gam-1.)*(gam+1)))
+            f3(j, 2) = -0.25*(u1(j,1)*a(j)*(M(j)-1)**2)*((((gam-1.)*s(j)- 2*a(j))**2)/(2*(gam-1.)*(gam+1)))
         else
             f1(j, 1) = calc_f1(u1h(j), u2h(j), u3h(j))
             f2(j, 1) = calc_f2(u1h(j), u2h(j), u3h(j))
             f3(j, 1) = calc_f3(u1h(j), u2h(j), u3h(j)) 
+            f1(j, 2) = 0.0
+            f2(j, 2) = 0.0
+            f3(j, 2) = 0.0
         end if
     end do
 
     do j = 2, num_x-1
         
-            u1(j,2) = u1(j,1) - (dt/dx)*(f1(j,1) - f1(j-1,1))
-            u2(j,2) = u2(j,1) - (dt/dx)*(f2(j,1) - f2(j-1,1))
-            u3(j,2) = u3(j,1) - (dt/dx)*(f3(j,1) - f3(j-1,1))
+            u1(j,2) = u1(j,1) - (dt/dx)*(f1(j,1) + f1(j+1,2) - f1(j-1,1) - f1(j,2))
+            u2(j,2) = u2(j,1) - (dt/dx)*(f2(j,1) + f2(j+1,2) - f2(j-1,1) - f2(j,2))
+            u3(j,2) = u3(j,1) - (dt/dx)*(f3(j,1) + f3(j+1,2) - f3(j-1,1) - f3(j,2))
         
     end do
 
@@ -252,6 +281,7 @@ subroutine write_stuff(fid)
 
     do j = 1, num_x
         write(fid, *) x(j), t_next, u1(j,2), calc_pre(u1(j,2), u2(j,2), u3(j,2)), u3(j,2)
+        !write(fid, *) x(j), t_next, u1(j,2), u2(j,2), u3(j,2)
     end do
     write(fid, *) ""
     write(fid, *) ""
