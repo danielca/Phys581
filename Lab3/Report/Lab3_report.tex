@@ -1117,6 +1117,98 @@ $ V $ eventually evolves towards a simple straight line.
     \label{fig:stock}
 \end{figure*}
 
+\section{Solvers for the Riemann problem}
+\label{sec:solvers_for_the_riemann_problem}
+
+Fluid dynamics problems with discontinuities are quite difficult to deal with numerically.
+This type of singular character cannot be dealt with by simple finite difference schemes, because these schemes are not TVD (total variation diminishing).
+In a more physical sense, most schemes do not enforce conservation laws, which are fundamental in any physics problem.
+By enforcing conservation laws through finite volume methods, we reach methods which are more complicated, but do a better job of dealing with discontinuities.
+
+A common example of such a singular problem is the Sod shock tube problem.
+Using a modified version of the code from Alex Tennant and Zachary Shand's presentation, we solved the Sod shock tube problem analytically using the parameters given in the lab manual.
+The results are seen in Figure~\ref{fig:shocktube}.
+It is important to note that the ``Energy'' plotted here is the \emph{total energy} $ E $ and not the specific internal energy $ \epsilon $.
+Some solutions in other sources (including the code from Alex and Zach's presentation) plot $ \epsilon $ rather than $ E $.
+
+In the analytical solution, we see the five key regions of the Sod shock tube solution.
+We can see the boundaries of the regions as points where the solution is not smooth.
+\begin{itemize}
+\item
+    Region 1 extends up to the first boundary, and it is where the fluid is unaffected from its initial condition.
+\item
+    Region 2 extend to the next boundary (just left of $ x = 0 $) and it represents the left-moving rare-fraction wave.
+    This wave moves at the speed of sound of the undisturbed fluid.
+\item
+    Region 3 extends to the next boundary (right of $ x = 0 $).
+    It represents the ``post shock'' which moves more slowly than the initial shock.
+\item
+    Region 4 extends to the next boundary and represents the initial shock which moved away from $ x = 0 $ with high speed.
+\item
+    The final region, Region 5, represents the region to the right which is so far unaffected by the shock.
+\end{itemize}
+
+Two methods for solving this problem are the Godunov method and the Van-Leer flux splitting method.
+Both of these methods are flux-conservative methods, which have been studied above repeatedly.
+The first key to these methods is that the studied quantities are replaced by their averages over the entire unit cell (making them finite volume methods).
+The flux is then calculated at the edge of these volumes, ensuring that conservation conditions are met.
+
+In principle, we could simply calculate the values of the flux using the simple formulas for them.
+However, it is shown in practise that these methods do not work very well.
+The Godunov method tries to fix this by using the analytical solution to the Riemann problem at every boundary of a unit cell.
+This produces much better results than simple schemes because it gives a more accurate way of determining the flux at the boundary.
+
+The Van-Leer scheme does two things: first of all it splits the flux so that the right-moving flux is calculated on the left boundary of the cell, and the left-moving flux is calculated on the right boundary of the cell.
+The second thing it does is it limits the flux to help deal with strong discontinuities better by smoothing them out.
+This may lead to mathematically less-accurate solutions, but the solution are more true to reality.
+
+The key advantage of the Van-Leer scheme is that it does not require a root-finding method at each step.
+Unfortunately, the solution to the Riemann problem is only semi-analytical in that it requires a numerical root-finding to get the full solution.
+This slows down the Godunov method significantly.
+Also, the Van Leer scheme is a Total Variation Diminishing scheme, which reduces the appearance of spurious oscillations near discontinuities.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/shocktube.pdf}
+    \caption{Analytical solution to the Sod shocktube problem.}
+    \label{fig:shocktube}
+\end{figure}
+
+We solved this problem using three different numerical methods: the Euler method, the Lax-Wendroff method, and the Van Leer flux splitting method, using a CFL condition of 0.5 in each case.
+These results are seen in Figures~\ref{fig:euler_shock}, \ref{fig:lax_shock}, \ref{fig:flux_shock}.
+In each case, the analytical solution is plotted for comparison.
+
+We see that the Euler method is unstable, even though the CFL condition is met.
+As we have seen before, the forward Euler method is almost always unsuitable.
+We see that the Lax-Wendroff method is the most accurate of the three.
+However, it introduces spurious oscillations near the discontinuities.
+These oscillations are too big a price to pay for accuracy on the smoother portions.
+
+The best method is the Van Leer flux-splitting method.
+Though it is not quite as accurate as the Lax-Wendroff method (it smooths out the discontinuities) it does a much better job of preserving the fidelity of the solution.
+For this reason, it provides a much better approach overall.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Euler.pdf}
+    \caption{Solution to the Sod shocktube problem using the Euler method.}
+    \label{fig:euler_shock}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Lax.pdf}
+    \caption{Solution to the Sod shocktube problem using the Lax-Wendroff method.}
+    \label{fig:lax_shock}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Flux.pdf}
+    \caption{Solution to the Sod shocktube problem using the Van Leer flux-splitting method.}
+    \label{fig:flux_shock}
+\end{figure}
+
 \section{Conclusion}
 \label{sec:conclusion}
 
@@ -1187,5 +1279,10 @@ If these equations cannot be solved analytically, it is important to be able to 
 \lstinputlisting[breaklines]{../Shocktest.f90}
 \vspace{10pt}
 
+\subsection{Riemann problem numerical code}
+\label{subsec:riemann_problem_numerical_code}
+
+\lstinputlisting[breaklines]{../Nobody_likes_CFD.f90}
+\vspace{10pt}
 
 \end{document}

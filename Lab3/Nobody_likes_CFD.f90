@@ -1,4 +1,4 @@
-program Burgers_inviscid
+program Nobody_likes_CFD
 
     use Useful_stuff_module
 
@@ -13,7 +13,7 @@ program Burgers_inviscid
     real(dp), parameter :: t_min = 0.0d0
     real(dp), parameter :: t_max = 5000.0d0
 
-    integer, parameter :: num_x = 500
+    integer, parameter :: num_x = 100
 
     integer, parameter :: max_num_t = 10000
 
@@ -35,6 +35,8 @@ program Burgers_inviscid
     real(dp) :: t_last, t_next
 
     real(dp) :: dx, dt
+
+    write(*,*) size(x)
 
     open( unit = 42, file = "./Data/Nobody_likes_CFD.txt", action = "write" )
     call solve_CFD(1,42)
