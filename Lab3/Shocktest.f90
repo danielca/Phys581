@@ -142,7 +142,7 @@ program tube
 
    open(12,file="./Data/tubular.txt",action = 'write')
    do i = 1, size(x)
-   	write(12,*) x(i), rho(i), p(i), enr(i)
+   	write(12,*) x(i), rho(i), p(i), (enr(i)*rho(i)) + (rho(i)*u(i)**2)/2.
    end do
 
 
