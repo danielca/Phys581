@@ -27,6 +27,17 @@ stepnumber=1,}
 
 \maketitle
 
+\section{Introduction}
+\label{sec:introduction}
+
+Partial differential equations appear as the central modelling equations in a huge number of applications.
+For interesting applications, these equations are rarely solvable analytically.
+As such, we must usually resort to numerical methods in order to solve them.
+
+In this report, we look specifically at finite-difference methods.
+We look at a wide range of applications from electromagnetism to fluid dynamics to quantum mechanics to econo-physics.
+In each case, we look at the pros and cons of different schemes in terms of speed, accuracy, and stability.
+
 \section{Warm up}
 \label{sec:warm_up}
 
@@ -493,6 +504,30 @@ We apply various schemes to flux conservative PDEs of the type
     \frac{\partial u(x,t)}{\partial t} + \frac{\partial f(u)}{\partial x} &= 0
 \end{align}
 
+The forward-time centred-space discretization is
+\begin{align}
+    \frac{u^{n+1}_j - u^n_j}{\Delta t} + \frac{f\left(u^n_{j+1}\right) - f\left(u^n_{j-1}\right)}{\Delta x} &= 0
+\end{align}
+This method is almost never used because it is unconditionally unstable for $ f(u) = c u $.
+
+The Lax method is given by
+\begin{align}
+    u^{n+1}_j  &= \frac{1}{2} \left( u^n_{j+1} + u^n_{j-1} \right) - \frac{\Delta t}{2 \Delta x} \left( f\left( u^n_{j+1} \right) - f\left( u^n_{j-1} \right) \right)
+\end{align}
+The difference compared to the $ FTCS $ is that we have replaced $ u^n_j $ with the average of the two adjacent values.
+
+The Upwind method is given by
+\begin{align}
+u^{n+1}_j &= u^n_j - \frac{\Delta t}{\Delta x} \begin{cases} f(u^n_j) - f(u^n_{j-1}) & \text{for } \frac{\partial f(u)}{\partial u} > 0 \\ f(u^n_{j+1}) - f(u^n_j) & \text{for } \frac{\partial f(u)}{\partial u} < 0 \end{cases}
+\end{align}
+
+The Lax-Wendroff method is given by
+\begin{align}
+    u^{n+1/2}_{j+1/2} &= \frac{1}{2} \left( u^n_{j+1} + u^n_j \right) - \frac{\Delta t}{\Delta x} \left[ f \left( u^n_{j+1} \right) - f\left( u^n_j \right) \right]
+    \\
+    u^{n+1}_{j} &= u^n_j - \frac{\Delta t}{\Delta x} \left[ f \left( u^{n+1/2}_{j+1/2} \right) - f\left( u^{n+1/2}_{j-1/2} \right) \right]
+\end{align}
+
 \section{Popular cases}
 \label{sec:popular_cases}
 
@@ -712,7 +747,7 @@ Thus if $ \beta > 0 $ (which it must be, since otherwise our analytical equation
 \end{align}
 Or, since $ \Delta x $ is usually determined by the spatial variation in the diffusion coefficient and the initial conditions, our stability condition can be written as
 \begin{align}
-    \Delta t &< \Delta t_\text{max} = \Delta\frac{(\Delta x)^2}{2 \beta}
+    \Delta t &< \Delta t_\text{max} = \frac{(\Delta x)^2}{2 \beta}
 \end{align}
 
 The FD solution to this diffusion problem was found for $ \Delta t = 0.9 \Delta t_\text{max} $, 300 time steps, 51 grid points, and $ \beta = 1 $.
@@ -997,12 +1032,12 @@ This actually gives us better stability because spurious oscillations have the p
 With the spurious oscillations damped out, we have a solution which is more stable and more accurate to reality.
 In some sense, the viscosity term makes the equation easier to solve.
 
-\begin{figure}[ht]
+\begin{figure*}[ht]
     \centering
     \includegraphics[width=0.8\linewidth]{../Plots/Burgers_general.pdf}
     \caption{Solutions to the general Burger's equation using the Lax Wendroff method.}
     \label{fig:burgers_general}
-\end{figure}
+\end{figure*}
 
 
 \subsection{Quantum mechanics}
@@ -1012,8 +1047,84 @@ In this section we solve a form of the time-independent Schrodinger equation
 \begin{align}
     \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} - \alpha u &= 0
 \end{align}
+with the boundary conditions
+\begin{align}
+    u(0,y) = u(1, y) = u(x, 0) = u(x, 1) = 1
+\end{align}
 
+This equation was solved using the direct method and the weighted Jacobi method, using the code in Section~\ref{subsec:quantum_mechanics_code}.
+The equation was solved for both $ \alpha = 1 $ and $ \alpha = 1000 $, and the results are shown in Figures~\ref{fig:direct_method}, \ref{fig:weighted_jacobi_1}, \ref{fig:weighted_jacobi_1000}.
 
+Focusing first on the $ \alpha = 1 $ case, we can see that both methods give what we expect: a well shape which is only slightly perturbed from the pure-Laplace equation solution of $ u(x,y) = 1 $.
+We note that when $ \omega $ is chosen too small (e.g., the $ \omega = 0.01 $ case), the Jacobi method does not converge quickly to the ``exact'' solution of the direct approach.
+However, with an appropriately-chosen $ \omega $, we can get results which match those of the direct method.
+We see similar things for the $ \alpha = 1000 $ case, except here we are significantly perturbed from the pure-Laplace equation, and our well is quite deep.
+
+It is worth noting that the weighted Jacobi method is both faster than the direct method (with an appropriately chosen $ \omega $) and it is \emph{significantly} easier to set up and program.
+For this reason, the weighted Jacobi method (or some other relaxation method) should almost always be preferred over the direct method.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Direct.pdf}
+    \caption{Solution to the time-independent Schrodinger equation using the direct method.}
+    \label{fig:direct_method}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Weighted_Lax1_01.pdf}
+    \caption{Solution to the time-independent Schrodinger equation with $ \alpha = 1 $ using the weighted Jacobi method.}
+    \label{fig:weighted_jacobi_1}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Weighted_Lax1000_01.pdf}
+    \caption{Solution to the time-independent Schrodinger equation with $ \alpha = 1000 $ using the weighted Jacobi method.}
+    \label{fig:weighted_jacobi_1000}
+\end{figure*}
+
+\subsection{Econo-physics}
+\label{subsec:econo_physics}
+
+In this section, we solve the Black-Scholes equation
+\begin{align}
+    \frac{\partial V}{\partial t} + \frac{1}{2} \sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} - rV + r S \frac{\partial V}{\partial S} &= 0
+\end{align}
+with final stock value
+\begin{align}
+V(S, t=100) &= \begin{cases} 0 & \text{for } 0 \leq S < 10 \\ S-10 & \text{for } 10 \leq S \leq 20 \end{cases}
+\end{align}
+with $ \sigma = 0.1 $ and $ r = 0.05 $.
+
+We use a forward difference for the time derivative (to keep the method explicit), a centred difference for the first derivative (for second order accuracy and stability) and a centred difference for the second derivative (standard choice).
+The resulting finite difference equation is
+\begin{align}
+    V^{n+1}_j &= V^n_j + \frac{1}{2} \sigma^2 \left( S^n_j \right)^2 \frac{V^n_{j+1} - 2 V^n_j + V^n_{j-1}}{(\Delta S)^2} - \nonumber
+    \\
+    & \quad - r V^n_j + r S^n_j \frac{S^n_{j+1} - S^n_{j-1}}{2 \Delta S}
+\end{align}
+
+Using this finite difference method, the equation above was solved (with the boundary values held at their initial values), and the results are plotted in Figure~\ref{fig:stock}.
+We can see the evolution of the stock over time.
+As $ t $ decreases from 100, wee see a sort of ``bubble'' appear near $ S = 10 $.
+$ V $ eventually evolves towards a simple straight line.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../Plots/Stock.pdf}
+    \caption{Numerical solution to the Black-Scholes equation.}
+    \label{fig:stock}
+\end{figure*}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+In this report, we looked at a wide range of finite difference approaches for solving partial differential equations.
+We saw that there is no one easy way to solve a partial differential equation.
+Each equation and each situation must be carefully evaluated in order to pick a scheme which is fast, stable, easy to implement, and accurate.
+This is an important and useful skill for any scientist or engineer, since partial differential equations show up in a huge range of places.
+If these equations cannot be solved analytically, it is important to be able to pick an appropriate numerical scheme.
 
 \onecolumn
 
