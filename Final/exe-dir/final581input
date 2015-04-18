@@ -1,0 +1,14 @@
+ $rescon /$
+ $pcon nlim=1000000,tlim=10.00 /$
+ $hycon qcon=2.0,courno=0.5 /
+ $xgrid nbl=100,x1min=0.0,x1max=100.0 /$
+ $ygrid nbl=100,x2min=0.0,x2max=100.0 /$
+ $iib /$
+ $oib /$
+ $ijb /$
+ $ojb /$
+ $grvcon /$
+ $radcon /$
+ $pgen idirect=1,n0=100,d0=1.0 /$
+ $gcon /$
+ $iocon tout=0.0, dtout=1.0 /$
