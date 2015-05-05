@@ -1,4 +1,4 @@
-program Diffusion
+program Laplace
 
     use Useful_stuff_module
 
