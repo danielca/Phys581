@@ -1,0 +1,69 @@
+
+set loadpath './Gnuplot_stuff/'
+load 'parula.pal'
+load 'my_config.cfg'
+
+del_t = 0.5
+
+CASEDIR = "Inlet_10_1"
+dmax = 7
+vmax = 12
+scaling = 5.0/vmax
+sprs = 8
+num_t = 161
+d_num_t = 10
+
+d2(x,y) = sqrt(x*x + y*y)
+dx(x,y) = scaling*x
+dy(x,y) = scaling*y
+
+
+set style arrow 1 filled head size 2.0, 15 lw 2.5 lc -1
+
+set terminal pngcairo enhanced size 1.5*2*640, 2*480 fontscale 3 lw 1
+#set terminal gif animate enhanced size 1.5*2*640, 2*480 fontscale 2 lw 1
+
+
+OUTDIR = "./Plots/".CASEDIR."/"
+INDIR = "./phys581-final-package/exe-dir/".CASEDIR."/"
+
+#set output OUTDIR.CASEDIR.".gif"
+
+set surface
+set palette color
+set pm3d map
+set xlabel "x"
+set ylabel "y"
+set xrange [0:100]
+set yrange [0:100]
+unset key
+unset grid
+
+set size ratio -1
+
+do for [i = 0:num_t:d_num_t]{
+#do for [i = 0:num_t]{
+    filename = sprintf("ouy%03.3d", i)
+    set output OUTDIR.CASEDIR."_".filename.".png"
+
+    set multiplot layout 1,2
+
+    title_str = sprintf("Density at t = %03.1f", i*del_t)
+    set title title_str
+    set cbrange[0:dmax]
+
+    splot INDIR.filename using 1:2:3 with pm3d palette
+
+    title_str = sprintf("Velocity at t = %03.1f", i*del_t)
+    set title title_str
+    set cbrange[0:vmax]
+
+    splot INDIR.filename using ($1-dx($4,$5)):($2-dy($4,$5)):(0.0):(2.0*dx($4,$5)):(2.0*dy($4,$5)):(0.0):(d2($4,$5)) every sprs:sprs with vectors filled head size 2.0, 15 lw 2.5 lc palette
+
+    unset multiplot
+}
+
+!mogrify -format pdf ./Plots/*/*.png && rm ./Plots/*/*.png
+!mogrify -format pdf ./Plots/*.png && rm ./Plots/*.png
+
+reset

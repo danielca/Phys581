@@ -1,0 +1,43 @@
+CC = gfortran
+CFLAGS = -O3
+
+MOD_DIR = ./Modules/
+PHYS581_DIR = ./phys581-final-package/
+EXE_DIR = $(PHYS581_DIR)exe-dir/
+
+VPATH = .:$(MOD_DIR):$(PHYS581_DIR)
+
+ALL = Poisson.exe Time_dependent.exe Wave_equation.exe final581.exe
+
+POISSON = Useful_stuff_module.o Poisson.o
+TIME_DEPENDENT = Useful_stuff_module.o Time_dependent.o
+WAVE_EQUATION = Useful_stuff_module.o Wave_equation.o
+
+HEADERS = bndry.h gridparam.h param.h root.h scratch.h variables.h
+DEPS = cfl.o checkgrid.o datadump.o dataoutput.o eos.o findno.o fluxes.o ghosts.o intchk.o linpck.o maxmin.o momx1.o momx2.o newvg.o newx1.o newx2.o setgrid.o setobjects.o setup.o startrun.o strtoi.o studentsetup.o stv1.o stv2.o tranx1.o tranx2.o updatev.o vtos.o x1intfc.o x1intzc.o x2intfc.o x2intzc.o
+FINAL581 = $(DEPS) final581.o
+
+%.o: %.f90
+	$(CC) $(CFLAGS) -c $<
+
+all: $(ALL)
+
+Poisson.exe: $(POISSON)
+	$(CC) $(CFLAGS) -o $@ $^
+
+Time_dependent.exe: $(TIME_DEPENDENT)
+	$(CC) $(CFLAGS) -o $@ $^
+
+Wave_equation.exe: $(WAVE_EQUATION)
+	$(CC) $(CFLAGS) -o $@ $^
+
+final581.exe: $(FINAL581)
+	$(CC) -o $(EXE_DIR)$@ $^
+
+.PHONY:
+clean:
+	rm *.o *.mod
+
+.PHONY:
+scrub:
+	rm *.o *.mod *.exe

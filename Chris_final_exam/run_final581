@@ -1,0 +1,4 @@
+#!/bin/bash
+cd phys581-final-package/exe-dir/
+./final581.exe
+cd ../../

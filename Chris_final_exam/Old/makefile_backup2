@@ -1,0 +1,51 @@
+CC = gfortran
+CFLAGS = -O3
+
+MOD_DIR = ./Modules/
+PHYS581_DIR = ./phys581-final-package/
+EXE_DIR = $(PHYS581_DIR)exe-dir/
+
+VPATH = .:$(MOD_DIR):$(PHYS581_DIR)
+
+ALL = Poisson.exe Time_dependent.exe Wave_equation.exe final581.exe
+
+POISSON = Useful_stuff_module.o Poisson.o
+TIME_DEPENDENT = Useful_stuff_module.o Time_dependent.o
+WAVE_EQUATION = Useful_stuff_module.o Wave_equation.o
+
+FINAL581 = $(DEPS) final581.o
+FINAL581 := $(shell find $(PHYS581_DIR) -name '*.f90')
+FINAL581_OBJ = $(patsubst $(PHYS581_DIR)%.f90, final581_obj/%.o, $(FINAL581))
+
+$(FINAL581_OBJ): | final581_obj
+
+final581_obj:
+	@mkdir -p $@
+
+%.o: %.f90
+	$(CC) $(CFLAGS) -c $<
+
+final581_obj/%.o: %.f90
+	$(CC) $(CFLAGS) -c $< -o $@
+
+all: $(ALL)
+
+Poisson.exe: $(POISSON)
+	$(CC) $(CFLAGS) -o $@ $^
+
+Time_dependent.exe: $(TIME_DEPENDENT)
+	$(CC) $(CFLAGS) -o $@ $^
+
+Wave_equation.exe: $(WAVE_EQUATION)
+	$(CC) $(CFLAGS) -o $@ $^
+
+final581.exe: $(FINAL581_OBJ)
+	$(CC) -o $(EXE_DIR)$@ $^
+
+.PHONY:
+clean:
+	rm *.o *.mod
+
+.PHONY:
+scrub:
+	rm *.o *.mod *.exe

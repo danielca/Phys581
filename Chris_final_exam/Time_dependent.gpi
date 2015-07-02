@@ -1,0 +1,138 @@
+#set terminal epscairo enhanced size 8 cm, 5 cm
+set terminal pngcairo enhanced size 2*640, 2*480 fontscale 2 lw 2
+
+set loadpath './Gnuplot_stuff/'
+load 'parula.pal'
+load 'my_config.cfg'
+
+u1(x,y) = -2/(cosh(x-4*y)**2)
+numer(x,y) = 3 + 4*cosh(2*x-8*y) + cosh(4*x-64*y)
+denom(x,y) = (3*cosh(x-28*y) + cosh(3*x-36*y))**2
+u2(x,y) = -12*numer(x,y)/denom(x,y)
+
+set output "./Plots/Time_dependent_analytical1.png"
+#set output "./Plots/Time_dependent_analytical1.eps"
+
+set xlabel "x"
+set ylabel "t"
+set isosamples 500
+set samples 500
+set xrange [-8:8]
+set yrange [-1:1]
+set colorbox border 101
+set pm3d map
+unset key
+unset grid
+
+set title "Analytical solution to the time-independent equation"
+splot u1(x,y) palette
+
+unset pm3d
+
+set terminal pdfcairo enhanced size 16 cm, 10 cm
+set output "./Plots/Time_dependent_analytical2.pdf"
+
+set multiplot layout 2, 2
+
+set samples 500
+set xlabel "x"
+set ylabel "u"
+set xrange [-8:8]
+set yrange [-2.2:0.2]
+unset key
+set grid
+
+set title "Analytical solution at t = -1.0"
+plot u1(x,-1.0) with lines ls 11
+set title "Analytical solution at t = -0.5"
+plot u1(x,-0.5) with lines ls 11
+set title "Analytical solution at t = 0.5"
+plot u1(x,+0.5) with lines ls 11
+set title "Analytical solution at t = 1.0"
+plot u1(x,+1.0) with lines ls 11
+
+unset multiplot
+
+set terminal pdfcairo enhanced size 16 cm, 10 cm
+set output "./Plots/Time_dependent_numerical1.pdf"
+
+set multiplot layout 2, 2
+
+set xlabel "x"
+set ylabel "u"
+set xrange [-8:8]
+set yrange [-2.2:0.2]
+unset key
+set grid
+
+set title "Solution at t = 0.0"
+plot u1(x,0.0) with lines ls 11, \
+     "./Data/Time_dependent1.txt" index 0 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+set title "Solution at t = 0.4"
+plot u1(x,0.4) with lines ls 11, \
+     "./Data/Time_dependent1.txt" index 40 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+set title "Solution at t = 0.5"
+plot u1(x,0.5) with lines ls 11, \
+     "./Data/Time_dependent1.txt" index 50 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+set title "Solution at t = 1.0"
+plot u1(x,1.0) with lines ls 11, \
+     "./Data/Time_dependent1.txt" index 100 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+
+unset multiplot
+
+set terminal pdfcairo enhanced size 16 cm, 10 cm
+set output "./Plots/Time_dependent_numerical2.pdf"
+
+set multiplot layout 2, 2
+
+set xlabel "x"
+set ylabel "u"
+set xrange [-5:20]
+set yrange [-8:8]
+unset key
+set grid
+
+set title "Solution at t = 0.0"
+plot u2(x,0.0) with lines ls 11, \
+     "./Data/Time_dependent2.txt" index 0 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+set title "Solution at t = 0.4"
+plot u2(x,0.4) with lines ls 11, \
+     "./Data/Time_dependent2.txt" index 40 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+set title "Solution at t = 0.5"
+plot u2(x,0.5) with lines ls 11, \
+     "./Data/Time_dependent2.txt" index 50 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+set title "Solution at t = 1.0"
+plot u2(x,1.0) with lines ls 11, \
+     "./Data/Time_dependent2.txt" index 100 using 1:3 every 1 with points ls 12 pt 7 pointsize 0.1
+
+#set terminal gif animate
+#
+#set output "./Plots/Time_dependent_animation1.gif"
+#set xrange [-15:15]
+#set yrange [-3:2]
+#set xlabel "x"
+#set ylabel "u"
+#
+#set title "Numerical solution animation"
+#
+#do for [i=1:1000:10]{
+#plot "./Data/Time_dependent1.txt" index i using 1:3 with lines ls 11
+#}
+#
+#set terminal gif animate
+#
+#set output "./Plots/Time_dependent_animation2.gif"
+#set xrange [-15:15]
+#set yrange [-8:8]
+#set xlabel "x"
+#set ylabel "u"
+#
+#set title "Numerical solution animation"
+#
+#do for [i=1:1000:5]{
+#plot "./Data/Time_dependent2.txt" index i using 1:3 with lines ls 11
+#}
+
+!mogrify -format pdf ./Plots/*.png && rm ./Plots/*.png
+
+reset

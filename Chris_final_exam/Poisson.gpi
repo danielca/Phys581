@@ -1,0 +1,59 @@
+#set terminal epscairo enhanced size 8 cm, 5 cm
+set terminal pngcairo enhanced size 2*640, 2*480 fontscale 2 lw 2
+
+set loadpath './Gnuplot_stuff/'
+load 'parula.pal'
+load 'my_config.cfg'
+
+set output "./Plots/Poisson_Jacobi1.png"
+
+set xlabel "x"
+set ylabel "y"
+set xrange [*:*]
+set yrange [*:*]
+set colorbox border 101
+set pm3d map
+unset key
+unset grid
+
+set size ratio -1
+
+set title "Jacobi method for Poisson equation with Δ = h_0"
+splot "./Data/Poisson.txt" index 0 using 1:2:3 palette
+
+
+#set terminal epscairo enhanced size 16 cm, 10 cm
+set terminal pngcairo enhanced size 2*2*640, 2*2*480 fontscale 2 lw 2
+
+set output "./Plots/Poisson_Jacobi2.png"
+
+set multiplot layout 2, 2
+
+set title "Jacobi method for Poisson equation with Δ = h_0/2"
+splot "./Data/Poisson.txt" index 1 using 1:2:3 palette
+
+set title "Jacobi method for Poisson equation with Δ = h_0/4"
+splot "./Data/Poisson.txt" index 2 using 1:2:3 palette
+
+set title "Jacobi method for Poisson equation with Δ = h_0/8"
+splot "./Data/Poisson.txt" index 3 using 1:2:3 palette
+
+set title "Jacobi method for Poisson equation with Δ = h_0/16"
+splot "./Data/Poisson.txt" index 4 using 1:2:3 palette
+
+unset multiplot
+
+#set terminal epscairo enhanced size 8 cm, 5 cm
+set terminal pngcairo enhanced size 2*640, 2*480 fontscale 2 lw 2
+
+set output "./Plots/Poisson_Gauss_Seidel.png"
+
+set xtics (0, 0.2, 0.4, 0.6, 0.8, 1.0)
+set ytics (0, 0.2, 0.4, 0.6, 0.8, 1.0)
+
+set title "Gauss-Seidel solution to the Poisson equation"
+splot "./Data/Poisson.txt" index 5 using 1:2:3 palette
+
+!mogrify -format pdf ./Plots/*.png && rm ./Plots/*.png
+
+reset

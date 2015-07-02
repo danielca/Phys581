@@ -1,0 +1,58 @@
+
+set loadpath './Gnuplot_stuff/'
+load 'parula.pal'
+load 'my_config.cfg'
+
+scaling = 1.5
+d2(x,y) = sqrt(x*x + y*y)
+dx(x,y) = scaling*x
+dy(x,y) = scaling*y
+
+del_t = 0.5
+
+set style arrow 1 filled head size 2.0, 15 lw 2.5 lc -1
+
+set terminal pngcairo enhanced size 1.5*2*640, 2*480 fontscale 3 lw 1
+#set terminal gif animate enhanced size 2*640, 2*480 fontscale 2 lw 1
+
+OUTDIR = "./Plots/"
+INDIR = "./phys581-final-package/exe-dir/Default/"
+
+#set output OUTDIR."Final581_default1.gif"
+
+set surface
+set palette color
+set pm3d map
+set xlabel "x"
+set ylabel "y"
+set xrange [0:100]
+set yrange [0:100]
+unset key
+unset grid
+
+set size ratio -1
+
+do for [i = 2:22:6]{
+    filename = sprintf("ouy%03.3d", i)
+    set output OUTDIR.filename.".png"
+
+    set multiplot layout 1,2
+
+    title_str = sprintf("Pressure at t = %03.1f", i*del_t)
+    set title title_str
+    set cbrange[0:16]
+
+    splot INDIR.filename using 1:2:3 with pm3d t "weaves"
+
+    title_str = sprintf("Velocity at t = %03.1f", i*del_t)
+    set title title_str
+    set cbrange[0:6]
+
+    splot INDIR.filename using ($1-dx($4,$5)):($2-dy($4,$5)):(0.0):(2.0*dx($4,$5)):(2.0*dy($4,$5)):(0.0):(d2($4,$5)) every 4:4 with vectors filled head size 2.0, 15 lw 2.5 lc palette
+
+    unset multiplot
+}
+
+!mogrify -format pdf ./Plots/*.png && rm ./Plots/*.png
+
+reset

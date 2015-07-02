@@ -1,0 +1,1094 @@
+\documentclass[twocolumn]{myarticle}
+
+\usepackage{mymacros}
+\usepackage{parskip}
+\usepackage{pdfpages}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{mathtools}
+
+\graphicspath{{../Plots/}}
+
+\numberwithin{equation}{section}
+
+\lstset{%
+basicstyle=\small\ttfamily,
+columns=flexible,
+breaklines=true,
+numbers=left,
+stepnumber=1,}
+
+\newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\sinc}{\text{sinc}}
+\newcommand{\sech}{\text{sech}}
+\renewcommand{\d}{\mathrm{d}}
+
+\begin{document}
+
+\title{Physics 581 Final Exam}
+\author{Chris Deimert}
+\date{\today}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:introduction}
+
+Partial differential equations appear as the central modelling equations in a huge number of applications.
+For interesting applications, these equations are rarely solvable analytically.
+As such, we must usually resort to numerical methods in order to solve them.
+
+In this final exam, we look specifically at finite-difference methods.
+We first look at a number of simple equations, exploring the effect of different schemes.
+We then use a fluid-dynamics simulator to explore the complicated physics of objects in jets of wind.
+
+\section{Part I}
+\label{sec:part_i}
+
+\subsection{Time-independent PDEs}
+\label{subsec:time_independent_pdes}
+
+Here we look at the equation
+\begin{align}
+    \frac{\partial^2 u(x,y)}{\partial x^2} + \frac{\partial^2 u(x,y)}{\partial y^2} &= s(x,y) \label{eq:poisson_equation}
+\end{align}
+on the region $ x \in [0, L_x] $, $ y \in [0, L_y] $.
+
+Let us discretize this equation with
+\begin{align}
+    u_{k,l} &= u\left(k \Delta x, l \Delta y\right); \qquad s_{k,l} = s\left(k \Delta x, l \Delta y\right)
+\end{align}
+
+Applying second order symmetric differences to both derivatives, we get
+\begin{align}
+    \frac{u_{k+1, l} - 2 u_{k,l} + u_{k-1,l}}{\left( \Delta x \right)^2} + \frac{u_{k,l+1} - 2 u_{k,l} + u_{k,l-1}}{\left( \Delta y \right)^2} &= s_{k,l}
+\end{align}
+which gives
+\begin{align}
+    0 &= \left( \Delta y \right)^2 \left( u_{k+1, l} + u_{k-1,l} \right) + \left( \Delta x \right)^2 \left( u_{k,l+1} + u_{k,l-1} \right) - \nonumber
+    \\
+    & \quad - 2 \left( \left( \Delta x \right)^2 + \left( \Delta y \right)^2 \right) u_{k,l} - \left( \Delta x \Delta y \right)^2 s_{k,l}
+\end{align}
+So we see that the stencil of this method includes the point $ (k,l) $ as well as the four adjacent points.
+
+In the special case $ \Delta x = \Delta y = \Delta $, we get the much simpler equation
+\begin{align}
+    0 &= u_{k+1, l} + u_{k-1,l} + u_{k,l+1} + u_{k,l-1} - 4 u_{k,l} - \Delta^2 s_{k,l} \label{eq:poisson_discretized}
+\end{align}
+Again, the stencil is $ (k,l) $ and all four adjacent points.
+
+For the Jacobi method, we solve the time-dependent equation
+\begin{align}
+    \frac{\partial u}{\partial t} &= \frac{\partial^2 u(x,y)}{\partial x^2} + \frac{\partial^2 u(x,y)}{\partial y^2} - s(x,y)
+\end{align}
+and thus obtain the solution to Equation~\ref{eq:poisson_equation} by taking $ t \to \infty $.
+Using a forward difference in time, we obtain
+\begin{align}
+    u^{n+1}_{k,l} &= u^n_{k,l} + r_x \left( u^n_{k+1, l} - 2 u^n_{k,l} + u^n_{k-1,l} \right) \nonumber 
+    \\
+    & \quad + r_y \left( u^n_{k,l+1} - 2 u^n_{k,l} + u^n_{k,l-1} \right) - \Delta t s_{k,l}  \label{eq:jacobi_discretized}
+\end{align}
+where
+\begin{align}
+    r_x &= \frac{\Delta t}{\left( \Delta x \right)^2}; \qquad r_y = \frac{\Delta t}{\left( \Delta y \right)^2}
+\end{align}
+
+Since we cannot assume $ \Delta x = \Delta y $ in general, we must determine the stability criterion.
+To analyze stability, let us use the ansatz 
+\begin{align}
+    w^n_{k,l} = z^n e^{i \left( k \omega_x + l \omega_y \right)}
+\end{align}
+and note its shift properties
+\begin{align}
+    w^{n+n'}_{k+k',l+l'} = z^{n'} e^{i \left( k' \omega_x + l' \omega_y \right)} w^n_{k,l}
+\end{align}
+We will also assume for simplicity that $ s(x,y) = 0 $
+
+Thus, plugging this ansatz into Equation~\ref{eq:jacobi_discretized} and dividing by $ w^n_{k,l} $ we obtain
+\begin{align}
+    z &= 1 + r_x \left( e^{\omega_x} - 2 + e^{-\omega_x} \right) + r_y \left( e^{\omega_y} - 2 + e^{-\omega_y} \right)
+    \\
+    z &= 1 + 2 r_x \left( \cos \left( \omega_x \right) - 1 \right) + 2 r_y \left( \cos \left( \omega_y \right) - 1 \right)
+\end{align}
+
+If we let $ c_x = 1 - \cos\left( \omega_x \right) $ and $ c_y = 1 - \cos \left( \omega_y \right) $, then
+\begin{align}
+    z &= 1 - 2 \left(r_x c_x + r_y c_y \right)
+    \\
+    |z|^2 &= 1 - 4 \left( r_x c_x + r_y c_y \right) + 4 \left( r_x c_x + r_y c_y \right)^2
+\end{align}
+
+For stability, we require the amplification factor $ |z| $ to be $ \leq 1 $, so
+\begin{align}
+    1 - 4 \left( r_x c_x + r_y c_y \right) + 4 \left( r_x c_x + r_y c_y \right)^2 &\leq 1
+\end{align}
+which gives
+\begin{align}
+    \left( r_x c_x + r_y c_y \right)^2 &\leq r_x c_x + r_y c_y
+    \\
+    r_x c_x + r_y c_y &\leq 1
+\end{align}
+Noting that $ 0 \leq c_x, c_y \leq 2 $, we get
+\begin{align}
+    2 r_x + 2 r_y &\leq 1
+\end{align}
+Plugging back in the expressions for $ r_x, r_y $, we get
+\begin{align}
+    \frac{\Delta t}{\left( \Delta x \right)^2} + \frac{\Delta t}{\left( \Delta y \right)^2} &\leq \frac{1}{2}
+    \\
+    \Delta t \left( \left( \Delta x \right)^2 + \left( \Delta y \right)^2 \right) &\leq \frac{\left(\Delta x \Delta y \right)^2}{2}
+\end{align}
+And finally, our stability criterion is
+\begin{align}
+    \Delta t &\leq \frac{\left(\Delta x \Delta y \right)^2}{2 \left( \left( \Delta x \right)^2 + \left( \Delta y \right)^2 \right) }
+\end{align}
+
+Now, if we set $ \Delta t $ exactly at the stability criterion, then
+\begin{align}
+    r_x &= \frac{\left(\Delta y \right)^2}{2 \left( \left( \Delta x \right)^2 + \left( \Delta y \right)^2 \right) }
+    \\
+    r_y &= \frac{\left(\Delta x \right)^2}{2 \left( \left( \Delta x \right)^2 + \left( \Delta y \right)^2 \right) }
+\end{align}
+and we note that
+\begin{align}
+    r_x + r_y &= \frac{1}{2}
+\end{align}
+
+So, at the stability criterion, Equation~\ref{eq:jacobi_discretized} becomes
+\begin{align}
+    u^{n+1}_{k,l} &= r_x \left( u^n_{k+1, l} + u^n_{k-1,l} \right) + r_y \left( u^n_{k,l+1} + u^n_{k,l-1} \right) - \Delta t s_{k,l}
+\end{align}
+
+Note that the $ u^n_{k,l} $ term has dropped out.
+So by taking $ \Delta t $ right at the stability criterion, we have simplified our stencil.
+The stencil now only includes the points adjacent to $ (k,l) $ but not the point $ (k,l) $ itself.
+This holds whether $ \Delta x = \Delta y $ or $ \Delta x \neq \Delta y $.
+
+If we further assume that $ \Delta x = \Delta y = \Delta $, then
+\begin{align}
+    r_x = r_y = r = \frac{1}{4}
+\end{align}
+and
+\begin{align}
+    \Delta t &= \frac{\Delta^2}{4}
+\end{align}
+and our equation becomes
+\begin{align}
+    u^{n+1}_{k,l} &= \frac{1}{4} \left( u^n_{k+1, l} + u^n_{k-1,l} + u^n_{k,l+1} + u^n_{k,l-1} \right) - \frac{\Delta^2}{4} s_{k,l}
+\end{align}
+
+Using this method with $ \Delta = h_0 = 5.0 $, $ L_x = 20 $, $ L_y = 10 $, and $ s(x,y) = 0 $, we solve the Poisson equation.
+The code for this is in Section~\ref{subsec:poisson_equation_code}.
+The results are seen in Figure~\ref{fig:jacobi1}.
+We also see the results for $ \Delta = h_0/2, h_0/4, h_0/8, h_0/16 $ in Figure~\ref{fig:jacobi2}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Poisson_Jacobi1.pdf}
+    \caption{Solution to the Poisson equation using the Jacobi method.}
+    \label{fig:jacobi1}
+\end{figure}
+
+The goal of the Jacobi method is to iteratively solve Equation~\ref{eq:poisson_discretized}.
+So, as a convergence criteria, the solution was advanced until the right hand side of Equation~\ref{eq:poisson_discretized} was smaller than $ \eps = 10^{-3} $.
+
+In the solutions pictured, we see the expected behaviour of the Laplace equation (since our source term was zero in this case): the function smoothly transitions from one boundary to another.
+Of course, this behaviour is quite coarse and inaccurate because of the large grid size used.
+We see that as $ \Delta $ approaches zero, the solution converges to a better and better estimate of the actual solution.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Poisson_Jacobi2.pdf}
+    \caption{More solutions to the Poisson equation using the Jacobi method.}
+    \label{fig:jacobi2}
+\end{figure*}
+
+Next, we solve this same equation, but with $ L_x = L_y = 1 $ and $ s(x,y) = 10 $.
+The spatial step $ \Delta = \Delta x = \Delta y $ is chosen so that the domain is represented by a $ 50 \times 50 $ grid.
+This time we use the Gauss-Seidel method, which is the same as the Jacobi method, but $ n $ is replaced by $ n + 1 $ on the right hand side whenever possible (while still keeping the scheme explicit).
+
+The goal of the Gauss-Seidel method is to iteratively solve Equation~\ref{eq:poisson_discretized}.
+So, as a convergence criteria, the solution was advanced until the right hand side of Equation~\ref{eq:poisson_discretized} was smaller than $ \eps = 10^{-3} $.
+Under this condition, the solution converged after 465 iterations.
+
+The resulting solution is plotted in Figure~\ref{fig:gauss_seidel}.
+We see the expected well behaviour, which is not surprising.
+We could imagine that $ u $ represents voltage and the source $ s $ represents a charge density.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Poisson_Gauss_Seidel.pdf}
+    \caption{Solution to the Poisson equation using the Gauss-Seidel method.}
+    \label{fig:gauss_seidel}
+\end{figure}
+
+\subsection{Time-dependent PDE in one dimension}
+\label{subsec:time_dependent_pde_in_one_dimension}
+
+Here we consider the non-linear PDE
+\begin{align}
+    \frac{\partial u}{\partial t} - 6 u \frac{\partial u}{\partial x} + \frac{\partial^3 u}{\partial x^3} &= 0
+\end{align}
+with initial condition
+\begin{align}
+    u(x,0) &= - \frac{2}{\cosh^2(x)}
+\end{align}
+
+Looking at this PDE, the absence of second derivatives in space and time would seem to indicate that it is a parabolic PDE.
+However, the classification of PDEs into elliptic, hyperbolic, and parabolic only applies to second-order linear PDEs.
+This equation is \emph{third} order because of the $ \partial^3 u / \partial x^3 $ term, and it is non-linear because of the $ u \partial u / \partial x $ term.
+Thus such classifications do not really apply to it.
+
+The analytical solution to this equation is
+\begin{align}
+    u(x,t) &= - \frac{2}{\cosh^2(x - 4t)} = -2 \sech^2(x-4t)
+\end{align}
+
+We can show that this is indeed a solution.
+If we let $ \xi = x - 4t $, then
+\begin{align}
+    u(x,t) &= u(\xi) = -2 \sech^2(\xi)
+\end{align}
+Plugging this in to the original equation and using the chain rule we get
+\begin{align}
+    -4 \frac{\d u}{\partial \xi} - 6 u \frac{\d u}{\d \xi} + \frac{\partial^3 u}{\partial \xi^3} &= 0
+    \\
+    \frac{\d}{\d \xi} \left( -4 u - 3 u^2 + \frac{\partial^2 u}{\partial \xi^2} \right) &= 0 \label{eq:equation_in_xi}
+\end{align}
+
+First, we show that
+\begin{align}
+    \frac{\d^2 u}{\d \xi^2} &= \frac{\d^2}{\d \xi^2} \big[ -2 \sech^2(\xi) \big]
+    \\
+    \frac{\d^2 u}{\d \xi^2} &= \frac{\d}{\d \xi} \big[ 4 \tanh(\xi) \sech^2(\xi) \big]
+    \\
+    \frac{\d^2 u}{\d \xi^2} &= -4 \big[ \cosh(2\xi) - 2 \big] \sech^4(x)
+    %\\
+    %\frac{\d^2 u}{\d \xi^2} &= -4 \big[ 2\sinh^2(\xi) - 1 \big] \sech^4(\xi)
+    \\
+    \frac{\d^2 u}{\d \xi^2} &= \big[ 1 - 2\sinh^2(\xi) \big] u^2
+\end{align}
+
+Then
+\begin{align}
+    -4 u -3 u^2 + \frac{\partial^2 u}{\partial \xi^2} &= \left[ - \frac{4}{u} - 3 + \left( 1 - 2 \sinh^2(\xi) \right) \right] u^2
+    \\
+    -4 u -3 u^2 + \frac{\partial^2 u}{\partial \xi^2} &= -2 \left[ \frac{2}{u} + 1 + \sinh^2(\xi) \right] u^2
+    \\
+    -4 u -3 u^2 + \frac{\partial^2 u}{\partial \xi^2} &= -2 \left[ - \cosh^2(\xi) + 1 + \sinh^2(\xi) \right] u^2
+    \\
+    -4 u -3 u^2 + \frac{\partial^2 u}{\partial \xi^2} &= 0 
+\end{align}
+
+So, comparing this with \eqref{eq:equation_in_xi}, we see that our analytical solution $ u(x,y) $ does indeed satisfy the equation.
+
+The analytical solution is plotted in Figures~\ref{fig:time_dependent_analytical1} and \ref{fig:time_dependent_analytical2}.
+We notice that the shape of the initial function is maintained, and it simply propagates to the right with time.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Time_dependent_analytical1.pdf}
+    \caption{Full analytical solution to the time-dependent PDE.}
+    \label{fig:time_dependent_analytical1}
+\end{figure}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Time_dependent_analytical2.pdf}
+    \caption{Analytical solution to the time-dependent PDE at select times.}
+    \label{fig:time_dependent_analytical2}
+\end{figure*}
+
+Now we discretize the equation, defining
+\begin{align}
+    u^n_k &= u(k \Delta x, n \Delta t)
+\end{align}
+with
+\begin{align}
+    k &= 1, 2, \ldots, N_x
+    \\
+    n &= 1, 2, \ldots, N_t
+\end{align}
+
+We use a central difference for the first derivatives so that
+\begin{align}
+    \frac{\partial u}{\partial x} &\approx \frac{u^n_{k+1} - u^n_{k-1}}{2 \Delta x}
+    \\
+    \frac{\partial u}{\partial t} &\approx \frac{u^{n+1}_{k} - u^{n-1}_{k}}{2 \Delta t}
+\end{align}
+We can approximate the second spatial derivative as
+\begin{align}
+    \frac{\partial^2 u}{\partial x^2} &\approx \frac{u^n_{k+1} - 2 u^n_k + u^n_{k-1}}{(\Delta x)^2}
+\end{align}
+Using this, we can approximate the third spatial derivative:
+\begin{align}
+    \frac{\partial^3 u}{\partial x^3} &\approx \frac{1}{2 \Delta x} \left[ \left( \frac{\partial^2 u}{\partial x^2} \right)^n_{k+1} - \left( \frac{\partial^2 u}{\partial x^2} \right)^n_{k-1} \right]
+    \\
+    \frac{\partial^3 u}{\partial x^3} &\approx \frac{u^n_{k+2} - 2 u^n_{k+1} + u^n_k - u^n_k + 2u^n_{k-1} - u^n_{k-2}}{2 (\Delta x)^3}
+    \\
+    \frac{\partial^3 u}{\partial x^3} &\approx \frac{u^n_{k+2} - 2 u^n_{k+1} + 2u^n_{k-1} - u^n_{k-2}}{2 (\Delta x)^3}
+\end{align}
+
+Combining all this, our finite difference equation is
+\begin{align}
+    0 &= \frac{u^{n+1}_{k} - u^{n-1}_{k}}{2 \Delta t} - 6 u^n_k \frac{u^n_{k+1} - u^n_{k-1}}{2 \Delta x} + \nonumber
+    \\
+    & \quad + \frac{u^n_{k+2} - 2 u^n_{k+1} + 2u^n_{k-1} - u^n_{k-2}}{2 (\Delta x)^3}
+    \\
+    u^{n+1}_k &= u^{n-1}_{k} + 6 r u^n_k \left( u^n_{k+1} - u^n_{k-1}\right) - \nonumber
+    \\
+    & \quad - s \left( u^n_{k+2} - 2 u^n_{k+1} + 2u^n_{k-1} - u^n_{k-2} \right) \label{eq:time_dependent_discretized}
+\end{align}
+where
+\begin{align}
+    r &= \frac{\Delta t}{\Delta x}; \qquad s = \frac{\Delta t}{(\Delta x)^3}
+\end{align}
+
+We can see that the stencil covers 3 time points and 5 space points.
+This means that we need two ghost points as initial conditions, and two ghost points on \emph{each} of the two $ x $ boundaries as boundary conditions.
+
+For the spatial boundary conditions, we use
+\begin{align}
+    u^n_1 &= u^n_2 = u^n_{N_x-1} = u^n_{N_x} = 0
+\end{align}
+For our initial condition we have
+\begin{align}
+    u^1_k &= \frac{-2}{\cosh^2 \left( x_k \right)}
+\end{align}
+However, as discussed above, we need two initial conditions for this stencil.
+Thus, to obtain $ u^2_k $, we will use the same stencil, but with only a forward difference for the time derivative:
+\begin{align}
+    \frac{\partial u}{\partial t} &\approx \frac{u^{n+1} - u^n}{\Delta t}
+\end{align}
+It is easy to insert this change into the above difference equation, yielding
+\begin{align}
+    u^{n+1}_k &= u^{n}_{k} + 3 r u^n_k \left( u^n_{k+1} - u^n_{k-1}\right) - \nonumber
+    \\
+    & \quad - \frac{s}{2} \left( u^n_{k+2} - 2 u^n_{k+1} + 2u^n_{k-1} - u^n_{k-2} \right)
+\end{align}
+So we will use this difference equation for the first time step only, and then go back to using Equation~\ref{eq:time_dependent_discretized}.
+
+The code in Section~\ref{subsec:time_dependent_pde_code} implements this finite difference method to solve the equation with the given initial conditions.
+The results at $ t = 0.0, 0.4, 0.5, 1.0 $ are shown in Figure~\ref{fig:time_dependent_numerical1}.
+We see that there is excellent agreement between the numerical and analytical solutions.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Time_dependent_numerical1.pdf}
+    \caption{Numerical solutions to the time-dependent PDE (shown as dots) compared with the analytical solution (solid line).}
+    \label{fig:time_dependent_numerical1}
+\end{figure*}
+
+An animation of the solution (not included) shows the expected behaviour: the solution maintains its shape while moving to the right.
+This continues until it reaches the boundary at $ x = 15 $.
+At this point, it changes significantly from the analytical solution, because the analytical solution assumes an infinite domain, while the numerical solution imposes ``clamped'' boundary conditions at $ x = \pm 15 $.
+
+When the wave hits either boundary, it reflects back.
+However, its shape is not maintained at all as it bounces back.
+What we see is dispersion, where waves of different frequencies travel at different speeds, leading to a messy oscillatory behaviour.
+This is not instability (the messy oscillations do not grow), but rather a result of the third spatrial derivative, which adds a dispersive effect.
+
+We can see this dispersion in a different way if we use the initial condition
+\begin{align}
+    u(x,0) &= \frac{-6}{\cosh^2(x)}
+\end{align}
+In this case, for an infinite domain, the analytical solution is
+\begin{align}
+    u(x,t) &= -12 \left( \frac{3 + 4 \cosh(2x - 8t) + \cosh(4x - 64t)}{\big( 3 \cosh(x - 28 t) + \cosh(3x - 36 t) \big)^2} \right)
+\end{align}
+Using the finite difference scheme above, a numerical solution was also obtained for this initial condition (but with clamped boundaries).
+The results are shown in Figure~\ref{fig:time_dependent_numerical2}.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Time_dependent_numerical2.pdf}
+    \caption{Numerical solutions to the time-dependent PDE (shown as dots) compared with the analytical solution (solid line).}
+    \label{fig:time_dependent_numerical2}
+\end{figure*}
+
+Here we see more clearly the dispersive behaviour.
+Immediately, the initial pulse splits into two pulses moving at different speeds.
+This clearly demonstrates the dispersive behaviour where different solutions move advectively at different speeds.
+We also see the messy oscillatory behaviour when the faster wave hits the boundary at $ x = 15 $.
+The analytical solution continues to move on, while the numerical solution reflects off the boundary, scattering into a bunch of different waves.
+This diverging behaviour is expected because the finite difference equation solves a different problem than the analytical solution.
+
+So we see that $ \partial u / \partial x^3 $ term has the effect of separating different characteristic waves by giving them different wave speed.
+Temporally, this means that different wave shapes move at different speeds.
+Spatially, this means that spatial shapes will split up over time as different waves move at different speed.
+This is a dispersive effect which leads to messy-looking solutions which are actually still stable and correct.
+
+\subsection{Time-dependent PDE in 2 dimensions}
+\label{subsec:time_dependent_pde_in_2_dimensions}
+
+Here we solve the 2D wave equation
+\begin{align}
+    u_{tt}(x,y,t) = c^2 \left( u_{xx}(x,y,t) + u_{yy}(x,y,t) \right)
+\end{align}
+subject to initial conditions
+\begin{align}
+    u(x,y,0) &= 2 \sin \left( \frac{\pi x}{4} \right) \sin \left( \frac{\pi y}{4} \right) \label{eq:init_cond1}
+    \\
+    u_t(x,y,0) &= 0 \label{eq:init_cond2}
+\end{align}
+An analytical solution to this equation is
+\begin{align}
+    u(x,y,t) &= 2 \sin \left( \frac{\pi x}{4} \right) \sin \left( \frac{\pi y}{4} \right) \cos \left( \frac{\pi c t}{2\sqrt{2}} \right)
+\end{align}
+If we choose our domain to be $ -2 \leq x,y \leq 2 $, then this solution satisfies the Neumann boundary conditions
+\begin{align}
+    u_x(\pm 2, y, t) &= 0 \label{eq:bound_cond_x}
+    \\
+    u_y(x, \pm 2, t) &= 0 \label{eq:bound_cond_y}
+\end{align}
+
+Let us discretize the equation using
+\begin{align}
+    u^n_{k,l} &\approx u\big(k \Delta x, l \Delta y, n \Delta t\big)
+\end{align}
+
+Then, using symmetric differences for each second derivative, we get
+\begin{align}
+    \frac{u^{n+1}_{k,l} - 2 u^{n}_{k,l} + u^{n-1}_{k,l}}{\left( \Delta t \right)^2} &= c^2 \left( \frac{u^{n}_{k+1,l} - 2 u^{n}_{k,l} + u^{n}_{k-1,l}}{\left( \Delta x \right)^2} \right. + \nonumber
+    \\
+    & \qquad + \left. \frac{u^{n}_{k,l+1} - 2 u^{n}_{k,l} + u^{n}_{k,l-1}}{\left( \Delta y \right)^2} \right)
+\end{align}
+
+To make things simpler, let
+\begin{align}
+    r_x = \frac{c \Delta t}{ \Delta x}; \qquad r_y = \frac{c \Delta t }{ \Delta y }
+\end{align}
+Then our explicit update equation becomes
+\begin{align}
+    u^{n+1}_{k,l} &= 2 u^{n}_{k,l} - u^{n-1}_{k,l} + r_x^2 \left( u^{n}_{k+1,l} - 2 u^{n}_{k,l} + u^{n}_{k-1,l} \right) + \nonumber
+    \\
+    & \quad + r_y^2 \left( u^{n}_{k,l+1} - 2 u^{n}_{k,l} + u^{n}_{k,l-1} \right)
+\end{align}
+
+This equation gives us $ u^n_{k,l} $ for $ 3 \leq n $, $ 2 \leq x \leq N_x-1  $, and $ 2 \leq y \leq N_y-1   $.
+So we still need two initial conditions and four boundary conditions.
+To implement the initial conditions~\ref{eq:init_cond1} and~\ref{eq:init_cond2}, we use
+\begin{align}
+    u^1_{k,l} &= u^2_{k,l} = 2 \sin \left( \frac{\pi x_k}{4} \right) \sin \left( \frac{\pi y_l}{4} \right)
+\end{align}
+To implement the Neumann boundary conditions~\ref{eq:bound_cond_x} and~\ref{eq:bound_cond_y}, we use (for $ n > 2 $)
+\begin{align}
+    u^n_{1,l} &= u^n_{2,l}
+    \\
+    u^n_{N_x,l} &= u^n_{N_x-1,l}
+    \\
+    u^n_{k,1} &= u^n_{k,2}
+    \\
+    u^n_{k,N_y} &= u^n_{k,N_y-1}
+\end{align}
+
+The code in Section~\ref{subsec:time_dependent_2d_pde_code} implements this finite difference scheme to solve the given equation with $ c = 0.7 $, $ \Delta x = \Delta y = 0.1 $ and $ \Delta t = 0.1 $.
+The solution was calculated using the domain $ -2 \leq x,y \leq 2 $ and $ 0 \leq t \leq 10 $
+The solution at select times is shown in Figures~\ref{fig:wave_equation1a} and \ref{fig:wave_equation1b}.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Wave_equation1a.pdf}
+    \caption{Solution to the 2D wave equation with $ \Delta x = \Delta y = 0.1 $ at $ t = 0, 2, 4 $.}
+    \label{fig:wave_equation1a}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Wave_equation1b.pdf}
+    \caption{Solution to the 2D wave equation with $ \Delta x = \Delta y = 0.1 $ at $ t = 6, 8, 10 $.}
+    \label{fig:wave_equation1b}
+\end{figure*}
+
+Looking at the error plot on the right hand side, we first see that the numerical solution matches the analytical solution reasonably well with an error on the order of $ 10^{-1} $.
+As time progresses, we see a growth of perturbations from the analytical solution.
+These perturbations appear to include higher-order modes are not present originally.
+
+An animation (not included) confirms this.
+We see oscillating waves in the error which grow over time.
+Taking the solution to large values of $ t $ shows us that these errors do not grow without bound, so the solution remains stable.
+However, after a while, the numerical solution is not at all representative of the analytical solution.
+
+If we decrease the spatial resolution to $ \Delta x = \Delta y = 0.2 $, we see this error even more prominently.
+Results for $ t = 2, 4, 6 $ are shown in Figure~\ref{fig:wave_equation2}.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Wave_equation2.pdf}
+    \caption{Solution to the 2D wave equation with $ \Delta x = \Delta y = 0.2 $ at $ t = 2, 4, 6 $.}
+    \label{fig:wave_equation2}
+\end{figure*}
+
+Again we see a similar thing: as time progresses, perturbative waves move throughout the solution domain.
+The waves do not grow without bound, so the solution is stable, but they do make the solution quite incorrect after some time.
+During the time span $ 0 \leq t \leq 10 $ used here, the error got as high as 0.7.
+For very large values of $ t $, the error gets as high as 4, showing a complete mismatch in phase between the numerical and analytical solutions.
+
+Compared with the case before, using a less-dense spatial grid causes the error to grow more quickly.
+In both cases, for very large $ t $, the numerical solution will be completely out of synch with the analytical.
+However, using a coarser grid causes the solution to go out of synch more quickly: the oscillating error waves grow more quickly.
+
+Finally, the numerical solution was run using $ \Delta x = \Delta y = 0.1 $, $ \Delta t = 0.1 $, and $ c = 0.72 $.
+The results are plotted in Figure~\ref{fig:wave_equation3}.
+In this case, we see that the simulation goes completely unstable.
+\footnote{The final exam calls for $ c = 0.71 $, but with that choice of $ c $, the solution manages to stay stable for 10 seconds, leading to something almost identical to the $ c = 0.7 $ case.
+This could be due to my use of double precision, allowing the solution to stay stable for a little bit longer.
+Regardless, $ c = 0.72 $ was chosen to show the desired outcome.}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Wave_equation3.pdf}
+    \caption{Solution to the 2D wave equation with $ c = 0.72 $ at $ t = 2, 6, 10 $.}
+    \label{fig:wave_equation3}
+\end{figure*}
+
+Like the last two cases, we initially see the growth of small, oscillating error waves.
+Unlike the previous cases, though, these error waves grow without bound, leading to instability of the solution.
+By $ t = 10 $, our solution is completely useless.
+
+These drastically different outcomes from such a small difference in $ c $ demonstrate the CFL condition.
+With $ c = 0.7 $, we meet the CFL condition, and ensure that our timesteps are small enough that waves do not propagate more than one grid step in one time step.
+With $ c = 0.72 $, we violate the CFL condition, leading to catastrophic results.
+
+(The report is continued after these figures).
+
+\clearpage
+
+\section{Part II}
+\label{sec:part_ii}
+
+In this part of the exam, we use a fluid dynamics simulation provided by Dr.\ Ouyed.
+Only the changed parts of the code have been included at the end of this report.
+
+\subsection{Intro.\ and default implementation}
+\label{subsec:intro_and_default_implementation}
+
+\subsubsection{Staggered mesh}
+\label{subsubsec:staggered_mesh}
+
+The provided code uses a staggered mesh.
+This means that different discretized variables use different meshes.
+In this case, the variables of interest are the density $ \rho $, and the velocity components $ v_x $ and $ v_y $.
+Scalar variables like $ \rho $ are located at the centre of each cell:
+\begin{align}
+    \rho[i,j] &= \rho\big(i \Delta x, j \Delta y\big)
+\end{align}
+Vector variables like $ v_x, v_y $ are located on the boundaries of each cell:
+\begin{align}
+    v_x[i,j] &= v_x\big((i+1/2) \Delta x, j \Delta y \big)
+    \\
+    v_y[i,j] &= v_x\big(i \Delta x, (j+1/2) \Delta y \big)
+\end{align}
+The idea here is that scalar variables like $ \rho $ ``fill'' the cell, while vector variables like $ v_x $ and $ v_y $ describe flow through the $ x $ and $ y $ faces of the cell, respectively.
+It is easy to see why this would correspond more closely to the physics and allow for easy implementation of conservation laws.
+
+\subsubsection{Makefile}
+\label{subsubsec:makefile}
+
+A convenient way to compile the provided code is using a makefile.
+The makefile used is included in Section~\ref{subsec:makefile_code}.
+Note that there is some extra code since the provided makefile also compiles programs from Section~\ref{sec:part_i}: \texttt{Poisson.f90}, \texttt{Time\_dependent.f90}, and \texttt{Wave\_equation.f90}.
+Also note because one makefile was used for the whole final exam, that makefile is located outside of the \texttt{phys581-final-package} directory.
+
+The steps relevant to compiling the provided code are:
+\begin{enumerate}
+\item
+    Add \texttt{./phys581-final-package/} to \texttt{VPATH} so that \texttt{make} knows where to look. (Lines 16 and 19)
+\item
+    Find all \texttt{.f90} files in \texttt{./phys581-final-package}, since these are what need to be compiled. (Line 28)
+\item
+    Use the list of \texttt{.f90} files to create a corresponding list of \texttt{.o} files. (Line 35).
+    First, note that all \texttt{.o} files are stored in \texttt{./Objects/} to keep the working directory clean.
+    Second, note that the two-step compilation \texttt{.f90 ==> .o ==> .exe} is used rather than \texttt{.f90 ==> .exe} so that unchanged dependencies aren't recompiled unnecessarily.
+\item
+    Tell \texttt{make} how to compile \texttt{final581.exe} into \texttt{exe-dir}. (Line 55 and 56)
+    Lines 41 and 42 are also used implicitly here: they tell \texttt{make} how to compile \texttt{.f90} files into the required \texttt{.o} files.
+    Again, these \texttt{.o} files will be placed in a separate directory to avoid clutter.
+\end{enumerate}
+
+\subsubsection{Default run}
+\label{subsubsec:default_run}
+
+The program was run using its default settings, and the results are shown in Figures~\ref{fig:default1} and \ref{fig:default2}.
+We see the time evolution of the system: the four high density points diffuse over time, creating waves.
+These waves bounce of the rectangle in the centre, and they leave through the outer boundaries with minimal reflection.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Default/Default_ouy002.pdf}
+    \includegraphics[width=\linewidth]{Default/Default_ouy008.pdf}
+    \caption{Fluid dynamics simulation run under default settings.}
+    \label{fig:default1}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Default/Default_ouy014.pdf}
+    \includegraphics[width=\linewidth]{Default/Default_ouy020.pdf}
+    \caption{Fluid dynamics simulation run under default settings.}
+    \label{fig:default2}
+\end{figure*}
+
+A note on plots: all the Figures in this part of the exam were created using the gnuplot code in \ref{subsec:fluid_dynamics_plotting_code}.
+This plots the density in the left panel and the velocity in the right panel.
+The magnitude of the density is shown using color, and the magnitude of the velocity is shown using both color and arrow length.
+
+\subsection{The CFL condition}
+\label{subsec:the_cfl_condition}
+
+The default setup of this simulator uses an incorrect CFL condition $ \left( \Delta t = 10^{-3} \right) $ which is usually either incorrect or over-cautious.
+
+To implement the correct CFL condition, we need the speed of sound $ c_s $, which is given by
+\begin{align}
+    c_s^2 &= \left( \frac{\partial p}{\partial \rho} \right)
+\end{align}
+Plugging in the equation of state
+\begin{align}
+    p &= \rho^\gamma; \qquad \gamma = \frac{5}{3}
+\end{align}
+we get
+\begin{align}
+    c_s^2 &= \gamma \rho^{\gamma-1}
+    \\
+    c_s^2 &= \gamma \frac{\rho^{\gamma}}{\rho}
+    \\
+    c_s^2 &= \gamma \frac{p}{\rho}
+\end{align}
+We see this expression for the squared speed of sound in the original implementation of \texttt{cfl.f90}.
+
+The proper CFL condition for two dimensions is
+\begin{align}
+    \Delta t &\leq \frac{\Delta x}{\max \left\{ v_\text{max}, c_{s,\text{max}} \right\}}
+\end{align}
+The denominator term is simply the maximum velocity of the system, whether this is the maximum speed of sound in the system, 
+\begin{align}
+    c_{s, \text{max}} &= \max \left\{ \gamma \frac{p}{\rho} \right\}
+\end{align}
+or the maximum fluid speed 
+\begin{align}
+    v_\text{max} &= \max \left\{ \sqrt{v_x^2 + v_y^2} \right\}
+\end{align}
+This proper CFL condition is seen implemented in the code in Section~\ref{subsec:cfl_code}.
+
+Running the default setup with the correct CFL condition, we see a significant (roughly $ 10 \times $ to $ 100 \times) $ speedup.
+Originally, the time steps were always $ 10^{-3} $, but with the CFL condition properly implemented, the time steps ranged from about $ 10^{-2} $ to $ 10^{-1} $.
+Thus, far fewer time steps were required to complete the simulation, greatly reducing the runtime.
+
+\subsection{The injection inlet}
+\label{subsec:the_injection_inlet}
+
+Using the \texttt{activate\_inlet} subroutine from~\ref{subsec:set_objects_code}, an inlet was tested.
+This subroutine creates an inlet with $ v_x = v_\text{inlet} $, $ v_y = 0 $, and $ \rho = \rho_\text{inlet} $ surrounded by walls with $ v_x = v_y = 0 $ and $ \rho = 1 $.
+The results for $ v_\text{inlet} = 10 $ and $ \rho_\text{inlet} = 10 $ are shown in Figure~\ref{fig:inlet1} and \ref{fig:inlet2}.
+The inlet was 20 blocks wide, corresponding to about 10\% of the $ 200 \times 200 $ grid)
+In the first three frames, we see the initial disturbance propagate and spread out until it exits through the top, bottom, and right boundaries.
+In the final frame, we see the steady state behaviour, where the high-density fluid spreads out and moves cleanly through a well-defined cone.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Inlet/Inlet_ouy010.pdf}
+    \includegraphics[width=\linewidth]{Inlet/Inlet_ouy020.pdf}
+    \caption{Inlet simulation with $ v_\text{inlet} = 10 $ and $ \rho_\text{inlet} = 10 $.}
+    \label{fig:inlet1}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Inlet/Inlet_ouy030.pdf}
+    \includegraphics[width=\linewidth]{Inlet/Inlet_ouy120.pdf}
+    \caption{Inlet simulation with $ v_\text{inlet} = 10 $ and $ \rho_\text{inlet} = 10 $.}
+    \label{fig:inlet2}
+\end{figure*}
+
+Trying the same experiment with different $ v_\text{inlet} $ and $ \rho_\text{inlet} $ provides some insight into the effect of these parameters:
+\begin{itemize}
+\item
+    With low density and low velocity, we see a wide, swirling jet which slowly propagates away from the inlet.
+    The shape of the front is semi-circular.
+\item
+    With low density and high velocity we see a very narrow beam, which does not spread significantly compared to the size of the inlet.
+\item
+    With high density and low velocity, we see a more turbulent version of our initial high-density, high-velocity test.
+    The shape and size of the high-velocity cone is about the same as our original case, but it is less clean.
+\end{itemize}
+
+\subsection{Wall}
+\label{subsec:wall}
+
+Using the \texttt{inlet\_test} subroutine from~\ref{subsec:set_objects_code}, the same inlet as in Section~\ref{subsec:the_injection_inlet} was tested, but this time with a wall in front of it.
+Again, the grid resolution was doubled to $ 200\times200 $.
+The inlet was $ 20 $ blocks wide, and the ball was 30 blocks high and 10 blocks wide.
+The results are seen in Figures~\ref{fig:wall1} and \ref{fig:wall2}.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Wall/Wall_ouy010.pdf}
+    \includegraphics[width=\linewidth]{Wall/Wall_ouy020.pdf}
+    \caption{Inlet simulation with $ v_\text{inlet} = 10 $ and $ \rho_\text{inlet} = 10 $ and with a wall.}
+    \label{fig:wall1}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Wall/Wall_ouy030.pdf}
+    \includegraphics[width=\linewidth]{Wall/Wall_ouy120.pdf}
+    \caption{Inlet simulation with $ v_\text{inlet} = 10 $ and $ \rho_\text{inlet} = 10 $ and with a wall.}
+    \label{fig:wall2}
+\end{figure*}
+
+From the Figures and an animation (not included) we can see that there is minimal reflection when the jet hits the wall; presumably the strong jet prevents this from happening.
+We do, however, see a strong fluid compression (high density) on the surface of the wall.
+This is in stark contrast to the boundaries at the edge of the grid, where waves propagate through instead of stopping.
+This demonstrates the difference between the wave-absorbing boundary conditions at the edge of the grid versus the zero-velocity conditions on the boundaries of a hard object.
+
+We also see that there is initially swirling vortex behaviour behind the wall.
+Later, in steady state, we see that there is no more significant vortex, and the wall simply blocks the flow, creating a low-velocity ``shadow'' behind it.
+
+\subsection{Golf ball}
+\label{subsec:golf_ball}
+
+Using the \texttt{golf\_ball\_test} subroutine from~\ref{subsec:set_objects_code}, a golf ball flying through the air was simulated.
+This time, the inlet was widened to fill the entire boundary, leading to a uniform ``wind.''
+Also, this time the grid resolution was brought back down to $ 100\times 100 $ to decrease the runtime and to better simulate a golf ball with rough edges.
+
+We see the results for different velocities and fluid densities in Figures~\ref{fig:ball1} through \ref{fig:ball8}.
+In all cases, we see a sort of vortex zone of low density and low velocity behind the ball.
+This essentially quantifies the drag experienced by the ball.
+
+With this in mind, we can observe some effects of different air densities and velocities.
+First, we notice that there is a stronger drag effect in the high-density ($ \rho_\text{in} = 5 $) simulations.
+We see strong high-density regions in front of the ball, and we see that the low-velocity region behind the ball is wider in the steady state.
+Not surprisingly, increasing the velocity has a similar effect of increasing the drag.
+In the low-velocity cases, we see that the low-velocity ``dead zone'' behind the ball is minimal, while in the high-velocity cases, there is a much more well-defined low-velocity, low-density wake behind the ball.
+
+It is difficult to see from the still images, but animations (not included) show that the rough edges of the ball induce some turbulence near the ball.
+In the high-velocity cases, this allows the wake to ``bend'' around the ball better, making it narrower.
+This reduces the viscous drag and explains why dimpled golf balls are used rather than smooth ones.
+With less drag, a ball is able to fly further, improving your golf score.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_1_1/Ball_1_1_ouy030.pdf}
+    \includegraphics[width=\linewidth]{Ball_1_1/Ball_1_1_ouy060.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 1 $ and $ \rho_\text{in} = 1 $.}
+    \label{fig:ball1}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_1_1/Ball_1_1_ouy090.pdf}
+    \includegraphics[width=\linewidth]{Ball_1_1/Ball_1_1_ouy120.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 1 $ and $ \rho_\text{in} = 1 $.}
+    \label{fig:ball2}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_1_5/Ball_1_5_ouy030.pdf}
+    \includegraphics[width=\linewidth]{Ball_1_5/Ball_1_5_ouy060.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 1 $ and $ \rho_\text{in} = 5 $.}
+    \label{fig:ball3}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_1_5/Ball_1_5_ouy090.pdf}
+    \includegraphics[width=\linewidth]{Ball_1_5/Ball_1_5_ouy120.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 1 $ and $ \rho_\text{in} = 5 $.}
+    \label{fig:ball4}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_10_1/Ball_10_1_ouy010.pdf}
+    \includegraphics[width=\linewidth]{Ball_10_1/Ball_10_1_ouy020.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 10 $ and $ \rho_\text{in} = 1 $.}
+    \label{fig:ball5}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_10_1/Ball_10_1_ouy030.pdf}
+    \includegraphics[width=\linewidth]{Ball_10_1/Ball_10_1_ouy120.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 10 $ and $ \rho_\text{in} = 1 $.}
+    \label{fig:ball6}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_10_5/Ball_10_5_ouy010.pdf}
+    \includegraphics[width=\linewidth]{Ball_10_5/Ball_10_5_ouy020.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 10 $ and $ \rho_\text{in} = 5 $.}
+    \label{fig:ball7}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Ball_10_5/Ball_10_5_ouy030.pdf}
+    \includegraphics[width=\linewidth]{Ball_10_5/Ball_10_5_ouy120.pdf}
+    \caption{Golf ball simulation with $ v_\text{in} = 10 $ and $ \rho_\text{in} = 5 $.}
+    \label{fig:ball8}
+\end{figure*}
+
+(The report is continued after these figures).
+
+\clearpage
+
+\subsection{Airplane}
+\label{subsec:airplane}
+
+As a final example, we look at air flow around an airplane.
+Again, the fluid is injected from the entire left boundary, simulating a uniform ``wind'' incident upon a rough simulated airplane shape.
+Using the \texttt{airplane\_test} subroutine from~\ref{subsec:set_objects_code}, a golf ball flying through the air was simulated.
+
+Here we use a gas of density $ \rho = 5 $.
+From the results in Section~\ref{subsec:the_cfl_condition}, we find that the speed of sound in this fluid is
+\begin{align}
+    c_s &= \sqrt{\gamma \rho^{\gamma-1}}
+    \\
+    c_s &= \sqrt{\frac{5}{3} 5^{2/3}}
+    \\
+    c_s &\approx 2.21
+\end{align}
+
+We then define the Mach number $ M $ of a moving body with speed $ v $ as
+\begin{align}
+    M &= \frac{v}{c_s}
+\end{align}
+So $ M > 1 $ represents supersonic movement.
+
+We then look at simulations of the following cases:
+\begin{itemize}
+\item
+    $ M = 0.2 $ (subsonic): Figures~\ref{fig:plane1a} and~\ref{fig:plane1b}
+\item
+    $ M = 1.1 $ (supersonic): Figures~\ref{fig:plane2a} and~\ref{fig:plane2b}
+\item
+    $ M = 3.0 $ (supersonic): Figures~\ref{fig:plane3a} and~\ref{fig:plane3b}
+\item
+    $ M = 7.5 $ (hypersonic): Figures~\ref{fig:plane4a} and~\ref{fig:plane4b}
+\end{itemize}
+
+In the $ M = 0.2 $ case, we see vortex behaviour behind the wings, but we do not see a strong pressure shock at the front of the plane.
+When we move to just past the sound barrier at $ M = 1.1 $, we see a sharp difference.
+There are very strong shocks reflected off the front of the plane: an animation shows that these shocks move quite slowly since we are only slightly above the speed of sound.
+We begin to see a bow-shock shape form around the plane.
+At $ M = 3.0 $, we do not see these large, slow-moving shocks, but rather strong high-density zones immediately in front of the wings.
+We see that the bow shock shape is better-defined here.
+In both the $ M = 1.1 $ and $ M = 3.0 $ cases we still see some sort of vortex behaviour behind the wings.
+
+In the hypersonic case $ M = 7.5 $, we see the high-density zones get compressed even further.
+Note the scale on the density axis in this case: the densities in front of the wings are extremely high compared to the previous cases.
+Here we see a very strong thin bow shock form as the air deforms around the plane.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_02/Plane_M_02_ouy020.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_02/Plane_M_02_ouy050.pdf}
+    \caption{Airplane simulation with $ M = 0.2 $ (subsonic).}
+    \label{fig:plane1a}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_02/Plane_M_02_ouy100.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_02/Plane_M_02_ouy160.pdf}
+    \caption{Airplane simulation with $ M = 0.2 $ (subsonic).}
+    \label{fig:plane1b}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_11a/Plane_M_11a_ouy020.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_11a/Plane_M_11a_ouy040.pdf}
+    \caption{Airplane simulation with $ M = 1.1 $ (supersonic).}
+    \label{fig:plane2a}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_11a/Plane_M_11a_ouy080.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_11a/Plane_M_11a_ouy160.pdf}
+    \caption{Airplane simulation with $ M = 1.1 $ (supersonic).}
+    \label{fig:plane2b}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_30a/Plane_M_30a_ouy020.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_30a/Plane_M_30a_ouy030.pdf}
+    \caption{Airplane simulation with $ M = 3.0 $ (supersonic).}
+    \label{fig:plane3a}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_30a/Plane_M_30a_ouy040.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_30a/Plane_M_30a_ouy160.pdf}
+    \caption{Airplane simulation with $ M = 3.0 $ (supersonic).}
+    \label{fig:plane3b}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_75/Plane_M_75_ouy010.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_75/Plane_M_75_ouy020.pdf}
+    \caption{Airplane simulation with $ M = 7.5 $ (hypersonic).}
+    \label{fig:plane4a}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_75/Plane_M_75_ouy030.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_75/Plane_M_75_ouy160.pdf}
+    \caption{Airplane simulation with $ M = 7.5 $ (hypersonic).}
+    \label{fig:plane4b}
+\end{figure*}
+
+
+We repeat the $ M = 1.1 $ and $ M = 3.0 $ cases, but with a more ``streamlined'' wing shape.
+This is seen in Figures~\ref{fig:plane5a}, \ref{fig:plane5b}, \ref{fig:plane6a}, and \ref{fig:plane6b}. 
+In the $ M = 1.1 $ case, we still see large shocks at the front of the plane, but they are reduced in intensity compared with the wide-wing case.
+In fact, we see that the biggest shock is due to the nose of the plane, which could be made sharper.
+In the $ M = 3.0 $ case we again see a significant reduction in the intensity of the shocks in front of the wing.
+In the velocity profiles of both cases, we can see that the plane causes much less of a disturbance to the air flow with this configuration.
+It is easy to see why this swept wing configuration would be preferable at supersonic speeds.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_11b/Plane_M_11b_ouy020.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_11b/Plane_M_11b_ouy040.pdf}
+    \caption{Airplane simulation with $ M = 1.1 $ (supersonic).}
+    \label{fig:plane5a}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_11b/Plane_M_11b_ouy080.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_11b/Plane_M_11b_ouy160.pdf}
+    \caption{Airplane simulation with $ M = 1.1 $ (supersonic).}
+    \label{fig:plane5b}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_30b/Plane_M_30b_ouy020.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_30b/Plane_M_30b_ouy030.pdf}
+    \caption{Airplane simulation with $ M = 3.0 $ (supersonic).}
+    \label{fig:plane6a}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Plane_M_30b/Plane_M_30b_ouy040.pdf}
+    \includegraphics[width=\linewidth]{Plane_M_30b/Plane_M_30b_ouy160.pdf}
+    \caption{Airplane simulation with $ M = 3.0 $ (supersonic).}
+    \label{fig:plane6b}
+\end{figure*}
+
+From these results, we can see why there would have been a lot of accidents when supersonic speed was first achieved.
+At subsonic speeds, we do not see any extreme behaviour: we can see that designing planes at subsonic speeds would be relatively forgiving.
+At first, when passing the sound barrier, we see a large density front build up in front of the aircraft, and a large amount of turbulence behind the aircraft.
+Dealing with these extreme density (and thus pressure) differences would make the airplane extremely difficult to control.
+
+At higher speeds $ M = 3.0 $ and $ M = 7.5 $, we see a more and more consistent airflow, but we see extremely high density zones in front of the wings, which would likely lead to high stress on the wings.
+At any speed $ M > 1 $, if the plane is not designed to reduce these effects (e.g., by angling the wings back), we can see that the plane would either be destroyed by extreme stresses, or the pilot would be unable to control the plane, causing crashes.
+We can see that it would be difficult to predict these effects by looking at subsonic flight, so it is no surprise that the early days of supersonic flight were difficult.
+
+On a simulation note, we can see from the airplane and golf ball results why finite-element methods would be desirable when compared with finite-difference methods.
+Finite element methods do not discretize using a regular lattice.
+Rather, the shape of each volume or element is unique and based on the geometry of the objects considered.
+This allows us to discretize objects while staying true to their important geometric characteristics.
+
+In finite difference where the unit cell is always a square or a cube, we often have to sacrifice the geometric characteristics of the object we are considering.
+The golf ball and the plane both had rough blocky edges which were purely an artefact of the discretization.
+Though it was difficult to see from the still shots, animations showed some amount of turbulence generated by these blocky edges.
+We also could see in the plane simulations that there was an asymmetry in the behaviour of the fluids, even though the plane should ideally symmetric.
+These are purely numerical effects, and could be avoided by transitioning to a finite element simulation.
+The downside is that finite-element simulations are much more challenging to program.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+In this report, we looked at a wide range of finite difference approaches for solving partial differential equations.
+We first saw that numerical solutions of PDEs are not trivial, and each case must be carefully considered before choosing and implementing a scheme.
+We then saw the great utility of numerical PDE solutions, which allowed us to explore complicated fluid dynamics problems.
+These problems involving flow around objects would have been extremely difficult or impossible to solve analytically.
+Thus we see that being able to solve PDEs using finite differences is an important skill for any scientist or engineer.
+
+\onecolumn
+
+\section{Code}
+\label{sec:code}
+
+\subsection{Poisson equation code}
+\label{subsec:poisson_equation_code}
+
+\lstinputlisting[breaklines]{../Poisson.f90}
+\vspace{10pt}
+
+\subsection{Poisson equation plotting code}
+\label{subsec:poisson_equation_plotting_code}
+
+\lstinputlisting[breaklines]{../Poisson.gpi}
+\vspace{10pt}
+
+\subsection{Time-dependent PDE code}
+\label{subsec:time_dependent_pde_code}
+
+\lstinputlisting[breaklines]{../Time_dependent.f90}
+\vspace{10pt}
+
+\subsection{Time-dependent PDE plotting code}
+\label{subsec:time_dependent_pde_plotting_code}
+
+\lstinputlisting[breaklines]{../Time_dependent.gpi}
+\vspace{10pt}
+
+\subsection{Time-dependent 2D PDE code}
+\label{subsec:time_dependent_2d_pde_code}
+
+\lstinputlisting[breaklines]{../Wave_equation.f90}
+\vspace{10pt}
+
+\subsection{Time-dependent 2D PDE plotting code}
+\label{subsec:time_dependent_2d_pde_plotting_code}
+
+\lstinputlisting[breaklines]{../Wave_equation.gpi}
+\vspace{10pt}
+
+\subsection{Makefile code}
+\label{subsec:makefile_code}
+
+\lstinputlisting[breaklines]{../makefile}
+\vspace{10pt}
+
+\subsection{Fluid dynamics plotting code}
+\label{subsec:fluid_dynamics_plotting_code}
+
+\lstinputlisting[breaklines]{../final581.gpi}
+\vspace{10pt}
+
+\subsection{CFL code}
+\label{subsec:cfl_code}
+
+\lstinputlisting[breaklines]{../phys581-final-package/cfl.f90}
+\vspace{10pt}
+
+\subsection{Set objects code}
+\label{subsec:set_objects_code}
+
+\lstinputlisting[breaklines]{../phys581-final-package/setobjects.f90}
+\vspace{10pt}
+
+
+
+\end{document}

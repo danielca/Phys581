@@ -1,0 +1,224 @@
+set loadpath './Gnuplot_stuff/'
+load 'parula.pal'
+load 'my_config.cfg'
+
+set terminal pngcairo enhanced size 2.5*2*640, 3*2*480 fontscale 2 lw 2
+
+set output "./Plots/Wave_equation1a.png"
+
+set multiplot layout 3, 3
+
+set xlabel "x"
+set ylabel "y"
+set xrange[-2:2]
+set yrange[-2:2]
+set cbrange[-2:2]
+set pm3d map
+unset key
+unset grid
+
+set size ratio -1
+
+do for [i = 0:50:20]{
+set cbrange[-2:2]
+my_title = sprintf("Analytical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation1.txt" index i using 1:2:5 palette
+
+my_title = sprintf("Numerical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation1.txt" index i using 1:2:4 palette
+
+my_title = sprintf("Error in solution at t = %03.1f s", 0.1*i)
+set title my_title
+set cbrange[0:0.1]
+splot "./Data/Wave_equation1.txt" index i using 1:2:6 palette
+}
+
+unset multiplot
+
+set output "./Plots/Wave_equation1b.png"
+
+set multiplot layout 3, 3
+
+set xlabel "x"
+set ylabel "y"
+set xrange[-2:2]
+set yrange[-2:2]
+set cbrange[-2:2]
+set pm3d map
+unset key
+unset grid
+
+set size ratio -1
+
+do for [i = 60:100:20]{
+set cbrange[-2:2]
+my_title = sprintf("Analytical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation1.txt" index i using 1:2:5 palette
+
+my_title = sprintf("Numerical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation1.txt" index i using 1:2:4 palette
+
+my_title = sprintf("Error in solution at t = %03.1f s", 0.1*i)
+set title my_title
+set cbrange[0:0.3]
+splot "./Data/Wave_equation1.txt" index i using 1:2:6 palette
+}
+
+unset multiplot
+
+
+set terminal gif animate enhanced size 2.5*2*640, 2*480 fontscale 2 lw 2
+
+set output "./Plots/Wave_equation_animation1.gif"
+
+
+set title "Wave equation animation"
+
+do for [i = 0:100]{
+set multiplot layout 1, 3
+
+set cbrange[-2:2]
+my_title = sprintf("Analytical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation1.txt" index i using 1:2:5 palette
+
+my_title = sprintf("Numerical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation1.txt" index i using 1:2:4 palette
+
+set cbrange[0:0.3]
+my_title = sprintf("Error in solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation1.txt" index i using 1:2:6 palette
+
+unset multiplot
+}
+
+set terminal pngcairo enhanced size 2.5*2*640, 3*2*480 fontscale 2 lw 2
+
+set output "./Plots/Wave_equation2.png"
+
+set multiplot layout 3, 3
+
+set xlabel "x"
+set ylabel "y"
+set xrange[-2:2]
+set yrange[-2:2]
+set cbrange[-2:2]
+set pm3d map
+unset key
+unset grid
+
+do for [i = 20:61:20]{
+set cbrange[-2:2]
+my_title = sprintf("Analytical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation2.txt" index i using 1:2:5 palette
+
+my_title = sprintf("Numerical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation2.txt" index i using 1:2:4 palette
+
+my_title = sprintf("Error in solution at t = %03.1f s", 0.1*i)
+set title my_title
+set cbrange[0:0.7]
+splot "./Data/Wave_equation2.txt" index i using 1:2:6 palette
+}
+
+unset multiplot
+
+set terminal gif animate enhanced size 2.5*2*640, 2*480 fontscale 2 lw 2
+
+set output "./Plots/Wave_equation_animation2.gif"
+
+
+set title "Wave equation animation"
+
+do for [i = 0:100]{
+set multiplot layout 1, 3
+
+set cbrange[-2:2]
+my_title = sprintf("Analytical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation2.txt" index i using 1:2:5 palette
+
+my_title = sprintf("Numerical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation2.txt" index i using 1:2:4 palette
+
+set cbrange[0:0.7]
+my_title = sprintf("Error in solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation2.txt" index i using 1:2:6 palette
+
+unset multiplot
+}
+
+set terminal pngcairo enhanced size 2.5*2*640, 3*2*480 fontscale 2 lw 2
+
+set output "./Plots/Wave_equation3.png"
+
+set multiplot layout 3, 3
+
+set xlabel "x"
+set ylabel "y"
+set xrange[-2:2]
+set yrange[-2:2]
+set cbrange[-2:2]
+set pm3d map
+unset key
+unset grid
+
+do for [i = 20:101:40]{
+set cbrange[-2:2]
+my_title = sprintf("Analytical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation3.txt" index i using 1:2:5 palette
+
+my_title = sprintf("Numerical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation3.txt" index i using 1:2:4 palette
+
+my_title = sprintf("Error in solution at t = %03.1f s", 0.1*i)
+set title my_title
+set cbrange[0:0.3]
+splot "./Data/Wave_equation3.txt" index i using 1:2:6 palette
+}
+
+unset multiplot
+
+set terminal gif animate enhanced size 2.5*2*640, 2*480 fontscale 2 lw 2
+
+set output "./Plots/Wave_equation_animation3.gif"
+
+
+set title "Wave equation animation"
+
+do for [i = 0:100]{
+set multiplot layout 1, 3
+
+set cbrange[-2:2]
+my_title = sprintf("Analytical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation3.txt" index i using 1:2:5 palette
+
+my_title = sprintf("Numerical solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation3.txt" index i using 1:2:4 palette
+
+set cbrange[0:0.3]
+my_title = sprintf("Error in solution at t = %03.1f s", 0.1*i)
+set title my_title
+splot "./Data/Wave_equation3.txt" index i using 1:2:6 palette
+
+unset multiplot
+}
+
+
+!mogrify -format pdf ./Plots/*.png && rm ./Plots/*.png
+
+reset
